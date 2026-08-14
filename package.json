@@ -19,6 +19,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.8.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@serwist/next": "^9.5.12",
     "@types/web-push": "^3.6.4",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -35,6 +36,7 @@
     "react-hook-form": "^7.85.0",
     "recharts": "^3.8.0",
     "server-only": "^0.0.1",
+    "serwist": "^9.5.12",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
     "web-push": "^3.6.7",

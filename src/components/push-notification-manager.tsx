@@ -30,7 +30,7 @@ export function PushNotificationManager() {
     const supported = 'serviceWorker' in navigator && 'PushManager' in window;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     if (supported) {
-      // @ts-ignore
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSupported(true);
     }
 

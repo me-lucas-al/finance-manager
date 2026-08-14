@@ -47,7 +47,7 @@ export async function signup(formData: unknown) {
     await setSessionCookie(newUser.id);
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Ocorreu um erro no servidor' };
   }
 }
@@ -91,7 +91,7 @@ export async function login(formData: unknown) {
     await setSessionCookie(user.id);
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Ocorreu um erro no servidor' };
   }
 }
