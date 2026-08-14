@@ -1,0 +1,13 @@
+import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
+import { financialPeriods } from '../../../../db/schema/financialPeriods';
+
+export type FinancialPeriod = InferSelectModel<typeof financialPeriods>;
+export type NewFinancialPeriod = InferInsertModel<typeof financialPeriods>;
+
+export interface IPeriodRepository {
+  create(data: NewFinancialPeriod): Promise<FinancialPeriod>;
+  findById(id: string): Promise<FinancialPeriod | null>;
+  findByUserId(userId: string): Promise<FinancialPeriod[]>;
+  update(id: string, data: Partial<NewFinancialPeriod>): Promise<FinancialPeriod>;
+  delete(id: string): Promise<void>;
+}
