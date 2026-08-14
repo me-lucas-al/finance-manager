@@ -2,6 +2,9 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
+
 export default function DashboardLayout({
   children,
 }: {

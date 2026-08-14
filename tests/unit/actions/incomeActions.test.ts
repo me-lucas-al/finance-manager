@@ -109,7 +109,7 @@ describe('incomeActions', () => {
 
       const result = await updateIncome('i1', { amount: 200 });
       expect(result).toEqual({ success: true, data: { id: 'i1', amount: 200 } });
-      expect(mockUpdateIncome).toHaveBeenCalledWith('i1', { amount: 200 });
+      expect(mockUpdateIncome).toHaveBeenCalledWith('i1', 'u1', { amount: 200 });
     });
   });
 
@@ -129,7 +129,7 @@ describe('incomeActions', () => {
 
       const result = await deleteIncome('i1');
       expect(result).toEqual({ success: true });
-      expect(mockDeleteIncome).toHaveBeenCalledWith('i1');
+      expect(mockDeleteIncome).toHaveBeenCalledWith('i1', 'u1');
     });
   });
 });

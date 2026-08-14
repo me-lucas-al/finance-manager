@@ -21,23 +21,24 @@ class MockIncomeRepository implements IIncomeRepository {
     return income;
   }
 
-  async findById(id: string): Promise<Income | null> {
-    return this.incomes.find((i) => i.id === id) || null;
+  async findById(id: string, userId: string): Promise<Income | null> {
+    const income = this.incomes.find(i => i.id === id && i.userId === userId);
+    return income || null;
   }
 
-  async findByPeriodId(periodId: string): Promise<Income[]> {
-    return this.incomes.filter((i) => i.periodId === periodId);
+  async findByPeriodId(periodId: string, userId: string): Promise<Income[]> {
+    return this.incomes.filter(i => i.periodId === periodId && i.userId === userId);
   }
 
-  async update(id: string, data: Partial<NewIncome>): Promise<Income> {
-    const index = this.incomes.findIndex((i) => i.id === id);
+  async update(id: string, userId: string, data: Partial<NewIncome>): Promise<Income> {
+    const index = this.incomes.findIndex(i => i.id === id && i.userId === userId);
     if (index === -1) throw new Error('Income not found');
     this.incomes[index] = { ...this.incomes[index], ...data, updatedAt: new Date() };
     return this.incomes[index];
   }
 
-  async delete(id: string): Promise<void> {
-    this.incomes = this.incomes.filter((i) => i.id !== id);
+  async delete(id: string, userId: string): Promise<void> {
+    this.incomes = this.incomes.filter((i) => i.id !== id || i.userId !== userId);
   }
 }
 
@@ -74,7 +75,7 @@ describe('IncomeService', () => {
       receivedAt: new Date(),
     });
 
-    const incomes = await service.getIncomesByPeriod('period-1');
+    const incomes = await service.getIncomesByPeriod('period-1', 'user-1');
     expect(incomes).toHaveLength(1);
   });
 
@@ -88,7 +89,7 @@ describe('IncomeService', () => {
       receivedAt: new Date(),
     });
 
-    const updated = await service.updateIncome(created.id, { amount: 600000 });
+    const updated = await service.updateIncome(created.id, 'user-1', { amount: 600000 });
     expect(updated.amount).toBe(600000);
   });
 
@@ -102,8 +103,8 @@ describe('IncomeService', () => {
       receivedAt: new Date(),
     });
 
-    await service.deleteIncome(created.id);
-    const incomes = await service.getIncomesByPeriod('period-1');
+    await service.deleteIncome(created.id, 'user-1');
+    const incomes = await service.getIncomesByPeriod('period-1', 'user-1');
     expect(incomes).toHaveLength(0);
   });
 
@@ -117,7 +118,7 @@ describe('IncomeService', () => {
       receivedAt: new Date(),
     });
 
-    const found = await service.getIncomeById(created.id);
+    const found = await service.getIncomeById(created.id, 'user-1');
     expect(found?.description).toBe('Salary');
   });
 });

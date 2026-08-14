@@ -21,27 +21,28 @@ class MockInvestmentRepository implements IInvestmentRepository {
     return investment;
   }
 
-  async findById(id: string): Promise<Investment | null> {
-    return this.investments.find((i) => i.id === id) || null;
+  async findById(id: string, userId: string): Promise<Investment | null> {
+    const investment = this.investments.find(i => i.id === id && i.userId === userId);
+    return investment || null;
   }
 
   async findByUserId(userId: string): Promise<Investment[]> {
-    return this.investments.filter((i) => i.userId === userId);
+    return this.investments.filter(i => i.userId === userId);
   }
 
-  async findByPeriodId(periodId: string): Promise<Investment[]> {
-    return this.investments.filter((i) => i.periodId === periodId);
+  async findByPeriodId(periodId: string, userId: string): Promise<Investment[]> {
+    return this.investments.filter(i => i.periodId === periodId && i.userId === userId);
   }
 
-  async update(id: string, data: Partial<NewInvestment>): Promise<Investment> {
-    const index = this.investments.findIndex((i) => i.id === id);
+  async update(id: string, userId: string, data: Partial<NewInvestment>): Promise<Investment> {
+    const index = this.investments.findIndex(i => i.id === id && i.userId === userId);
     if (index === -1) throw new Error('Investment not found');
     this.investments[index] = { ...this.investments[index], ...data, updatedAt: new Date() };
     return this.investments[index];
   }
 
-  async delete(id: string): Promise<void> {
-    this.investments = this.investments.filter((i) => i.id !== id);
+  async delete(id: string, userId: string): Promise<void> {
+    this.investments = this.investments.filter((i) => i.id !== id || i.userId !== userId);
   }
 }
 
@@ -92,7 +93,7 @@ describe('InvestmentService', () => {
       date: new Date(),
     });
 
-    const updated = await service.updateInvestment(created.id, { amount: 150000 });
+    const updated = await service.updateInvestment(created.id, 'user-1', { amount: 150000 });
     expect(updated.amount).toBe(150000);
   });
 
@@ -106,7 +107,7 @@ describe('InvestmentService', () => {
       date: new Date(),
     });
 
-    await service.deleteInvestment(created.id);
+    await service.deleteInvestment(created.id, 'user-1');
     const investments = await service.getInvestmentsByUser('user-1');
     expect(investments).toHaveLength(0);
   });
@@ -121,7 +122,7 @@ describe('InvestmentService', () => {
       date: new Date(),
     });
 
-    const found = await service.getInvestmentById(created.id);
+    const found = await service.getInvestmentById(created.id, 'user-1');
     expect(found?.description).toBe('Stocks');
   });
 
@@ -135,7 +136,7 @@ describe('InvestmentService', () => {
       date: new Date(),
     });
 
-    const found = await service.getInvestmentsByPeriod('period-1');
+    const found = await service.getInvestmentsByPeriod('period-1', 'user-1');
     expect(found).toHaveLength(1);
   });
 });

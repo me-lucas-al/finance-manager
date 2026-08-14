@@ -7,6 +7,36 @@ import { hashPassword, verifyPassword } from '@/lib/password';
 import { setSessionCookie, deleteSessionCookie } from '@/lib/session';
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
+
+const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+
+function checkRateLimit(): boolean {
+  const ip = headers().get('x-forwarded-for') || headers().get('x-real-ip') || 'unknown';
+  if (ip === 'unknown') return true;
+
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+  const maxRequests = 10; // Allow 10 attempts per 15 mins
+  
+  const record = rateLimitMap.get(ip);
+  if (!record) {
+    rateLimitMap.set(ip, { count: 1, lastReset: now });
+    return true;
+  }
+  
+  if (now - record.lastReset > windowMs) {
+    rateLimitMap.set(ip, { count: 1, lastReset: now });
+    return true;
+  }
+  
+  if (record.count >= maxRequests) {
+    return false;
+  }
+  
+  record.count += 1;
+  return true;
+}
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
@@ -16,6 +46,10 @@ const signupSchema = z.object({
 
 export async function signup(formData: unknown) {
   try {
+    if (!checkRateLimit()) {
+      return { success: false, error: 'Muitas tentativas. Tente novamente mais tarde.' };
+    }
+
     const validatedFields = signupSchema.safeParse(formData);
 
     if (!validatedFields.success) {
@@ -59,6 +93,10 @@ const loginSchema = z.object({
 
 export async function login(formData: unknown) {
   try {
+    if (!checkRateLimit()) {
+      return { success: false, error: 'Muitas tentativas. Tente novamente mais tarde.' };
+    }
+
     const validatedFields = loginSchema.safeParse(formData);
 
     if (!validatedFields.success) {

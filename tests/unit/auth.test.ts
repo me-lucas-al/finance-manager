@@ -21,8 +21,12 @@ vi.mock('next/headers', () => {
     delete: vi.fn(),
     get: vi.fn(),
   };
+  const mockHeaders = {
+    get: vi.fn(() => '127.0.0.1'),
+  };
   return {
     cookies: vi.fn(() => Promise.resolve(mockCookies)),
+    headers: vi.fn(() => mockHeaders),
   };
 });
 

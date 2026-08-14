@@ -60,13 +60,13 @@ export async function updateExpense(id: string, data: unknown) {
 
   try {
     const service = getExpenseService();
-    const existing = await service.getExpenseById(id);
+    const existing = await service.getExpenseById(id, session.userId);
     
     if (!existing || existing.userId !== session.userId) {
       return { error: 'Unauthorized or Expense not found' };
     }
 
-    const updated = await service.updateExpense(id, parsed.data);
+    const updated = await service.updateExpense(id, session.userId, parsed.data);
     
     revalidatePath('/dashboard');
     updateTag(`expenses-${session.userId}-${existing.periodId}`);
@@ -85,13 +85,13 @@ export async function deleteExpense(id: string) {
 
   try {
     const service = getExpenseService();
-    const existing = await service.getExpenseById(id);
+    const existing = await service.getExpenseById(id, session.userId);
     
     if (!existing || existing.userId !== session.userId) {
       return { error: 'Unauthorized or Expense not found' };
     }
 
-    await service.deleteExpense(id);
+    await service.deleteExpense(id, session.userId);
     
     revalidatePath('/dashboard');
     updateTag(`expenses-${session.userId}-${existing.periodId}`);

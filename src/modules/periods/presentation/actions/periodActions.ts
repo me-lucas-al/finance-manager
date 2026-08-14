@@ -44,7 +44,7 @@ export async function closePeriodAction(periodId: string): Promise<{ success: bo
     }
 
     // Verify if the period belongs to the user
-    const period = await periodRepository.findById(periodId);
+    const period = await periodRepository.findById(periodId, session.userId);
     if (!period || period.userId !== session.userId) {
        return { success: false, message: 'Period not found or access denied' };
     }

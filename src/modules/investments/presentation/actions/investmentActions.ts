@@ -60,13 +60,13 @@ export async function updateInvestment(id: string, data: unknown) {
 
   try {
     const service = getInvestmentService();
-    const existing = await service.getInvestmentById(id);
+    const existing = await service.getInvestmentById(id, session.userId);
     
     if (!existing || existing.userId !== session.userId) {
       return { error: 'Unauthorized or Investment not found' };
     }
 
-    const updated = await service.updateInvestment(id, parsed.data);
+    const updated = await service.updateInvestment(id, session.userId, parsed.data);
     
     revalidatePath('/dashboard');
     updateTag(`investments-${session.userId}-${existing.periodId}`);
@@ -85,13 +85,13 @@ export async function deleteInvestment(id: string) {
 
   try {
     const service = getInvestmentService();
-    const existing = await service.getInvestmentById(id);
+    const existing = await service.getInvestmentById(id, session.userId);
     
     if (!existing || existing.userId !== session.userId) {
       return { error: 'Unauthorized or Investment not found' };
     }
 
-    await service.deleteInvestment(id);
+    await service.deleteInvestment(id, session.userId);
     
     revalidatePath('/dashboard');
     updateTag(`investments-${session.userId}-${existing.periodId}`);

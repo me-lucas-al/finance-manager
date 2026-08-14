@@ -21,23 +21,24 @@ class MockExpenseRepository implements IExpenseRepository {
     return expense;
   }
 
-  async findById(id: string): Promise<Expense | null> {
-    return this.expenses.find((e) => e.id === id) || null;
+  async findById(id: string, userId: string): Promise<Expense | null> {
+    const expense = this.expenses.find(e => e.id === id && e.userId === userId);
+    return expense || null;
   }
 
-  async findByPeriodId(periodId: string): Promise<Expense[]> {
-    return this.expenses.filter((e) => e.periodId === periodId);
+  async findByPeriodId(periodId: string, userId: string): Promise<Expense[]> {
+    return this.expenses.filter(e => e.periodId === periodId && e.userId === userId);
   }
 
-  async update(id: string, data: Partial<NewExpense>): Promise<Expense> {
-    const index = this.expenses.findIndex((e) => e.id === id);
+  async update(id: string, userId: string, data: Partial<NewExpense>): Promise<Expense> {
+    const index = this.expenses.findIndex(e => e.id === id && e.userId === userId);
     if (index === -1) throw new Error('Expense not found');
     this.expenses[index] = { ...this.expenses[index], ...data, updatedAt: new Date() };
     return this.expenses[index];
   }
 
-  async delete(id: string): Promise<void> {
-    this.expenses = this.expenses.filter((e) => e.id !== id);
+  async delete(id: string, userId: string): Promise<void> {
+    this.expenses = this.expenses.filter((e) => !(e.id === id && e.userId === userId));
   }
 }
 
@@ -74,7 +75,7 @@ describe('ExpenseService', () => {
       date: new Date(),
     });
 
-    const expenses = await service.getExpensesByPeriod('period-1');
+    const expenses = await service.getExpensesByPeriod('period-1', 'user-1');
     expect(expenses).toHaveLength(1);
   });
 
@@ -88,7 +89,7 @@ describe('ExpenseService', () => {
       date: new Date(),
     });
 
-    const updated = await service.updateExpense(created.id, { amount: 20000 });
+    const updated = await service.updateExpense(created.id, 'user-1', { amount: 20000 });
     expect(updated.amount).toBe(20000);
   });
 
@@ -102,8 +103,8 @@ describe('ExpenseService', () => {
       date: new Date(),
     });
 
-    await service.deleteExpense(created.id);
-    const expenses = await service.getExpensesByPeriod('period-1');
+    await service.deleteExpense(created.id, 'user-1');
+    const expenses = await service.getExpensesByPeriod('period-1', 'user-1');
     expect(expenses).toHaveLength(0);
   });
 
@@ -117,7 +118,7 @@ describe('ExpenseService', () => {
       date: new Date(),
     });
 
-    const found = await service.getExpenseById(created.id);
+    const found = await service.getExpenseById(created.id, 'user-1');
     expect(found?.description).toBe('Groceries');
   });
 });

@@ -60,13 +60,13 @@ export async function updateIncome(id: string, data: unknown) {
 
   try {
     const service = getIncomeService();
-    const existing = await service.getIncomeById(id);
+    const existing = await service.getIncomeById(id, session.userId);
     
     if (!existing || existing.userId !== session.userId) {
       return { error: 'Unauthorized or Income not found' };
     }
 
-    const updated = await service.updateIncome(id, parsed.data);
+    const updated = await service.updateIncome(id, session.userId, parsed.data);
     
     revalidatePath('/dashboard');
     updateTag(`incomes-${session.userId}-${existing.periodId}`);
@@ -85,13 +85,13 @@ export async function deleteIncome(id: string) {
 
   try {
     const service = getIncomeService();
-    const existing = await service.getIncomeById(id);
+    const existing = await service.getIncomeById(id, session.userId);
     
     if (!existing || existing.userId !== session.userId) {
       return { error: 'Unauthorized or Income not found' };
     }
 
-    await service.deleteIncome(id);
+    await service.deleteIncome(id, session.userId);
     
     revalidatePath('/dashboard');
     updateTag(`incomes-${session.userId}-${existing.periodId}`);

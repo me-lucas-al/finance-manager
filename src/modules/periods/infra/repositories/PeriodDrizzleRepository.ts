@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '../../../../db/connection';
 import { financialPeriods } from '../../../../db/schema/financialPeriods';
 import { IPeriodRepository, NewFinancialPeriod, FinancialPeriod } from '../../domain/repositories/IPeriodRepository';
@@ -9,8 +9,9 @@ export class PeriodDrizzleRepository implements IPeriodRepository {
     return period;
   }
 
-  async findById(id: string): Promise<FinancialPeriod | null> {
-    const [period] = await db.select().from(financialPeriods).where(eq(financialPeriods.id, id));
+  async findById(id: string, userId?: string): Promise<FinancialPeriod | null> {
+    const whereClause = userId ? and(eq(financialPeriods.id, id), eq(financialPeriods.userId, userId)) : eq(financialPeriods.id, id);
+    const [period] = await db.select().from(financialPeriods).where(whereClause);
     return period || null;
   }
 
@@ -30,18 +31,20 @@ export class PeriodDrizzleRepository implements IPeriodRepository {
     return period || null;
   }
 
-  async update(id: string, data: Partial<NewFinancialPeriod>): Promise<FinancialPeriod> {
+  async update(id: string, data: Partial<NewFinancialPeriod>, userId?: string): Promise<FinancialPeriod> {
+    const whereClause = userId ? and(eq(financialPeriods.id, id), eq(financialPeriods.userId, userId)) : eq(financialPeriods.id, id);
     const [period] = await db
       .update(financialPeriods)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(financialPeriods.id, id))
+      .where(whereClause)
       .returning();
-    if (!period) throw new Error('Financial period not found');
+    if (!period) throw new Error('Financial period not found or unauthorized');
     return period;
   }
 
-  async delete(id: string): Promise<void> {
-    await db.delete(financialPeriods).where(eq(financialPeriods.id, id));
+  async delete(id: string, userId?: string): Promise<void> {
+    const whereClause = userId ? and(eq(financialPeriods.id, id), eq(financialPeriods.userId, userId)) : eq(financialPeriods.id, id);
+    await db.delete(financialPeriods).where(whereClause);
   }
 
   async findEndedOpenPeriods(currentDate: Date): Promise<FinancialPeriod[]> {

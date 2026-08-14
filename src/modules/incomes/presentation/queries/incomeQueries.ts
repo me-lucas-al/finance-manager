@@ -11,16 +11,16 @@ export async function getUserIncomesByPeriod(userId: string, periodId: string) {
   cacheTag(`incomes-${userId}-${periodId}`);
   
   const service = getIncomeService();
-  const incomes = await service.getIncomesByPeriod(periodId);
+  const incomes = await service.getIncomesByPeriod(periodId, userId);
   
-  return incomes.filter(income => income.userId === userId);
+  return incomes;
 }
 
 export async function getUserIncomeById(userId: string, id: string) {
   'use cache';
 
   const service = getIncomeService();
-  const income = await service.getIncomeById(id);
+  const income = await service.getIncomeById(id, userId);
   
   if (!income || income.userId !== userId) {
     return null;

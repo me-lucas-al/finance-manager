@@ -6,9 +6,9 @@ export type NewInvestment = InferInsertModel<typeof investments>;
 
 export interface IInvestmentRepository {
   create(data: NewInvestment): Promise<Investment>;
-  findById(id: string): Promise<Investment | null>;
+  findById(id: string, userId: string): Promise<Investment | null>;
   findByUserId(userId: string): Promise<Investment[]>;
-  findByPeriodId(periodId: string): Promise<Investment[]>;
-  update(id: string, data: Partial<NewInvestment>): Promise<Investment>;
-  delete(id: string): Promise<void>;
+  findByPeriodId(periodId: string, userId: string): Promise<Investment[]>;
+  update(id: string, userId: string, data: Partial<NewInvestment>): Promise<Investment>;
+  delete(id: string, userId: string): Promise<void>;
 }

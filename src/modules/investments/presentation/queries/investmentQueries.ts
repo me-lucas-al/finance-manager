@@ -11,16 +11,16 @@ export async function getUserInvestmentsByPeriod(userId: string, periodId: strin
   cacheTag(`investments-${userId}-${periodId}`);
   
   const service = getInvestmentService();
-  const investments = await service.getInvestmentsByPeriod(periodId);
+  const investments = await service.getInvestmentsByPeriod(periodId, userId);
   
-  return investments.filter(investment => investment.userId === userId);
+  return investments;
 }
 
 export async function getUserInvestmentById(userId: string, id: string) {
   'use cache';
 
   const service = getInvestmentService();
-  const investment = await service.getInvestmentById(id);
+  const investment = await service.getInvestmentById(id, userId);
   
   if (!investment || investment.userId !== userId) {
     return null;
