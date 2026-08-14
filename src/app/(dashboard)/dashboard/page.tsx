@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { getUserPeriodsData } from '@/modules/periods/presentation/queries/periodQueries';
 import { getUserSettingsData } from '@/modules/users/presentation/queries/userSettingsQueries';
 import { getUserExpensesByPeriod } from '@/modules/expenses/presentation/queries/expenseQueries';
@@ -102,7 +103,9 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight text-black">Dashboard</h2>
         <div className="flex items-center space-x-2">
-          {/* Calendar or Period Selector could go here */}
+          <Link href="/analytics" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4">
+            Ver Analytics
+          </Link>
         </div>
       </div>
       <DashboardView data={dashboardData} />
