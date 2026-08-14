@@ -1,0 +1,1304 @@
+<project_specification>
+
+  <role>
+    Você é um engenheiro de software sênior especializado em Next.js, TypeScript,
+    arquitetura DDD, sistemas financeiros, PostgreSQL, aplicações PWA e desenvolvimento
+    orientado a testes.
+
+    Seu objetivo é desenvolver um aplicativo financeiro pessoal completo, seguro,
+    performático e pronto para produção.
+
+    Você deve agir como um agente de desenvolvimento: analisar o projeto,
+    implementar as tarefas na ordem definida, executar os testes e corrigir
+    problemas antes de avançar para a próxima tarefa.
+
+    Utilize o Context7 MCP para consultar documentações oficiais quando necessário,
+    especialmente para Next.js 16, shadcn/ui, Tailwind CSS v4 e Drizzle ORM.
+  </role>
+
+  <project>
+    <name>Financeiro Pessoal</name>
+
+    <description>
+      Aplicação pessoal para controle de receitas, gastos e investimentos,
+      baseada em períodos financeiros de 15 a 14, com regra de distribuição
+      80/20 configurável, dashboard, gráficos, relatórios, histórico, fechamento automático,
+      notificações e funcionamento como PWA.
+    </description>
+  </project>
+
+  <mandatory_rules>
+    <rule>
+      Não implementar tudo de uma vez.
+    </rule>
+
+    <rule>
+      Executar as tasks exatamente na ordem definida neste documento.
+    </rule>
+
+    <rule>
+      Cada task deve seguir TDD:
+      escrever os testes primeiro, confirmar que falham, implementar,
+      fazer os testes passarem e somente então refatorar.
+    </rule>
+
+    <rule>
+      Não avançar para a próxima task enquanto a atual não estiver funcional
+      e com os testes relevantes passando.
+    </rule>
+
+    <rule>
+      Ao terminar cada task, informar:
+      arquivos criados, arquivos alterados, testes criados, comandos executados,
+      resultado dos testes e decisões arquiteturais relevantes.
+    </rule>
+
+    <rule>
+      Não inventar APIs do Next.js 16.
+      Quando houver dúvida sobre uma API, consultar a documentação oficial atual
+      antes da implementação.
+    </rule>
+
+    <rule>
+      Utilizar as APIs modernas do Next.js 16.
+      Não copiar padrões antigos de cache de versões anteriores quando houver
+      uma abordagem própria do Next.js 16.
+    </rule>
+
+    <rule>
+      Não colocar regra de negócio em componentes React.
+    </rule>
+
+    <rule>
+      A camada Domain não pode depender de Next.js, React, Drizzle ou infraestrutura.
+    </rule>
+
+    <rule>
+      Toda informação financeira deve estar isolada por usuário.
+    </rule>
+
+    <rule>
+      Nunca utilizar o tipo `any` no TypeScript. Sempre tipar explicitamente
+      todas as variáveis, parâmetros, retornos e estados. Utilizar `unknown`
+      quando necessário e fazer type guards apropriados.
+    </rule>
+
+    <rule>
+      Seguir o Princípio da Responsabilidade Única (SRP - S do SOLID).
+      Cada classe, função, módulo ou componente deve ter uma única razão para mudar.
+    </rule>
+
+    <rule>
+      Priorizar a criação de múltiplos arquivos pequenos em vez de poucos arquivos grandes.
+      Cada arquivo deve ter, preferencialmente, no máximo 100 linhas de código.
+      Exceções são permitidas apenas em casos especiais e devidamente justificados.
+    </rule>
+
+    <rule>
+      Utilizar o padrão Repository para abstrair o acesso a dados.
+      Repositories devem ser implementados na camada de infraestrutura e
+      injetados nos use cases da camada de aplicação.
+    </rule>
+
+    <rule>
+      Para componentes React que se repetem em múltiplos contextos,
+      implementar utilizando o padrão Compound Components para maior
+      flexibilidade e composição.
+    </rule>
+
+    <rule>
+      Todas as regras padrão do sistema (percentuais 80/20, categorias,
+      tipos de investimento, períodos, etc.) devem ser configuráveis pelo usuário.
+      Valores padrão devem ser aplicados, mas o usuário pode alterá-los
+      através das configurações do sistema.
+    </rule>
+
+    <rule>
+      Utilizar o Context7 MCP para consultar documentações oficiais:
+      - Next.js 16: @vercel/next.js
+      - shadcn/ui: @shadcn/ui
+      - Tailwind CSS v4: @tailwindcss/tailwindcss
+      - Drizzle ORM: @drizzle-team/drizzle-orm
+    </rule>
+
+    <rule>
+      A estilização deve ser feita com Tailwind CSS v4, utilizando as skills
+      de estilização para criar uma interface moderna e profissional.
+      Não deve parecer que foi feita por IA.
+    </rule>
+
+    <rule>
+      A paleta de cores deve ser baseada em:
+      - Preto (#000000) para textos e elementos principais
+      - Branco (#FFFFFF) para fundos e contraste
+      - Azul escuro (#1E293B, #0F172A, #1A2332) para elementos de destaque
+      - Variações sutis de cinza para hierarquia visual
+    </rule>
+  </mandatory_rules>
+
+  <technology_stack>
+    <frontend>
+      <framework>Next.js 16</framework>
+      <language>TypeScript</language>
+      <react>React</react>
+      <routing>App Router</routing>
+      <styling>Tailwind CSS v4</styling>
+      <components>shadcn/ui com tema personalizado</components>
+    </frontend>
+
+    <backend>
+      <runtime>Next.js Server</runtime>
+      <mutations>Server Actions</mutations>
+    </backend>
+
+    <database>
+      <database>PostgreSQL</database>
+      <provider>Neon</provider>
+      <orm>Drizzle ORM</orm>
+      <migration>Drizzle Kit</migration>
+    </database>
+
+    <testing>
+      <unit>Vitest</unit>
+      <e2e>Playwright</e2e>
+      <methodology>TDD</methodology>
+    </testing>
+
+    <deployment>
+      <platform>Vercel</platform>
+    </deployment>
+
+    <pwa>
+      <enabled>true</enabled>
+    </pwa>
+
+    <package_manager>
+      pnpm
+    </package_manager>
+
+    <mcp>
+      <context7>Utilizado para consultar documentações oficiais</context7>
+    </mcp>
+  </technology_stack>
+
+  <architecture>
+    <pattern>Domain-Driven Design</pattern>
+
+    <layers>
+      <domain>
+        Regras de negócio, entidades, value objects, domain services e erros de domínio.
+        Não pode depender de frameworks ou banco de dados.
+      </domain>
+
+      <application>
+        Use cases, comandos, queries e orquestração das regras de negócio.
+      </application>
+
+      <infrastructure>
+        Drizzle, PostgreSQL, Neon, autenticação, notificações, serviços externos
+        e implementações concretas de repositories.
+      </infrastructure>
+
+      <presentation>
+        Server Components, Client Components, Server Actions, formulários,
+        tabelas, gráficos e UI.
+      </presentation>
+    </layers>
+
+    <suggested_structure>
+      <![CDATA[
+      src/
+      ├── app/
+      │   ├── (auth)/
+      │   │   ├── login/
+      │   │   └── register/
+      │   │
+      │   ├── (dashboard)/
+      │   │   ├── dashboard/
+      │   │   ├── expenses/
+      │   │   ├── investments/
+      │   │   ├── incomes/
+      │   │   ├── periods/
+      │   │   ├── reports/
+      │   │   ├── notifications/
+      │   │   └── settings/
+      │   │
+      │   ├── layout.tsx
+      │   └── page.tsx
+      │
+      ├── modules/
+      │   ├── auth/
+      │   ├── users/
+      │   ├── finance/
+      │   ├── incomes/
+      │   ├── expenses/
+      │   ├── investments/
+      │   ├── periods/
+      │   ├── reports/
+      │   └── notifications/
+      │
+      ├── db/
+      │   ├── schema/
+      │   ├── migrations/
+      │   ├── connection.ts
+      │   └── index.ts
+      │
+      ├── shared/
+      │   ├── components/
+      │   ├── lib/
+      │   ├── utils/
+      │   ├── errors/
+      │   └── types/
+      │
+      └── tests/
+          ├── unit/
+          └── e2e/
+      ]]>
+    </suggested_structure>
+  </architecture>
+
+  <financial_rules>
+    <financial_period>
+      <start_day>15</start_day>
+      <end_day>14</end_day>
+
+      <first_period>
+        <start>2026-09-15</start>
+        <end>2026-10-14</end>
+      </first_period>
+
+      <examples>
+        <period>2026-10-15 -> 2026-11-14</period>
+        <period>2026-11-15 -> 2026-12-14</period>
+      </examples>
+
+      <configurable>
+        O usuário pode alterar o dia de início e fim do período financeiro
+        através das configurações do sistema.
+      </configurable>
+    </financial_period>
+
+    <budget_rule>
+      <maximum_expenses_percentage>80</maximum_expenses_percentage>
+      <minimum_investment_percentage>20</minimum_investment_percentage>
+
+      <configurable>
+        O usuário pode ajustar os percentuais de gastos (padrão 80%)
+        e investimentos (padrão 20%) através das configurações.
+      </configurable>
+    </budget_rule>
+
+    <metrics>
+      <revenue>
+        Soma das receitas do período.
+      </revenue>
+
+      <expenses>
+        Soma das despesas do período.
+      </expenses>
+
+      <investments>
+        Soma dos investimentos do período.
+      </investments>
+
+      <balance>
+        Receita - Gastos - Investimentos.
+      </balance>
+
+      <expense_percentage>
+        Gastos / Receita * 100.
+      </expense_percentage>
+
+      <investment_percentage>
+        Investimentos / Receita * 100.
+      </investment_percentage>
+    </metrics>
+
+    <status>
+      <on_track>
+        Gastos &lt;= percentual configurado e Investimentos >= percentual configurado.
+      </on_track>
+
+      <warning>
+        Situação próxima do limite.
+      </warning>
+
+      <off_track>
+        Gastos > percentual configurado ou Investimentos &lt; percentual configurado.
+      </off_track>
+    </status>
+  </financial_rules>
+
+  <database_model>
+    <table name="users">
+      id
+      name
+      email
+      password_hash
+      created_at
+      updated_at
+    </table>
+
+    <table name="user_settings">
+      id
+      user_id
+      period_start_day
+      period_end_day
+      max_expenses_percentage
+      min_investment_percentage
+      expense_categories
+      investment_types
+      created_at
+      updated_at
+
+      <description>
+        Armazena configurações personalizadas por usuário.
+        Valores padrão: period_start_day=15, period_end_day=14,
+        max_expenses_percentage=80, min_investment_percentage=20.
+        expense_categories e investment_types são arrays JSON com as categorias personalizadas.
+      </description>
+    </table>
+
+    <table name="financial_periods">
+      id
+      user_id
+      start_date
+      end_date
+      status
+      closed_at
+      created_at
+      updated_at
+    </table>
+
+    <table name="incomes">
+      id
+      user_id
+      period_id
+      description
+      amount
+      category
+      received_at
+      created_at
+      updated_at
+    </table>
+
+    <table name="expenses">
+      id
+      user_id
+      period_id
+      description
+      amount
+      category
+      date
+      created_at
+      updated_at
+    </table>
+
+    <table name="investments">
+      id
+      user_id
+      period_id
+      description
+      amount
+      type
+      date
+      created_at
+      updated_at
+    </table>
+
+    <table name="notification_preferences">
+      id
+      user_id
+      expense_notifications_enabled
+      investment_notifications_enabled
+      goal_notifications_enabled
+      closing_notifications_enabled
+      general_notifications_enabled
+      push_notifications_enabled
+      created_at
+      updated_at
+    </table>
+
+    <table name="push_subscriptions">
+      id
+      user_id
+      endpoint
+      p256dh
+      auth
+      created_at
+      updated_at
+    </table>
+
+    <table name="notifications">
+      id
+      user_id
+      type
+      title
+      message
+      read_at
+      created_at
+    </table>
+
+    <requirements>
+      Utilizar foreign keys, indexes, constraints e unique constraints adequados.
+      Valores monetários não devem utilizar ponto flutuante para representar dinheiro.
+    </requirements>
+  </database_model>
+
+  <tasks>
+    <!-- TASK 01 -->
+    <task id="01" name="Project Bootstrap">
+      <goal>
+        Criar a base do projeto.
+      </goal>
+
+      <actions>
+        Criar projeto Next.js 16 com TypeScript strict, App Router,
+        Tailwind CSS v4, shadcn/ui com tema personalizado, ESLint, Prettier e pnpm.
+
+        Configurar aliases.
+
+        Criar .env.example.
+
+        Criar estrutura inicial de pastas DDD.
+
+        Configurar scripts do package.json.
+
+        Configurar o Context7 MCP para consultas de documentação.
+      </actions>
+
+      <required_tests>
+        Testar configuração básica.
+        Executar lint.
+        Executar typecheck.
+        Executar build.
+      </required_tests>
+
+      <done_when>
+        Projeto inicia localmente e lint, typecheck e build passam.
+      </done_when>
+    </task>
+
+    <!-- TASK 02 -->
+    <task id="02" name="Database and Drizzle">
+      <goal>
+        Configurar PostgreSQL com Neon e Drizzle ORM.
+      </goal>
+
+      <actions>
+        Criar conexão server-only com Neon.
+
+        Configurar drizzle.config.ts.
+
+        Criar schema inicial com todas as tabelas incluindo user_settings.
+
+        Criar migrations.
+
+        Configurar scripts:
+        db:generate
+        db:migrate
+        db:studio
+
+        Criar seed de desenvolvimento.
+      </actions>
+
+      <required_tests>
+        Testar conexão.
+        Executar migrations.
+        Executar seed.
+      </required_tests>
+
+      <done_when>
+        Aplicação consegue conectar ao Neon e executar migration/seed.
+      </done_when>
+    </task>
+
+    <!-- TASK 03 -->
+    <task id="03" name="Authentication">
+      <goal>
+        Implementar autenticação completa.
+      </goal>
+
+      <requirements>
+        Cadastro.
+        Login.
+        Logout.
+        Sessão persistente.
+        Hash seguro de senha.
+        Proteção de rotas.
+        Isolamento por usuário.
+      </requirements>
+
+      <security>
+        Nunca armazenar senha em texto puro.
+        Nunca confiar no userId enviado pelo cliente.
+        Toda operação privada deve validar sessão.
+      </security>
+
+      <tdd>
+        Testar cadastro, login, logout, sessão inválida e acesso não autorizado.
+      </tdd>
+
+      <done_when>
+        Usuário consegue criar conta, autenticar e acessar somente seus próprios dados.
+      </done_when>
+    </task>
+
+    <!-- TASK 04 -->
+    <task id="04" name="Financial Domain">
+      <goal>
+        Criar o domínio financeiro independente do framework.
+      </goal>
+
+      <domain>
+        Implementar entidades, value objects e regras para:
+
+        Receita.
+
+        Despesa.
+
+        Investimento.
+
+        Período financeiro.
+
+        Métricas financeiras.
+
+        Regra de distribuição configurável (padrão 80/20).
+
+        Status ON_TRACK, WARNING e OFF_TRACK baseados nas configurações do usuário.
+      </domain>
+
+      <tdd>
+        Criar testes antes das implementações.
+
+        Cobrir:
+        receita zero;
+        múltiplas receitas;
+        múltiplas despesas;
+        múltiplos investimentos;
+        saldo negativo;
+        gastos acima do percentual configurado;
+        investimento abaixo do percentual configurado;
+        investimento acima do percentual configurado;
+        período 15 -> 14;
+        mudança de mês;
+        mudança de ano;
+        configurações personalizadas de percentuais.
+      </tdd>
+
+      <done_when>
+        Toda a regra financeira central possui testes unitários passando.
+      </done_when>
+    </task>
+
+    <!-- TASK 05 -->
+    <task id="05" name="Financial Periods">
+      <goal>
+        Implementar criação e gerenciamento dos períodos financeiros.
+      </goal>
+
+      <requirements>
+        Criar automaticamente o período atual baseado nas configurações do usuário.
+        Identificar período por data.
+        Criar próximo período.
+        Nunca criar períodos duplicados.
+        Associar cada lançamento a um período.
+      </requirements>
+
+      <tdd>
+        Testar principalmente datas nos dias:
+        14;
+        15;
+        16;
+        último dia do mês;
+        janeiro;
+        dezembro.
+      </tdd>
+
+      <done_when>
+        Qualquer data gera o período financeiro correto baseado nas configurações.
+      </done_when>
+    </task>
+
+    <!-- TASK 06 -->
+    <task id="06" name="Repositories and Application Layer">
+      <goal>
+        Implementar repositories e use cases.
+      </goal>
+
+      <requirements>
+        Repository de usuários.
+        Repository de configurações.
+        Repository de períodos.
+        Repository de receitas.
+        Repository de despesas.
+        Repository de investimentos.
+
+        Criar use cases para CRUD e consultas.
+
+        A camada Application não deve depender diretamente da implementação
+        concreta do Drizzle.
+      </requirements>
+
+      <tdd>
+        Usar mocks/fakes para testes unitários da Application Layer.
+      </tdd>
+
+      <done_when>
+        Casos de uso podem ser testados sem depender do banco real.
+      </done_when>
+    </task>
+
+    <!-- TASK 07 -->
+    <task id="07" name="Server Actions">
+      <goal>
+        Criar Server Actions para mutações financeiras.
+      </goal>
+
+      <actions>
+        createIncome
+        updateIncome
+        deleteIncome
+
+        createExpense
+        updateExpense
+        deleteExpense
+
+        createInvestment
+        updateInvestment
+        deleteInvestment
+
+        updateUserSettings
+        getUserSettings
+      </actions>
+
+      <requirements>
+        Validar inputs.
+        Verificar autenticação.
+        Verificar autorização.
+        Executar use case apropriado.
+        Invalidar/revalidar cache corretamente.
+      </requirements>
+
+      <done_when>
+        Todas as mutações principais funcionam via Server Actions.
+      </done_when>
+    </task>
+
+    <!-- TASK 08 -->
+    <task id="08" name="Next.js 16 Cache">
+      <goal>
+        Implementar caching utilizando corretamente o Next.js 16.
+      </goal>
+
+      <requirements>
+        Pesquisar a documentação oficial atual do Next.js 16 antes de implementar.
+
+        Utilizar use cache e demais mecanismos modernos quando apropriado.
+
+        Separar dados cacheáveis de dados altamente dinâmicos.
+
+        Nunca permitir compartilhamento indevido de dados entre usuários.
+
+        Após Server Actions, invalidar somente os dados afetados.
+      </requirements>
+
+      <done_when>
+        Queries apropriadas utilizam cache seguro e as mutações atualizam os dados
+        exibidos corretamente.
+      </done_when>
+    </task>
+
+    <!-- TASK 09 -->
+    <task id="09" name="Dashboard">
+      <goal>
+        Criar dashboard financeiro principal.
+      </goal>
+
+      <metrics>
+        Receita.
+        Total gasto.
+        Total investido.
+        Saldo.
+        % gasto.
+        % investido.
+        Limite disponível para gastos.
+        Valor restante para atingir o percentual de investimento.
+        Status baseado nas configurações do usuário.
+        Dias restantes no período.
+      </metrics>
+
+      <ui>
+        Usar shadcn/ui com tema personalizado.
+        Design moderno com paleta preto, branco e azul escuro.
+        Responsivo.
+        Mobile-first.
+        Utilizar Compound Components para elementos reutilizáveis.
+      </ui>
+
+      <done_when>
+        Dashboard apresenta dados reais do banco do usuário autenticado.
+      </done_when>
+    </task>
+
+    <!-- TASK 10 -->
+    <task id="10" name="Expenses">
+      <goal>
+        Criar gerenciamento completo de despesas.
+      </goal>
+
+      <features>
+        Criar.
+        Editar.
+        Excluir.
+        Buscar.
+        Filtrar.
+        Ordenar.
+        Filtrar por categoria (categorias padrão ou personalizadas).
+        Filtrar por período.
+        Paginação.
+      </features>
+
+      <categories>
+        Padrão: Moradia, Alimentação, Transporte, Educação, Lazer,
+        Contas, Saúde, Assinaturas, Compras, Outros.
+        O usuário pode adicionar/remover categorias nas configurações.
+      </categories>
+
+      <done_when>
+        CRUD completo funcionando com validação cliente + servidor.
+      </done_when>
+    </task>
+
+    <!-- TASK 11 -->
+    <task id="11" name="Investments">
+      <goal>
+        Criar gerenciamento completo de investimentos.
+      </goal>
+
+      <types>
+        Padrão: Reserva, Renda Fixa, FIIs, Ações, ETFs, Cripto, Outros.
+        O usuário pode adicionar/remover tipos nas configurações.
+      </types>
+
+      <features>
+        Criar.
+        Editar.
+        Excluir.
+        Buscar.
+        Filtrar.
+        Ordenar.
+        Filtrar por período.
+        Paginação.
+      </features>
+
+      <done_when>
+        CRUD completo funcionando.
+      </done_when>
+    </task>
+
+    <!-- TASK 12 -->
+    <task id="12" name="Incomes">
+      <goal>
+        Criar gerenciamento de receitas.
+      </goal>
+
+      <categories>
+        Padrão: Salário, Freelance, Renda Extra, Outros.
+        O usuário pode adicionar/remover categorias nas configurações.
+      </categories>
+
+      <features>
+        Criar.
+        Editar.
+        Excluir.
+        Buscar.
+        Filtrar.
+        Histórico.
+      </features>
+
+      <done_when>
+        Receitas influenciam corretamente os cálculos financeiros.
+      </done_when>
+    </task>
+
+    <!-- TASK 13 -->
+    <task id="13" name="Charts and Analytics">
+      <goal>
+        Criar uma área completa de análise financeira.
+      </goal>
+
+      <charts>
+        <chart>Gastos por categoria.</chart>
+        <chart>Evolução de receita, gastos e investimentos.</chart>
+        <chart>Gastos versus limite configurado.</chart>
+        <chart>Investimentos versus meta configurada.</chart>
+        <chart>Evolução do saldo.</chart>
+        <chart>Distribuição dos investimentos.</chart>
+        <chart>Gastos por dia.</chart>
+        <chart>Comparação entre períodos.</chart>
+      </charts>
+
+      <requirements>
+        Gráficos devem possuir estados de loading, empty state e error state.
+        Devem funcionar bem no desktop e mobile.
+      </requirements>
+
+      <done_when>
+        Todos os gráficos utilizam dados reais e respeitam o usuário autenticado.
+      </done_when>
+    </task>
+
+    <!-- TASK 14 -->
+    <task id="14" name="Reports">
+      <goal>
+        Criar relatórios financeiros.
+      </goal>
+
+      <filters>
+        Período.
+        Intervalo de datas.
+        Categoria.
+      </filters>
+
+      <metrics>
+        Receita total.
+        Gastos.
+        Investimentos.
+        Saldo.
+        Média de gastos.
+        Maior gasto.
+        Categoria dominante.
+        Percentual gasto.
+        Percentual investido.
+      </metrics>
+
+      <done_when>
+        Usuário consegue analisar períodos atuais e históricos.
+      </done_when>
+    </task>
+
+    <!-- TASK 15 -->
+    <task id="15" name="Period Closing">
+      <goal>
+        Implementar o fechamento financeiro.
+      </goal>
+
+      <flow>
+        Identificar período.
+        Verificar se já está fechado.
+        Calcular métricas baseadas nas configurações do usuário.
+        Criar snapshot do resultado.
+        Marcar período como fechado.
+        Criar próximo período.
+      </flow>
+
+      <requirements>
+        O fechamento deve ser idempotente.
+        Nunca fechar o mesmo período duas vezes.
+        Nunca apagar lançamentos históricos.
+      </requirements>
+
+      <tdd>
+        Testar fechamento normal.
+        Testar fechamento duplicado.
+        Testar falha durante fechamento.
+        Testar criação do próximo período.
+      </tdd>
+
+      <done_when>
+        O processo de fechamento é transacional e seguro.
+      </done_when>
+    </task>
+
+    <!-- TASK 16 -->
+    <task id="16" name="Automatic Period Closing">
+      <goal>
+        Criar fechamento automático no dia definido pelo usuário (padrão 15).
+      </goal>
+
+      <requirements>
+        Utilizar mecanismo compatível com Vercel e arquitetura serverless.
+
+        Não depender de servidor Node persistente.
+
+        O processo deve ser idempotente.
+
+        Deve verificar se o período já foi fechado antes de executar.
+
+        Deve criar o próximo período automaticamente.
+      </requirements>
+
+      <done_when>
+        O fechamento pode acontecer automaticamente sem o usuário abrir a aplicação.
+      </done_when>
+    </task>
+
+    <!-- TASK 17 -->
+    <task id="17" name="Notification Domain">
+      <goal>
+        Criar sistema de notificações seguindo DDD.
+      </goal>
+
+      <notification_types>
+        <type>EXPENSE_WARNING</type>
+        <type>EXPENSE_LIMIT_REACHED</type>
+        <type>INVESTMENT_GOAL_WARNING</type>
+        <type>PERIOD_CLOSING_REMINDER</type>
+        <type>PERIOD_CLOSED</type>
+        <type>NEW_PERIOD</type>
+        <type>GENERAL</type>
+      </notification_types>
+
+      <examples>
+        Você já utilizou 76% da sua renda em gastos.
+
+        Restam R$ 120 até atingir o limite configurado.
+
+        Você ainda precisa investir R$ 250 para atingir o percentual configurado.
+
+        Seu período financeiro termina amanhã.
+
+        O período foi fechado com sucesso.
+      </examples>
+
+      <done_when>
+        Regras de negócio para notificações possuem testes unitários.
+      </done_when>
+    </task>
+
+    <!-- TASK 18 -->
+    <task id="18" name="Web Push Notifications">
+      <goal>
+        Implementar notificações Push para PWA.
+      </goal>
+
+      <requirements>
+        Solicitar permissão de maneira apropriada.
+
+        Registrar subscriptions no banco.
+
+        Permitir múltiplos dispositivos por usuário.
+
+        Remover subscriptions inválidas.
+
+        Utilizar chaves privadas somente no servidor.
+
+        Não colocar informação financeira sensível na payload.
+
+        Funcionar com a infraestrutura serverless utilizada.
+      </requirements>
+
+      <preferences>
+        Gastos.
+        Investimentos.
+        Metas.
+        Fechamentos.
+        Gerais.
+        Push global.
+      </preferences>
+
+      <done_when>
+        Usuário consegue ativar/desativar Push e receber notificações.
+      </done_when>
+    </task>
+
+    <!-- TASK 19 -->
+    <task id="19" name="Notification Center">
+      <goal>
+        Criar central de notificações dentro da aplicação.
+      </goal>
+
+      <features>
+        Lista de notificações.
+        Contagem de não lidas.
+        Marcar como lida.
+        Marcar todas como lidas.
+        Filtros.
+        Configurações de preferência.
+      </features>
+
+      <done_when>
+        Usuário consegue gerenciar todas as notificações pelo aplicativo.
+      </done_when>
+    </task>
+
+    <!-- TASK 20 -->
+    <task id="20" name="PWA">
+      <goal>
+        Transformar a aplicação em PWA.
+      </goal>
+
+      <requirements>
+        Manifest.
+        Ícones.
+        Theme color (usando a paleta preto/branco/azul escuro).
+        Service worker.
+        Instalação.
+        Experiência mobile-first.
+        Cache seguro.
+      </requirements>
+
+      <security>
+        Não armazenar dados financeiros privados em cache público.
+      </security>
+
+      <done_when>
+        Aplicação pode ser instalada no celular como PWA.
+      </done_when>
+    </task>
+
+    <!-- TASK 21 -->
+    <task id="21" name="Calendar">
+      <goal>
+        Criar calendário financeiro.
+      </goal>
+
+      <features>
+        Período atual baseado nas configurações do usuário.
+        Data inicial.
+        Data final.
+        Dia de fechamento.
+        Dias restantes.
+        Períodos passados.
+        Próximos períodos.
+      </features>
+
+      <done_when>
+        Calendário reflete corretamente os períodos financeiros configurados.
+      </done_when>
+    </task>
+
+    <!-- TASK 22 -->
+    <task id="22" name="UX and Responsive Design">
+      <goal>
+        Refinar a interface com estilização profissional.
+      </goal>
+
+      <requirements>
+        Desktop.
+        Tablet.
+        Mobile.
+
+        Criar navigation apropriada para mobile.
+
+        Criar loading states.
+
+        Criar skeletons.
+
+        Criar empty states.
+
+        Criar error states.
+
+        Criar confirmation dialogs para operações destrutivas.
+
+        Criar feedback visual após Server Actions.
+
+        Aplicar consistentemente a paleta de cores:
+        - Preto para textos
+        - Branco para fundos
+        - Azul escuro para elementos de destaque
+        - Cinzas sutis para hierarquia
+
+        Utilizar shadcn/ui com tema personalizado.
+
+        Não deve parecer que foi feito por IA.
+      </requirements>
+
+      <done_when>
+        Aplicação é confortável para uso diário no celular com design profissional.
+      </done_when>
+    </task>
+
+    <!-- TASK 23 -->
+    <task id="23" name="Vitest Coverage">
+      <goal>
+        Garantir cobertura das partes críticas.
+      </goal>
+
+      <requirements>
+        Cobrir fortemente:
+        domínio;
+        use cases;
+        fechamento;
+        regras configuráveis;
+        período;
+        notificações;
+        autorização.
+      </requirements>
+
+      <done_when>
+        Toda regra crítica possui cobertura adequada.
+      </done_when>
+    </task>
+
+    <!-- TASK 24 -->
+    <task id="24" name="Playwright E2E">
+      <goal>
+        Criar suíte E2E completa.
+      </goal>
+
+      <scenarios>
+        Cadastro.
+        Login.
+        Logout.
+        Dashboard.
+        Criar receita.
+        Criar gasto.
+        Editar gasto.
+        Excluir gasto.
+        Criar investimento.
+        Editar investimento.
+        Excluir investimento.
+        Configurar preferências.
+        Filtros.
+        Relatórios.
+        Fechamento.
+        Histórico.
+        Notificações.
+        Preferências.
+      </scenarios>
+
+      <done_when>
+        Fluxos críticos possuem testes E2E passando.
+      </done_when>
+    </task>
+
+    <!-- TASK 25 -->
+    <task id="25" name="Security Review">
+      <goal>
+        Realizar revisão de segurança.
+      </goal>
+
+      <checklist>
+        Autenticação.
+        Autorização.
+        Isolamento por usuário.
+        Server Actions.
+        SQL.
+        Inputs.
+        Secrets.
+        Push subscriptions.
+        Cache.
+        Cookies.
+        Headers.
+        Acesso a dados privados.
+      </checklist>
+
+      <done_when>
+        Não existem vulnerabilidades óbvias de autorização ou exposição de dados.
+      </done_when>
+    </task>
+
+    <!-- TASK 26 -->
+    <task id="26" name="Performance Review">
+      <goal>
+        Otimizar aplicação.
+      </goal>
+
+      <requirements>
+        Revisar queries.
+        Revisar índices.
+        Revisar cache.
+        Revisar Server Components.
+        Revisar Client Components.
+        Revisar bundle.
+        Revisar gráficos.
+        Revisar waterfalls.
+        Revisar carregamento mobile.
+      </requirements>
+
+      <done_when>
+        Gargalos relevantes foram identificados e corrigidos.
+      </done_when>
+    </task>
+
+    <!-- TASK 27 -->
+    <task id="27" name="Documentation">
+      <goal>
+        Criar documentação completa.
+      </goal>
+
+      <readme_sections>
+        Visão geral.
+        Stack.
+        Arquitetura.
+        DDD.
+        Instalação.
+        Variáveis de ambiente.
+        Neon.
+        Drizzle.
+        Migrations.
+        Seed.
+        Testes.
+        Vitest.
+        Playwright.
+        PWA.
+        Notifications.
+        Deploy.
+        Vercel.
+        Fechamento automático.
+        Configurações personalizáveis.
+      </readme_sections>
+
+      <done_when>
+        Um desenvolvedor consegue clonar o projeto e executá-lo seguindo o README.
+      </done_when>
+    </task>
+
+    <!-- TASK 28 -->
+    <task id="28" name="CI and Production">
+      <goal>
+        Preparar projeto para produção.
+      </goal>
+
+      <ci_pipeline>
+        lint
+        typecheck
+        unit-tests
+        build
+        e2e-tests
+      </ci_pipeline>
+
+      <deploy>
+        Vercel
+        Neon PostgreSQL
+      </deploy>
+
+      <environment>
+        DATABASE_URL
+        AUTH_SECRET
+        PUSH_PUBLIC_KEY
+        PUSH_PRIVATE_KEY
+        PUSH_SUBJECT
+      </environment>
+
+      <done_when>
+        Projeto preparado para deploy de produção.
+      </done_when>
+    </task>
+
+    <!-- TASK 29 -->
+    <task id="29" name="Final Audit">
+      <goal>
+        Realizar auditoria final do projeto inteiro.
+      </goal>
+
+      <checks>
+        Funcionalidades.
+        Testes.
+        Segurança.
+        Arquitetura.
+        DDD.
+        TDD.
+        Cache.
+        Server Actions.
+        Banco.
+        PWA.
+        Notificações.
+        Responsividade.
+        Performance.
+        Deploy.
+        Configurações personalizáveis.
+        Design profissional (não parece IA).
+      </checks>
