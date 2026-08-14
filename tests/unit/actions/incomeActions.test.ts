@@ -10,7 +10,7 @@ vi.mock('../../../src/lib/session', () => ({
 // Mock next/cache
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
+  updateTag: vi.fn(),
 }));
 
 // Mock the service

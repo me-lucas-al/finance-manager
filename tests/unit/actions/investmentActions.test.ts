@@ -8,7 +8,7 @@ vi.mock('../../../src/lib/session', () => ({
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
+  updateTag: vi.fn(),
 }));
 
 const mockCreateInvestment = vi.fn();

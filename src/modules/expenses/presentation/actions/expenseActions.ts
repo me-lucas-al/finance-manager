@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/session';
 import { ExpenseService } from '@/modules/expenses/application/useCases/ExpenseService';
 import { ExpenseDrizzleRepository } from '@/modules/expenses/infra/repositories/ExpenseDrizzleRepository';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 const createExpenseSchema = z.object({
   periodId: z.string().uuid(),
@@ -39,7 +39,7 @@ export async function createExpense(data: unknown) {
     });
 
     revalidatePath('/dashboard');
-    revalidateTag(`expenses-${parsed.data.periodId}`);
+    updateTag(`expenses-${session.userId}-${parsed.data.periodId}`);
     
     return { success: true, data: expense };
   } catch (error: unknown) {
@@ -69,7 +69,7 @@ export async function updateExpense(id: string, data: unknown) {
     const updated = await service.updateExpense(id, parsed.data);
     
     revalidatePath('/dashboard');
-    revalidateTag(`expenses-${existing.periodId}`);
+    updateTag(`expenses-${session.userId}-${existing.periodId}`);
     
     return { success: true, data: updated };
   } catch (error: unknown) {
@@ -94,7 +94,7 @@ export async function deleteExpense(id: string) {
     await service.deleteExpense(id);
     
     revalidatePath('/dashboard');
-    revalidateTag(`expenses-${existing.periodId}`);
+    updateTag(`expenses-${session.userId}-${existing.periodId}`);
     
     return { success: true };
   } catch (error: unknown) {

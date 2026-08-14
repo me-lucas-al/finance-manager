@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/session';
 import { UserSettingsService } from '@/modules/users/application/useCases/UserSettingsService';
 import { UserSettingsDrizzleRepository } from '@/modules/users/infra/repositories/UserSettingsDrizzleRepository';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 const updateUserSettingsSchema = z.object({
   periodStartDay: z.number().int().min(1).max(31).optional(),
@@ -64,7 +64,7 @@ export async function updateUserSettings(data: unknown) {
     
     revalidatePath('/dashboard');
     revalidatePath('/settings');
-    revalidateTag(`user-settings-${session.userId}`);
+    updateTag(`user-settings-${session.userId}`);
     
     return { success: true, data: updated };
   } catch (error: unknown) {

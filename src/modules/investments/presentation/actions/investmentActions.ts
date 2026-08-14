@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/session';
 import { InvestmentService } from '@/modules/investments/application/useCases/InvestmentService';
 import { InvestmentDrizzleRepository } from '@/modules/investments/infra/repositories/InvestmentDrizzleRepository';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 const createInvestmentSchema = z.object({
   periodId: z.string().uuid(),
@@ -39,7 +39,7 @@ export async function createInvestment(data: unknown) {
     });
 
     revalidatePath('/dashboard');
-    revalidateTag(`investments-${parsed.data.periodId}`);
+    updateTag(`investments-${session.userId}-${parsed.data.periodId}`);
     
     return { success: true, data: investment };
   } catch (error: unknown) {
@@ -69,7 +69,7 @@ export async function updateInvestment(id: string, data: unknown) {
     const updated = await service.updateInvestment(id, parsed.data);
     
     revalidatePath('/dashboard');
-    revalidateTag(`investments-${existing.periodId}`);
+    updateTag(`investments-${session.userId}-${existing.periodId}`);
     
     return { success: true, data: updated };
   } catch (error: unknown) {
@@ -94,7 +94,7 @@ export async function deleteInvestment(id: string) {
     await service.deleteInvestment(id);
     
     revalidatePath('/dashboard');
-    revalidateTag(`investments-${existing.periodId}`);
+    updateTag(`investments-${session.userId}-${existing.periodId}`);
     
     return { success: true };
   } catch (error: unknown) {

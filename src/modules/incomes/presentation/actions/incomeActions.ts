@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/session';
 import { IncomeService } from '@/modules/incomes/application/useCases/IncomeService';
 import { IncomeDrizzleRepository } from '@/modules/incomes/infra/repositories/IncomeDrizzleRepository';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 const createIncomeSchema = z.object({
   periodId: z.string().uuid(),
@@ -39,7 +39,7 @@ export async function createIncome(data: unknown) {
     });
 
     revalidatePath('/dashboard');
-    revalidateTag(`incomes-${parsed.data.periodId}`);
+    updateTag(`incomes-${session.userId}-${parsed.data.periodId}`);
     
     return { success: true, data: income };
   } catch (error: unknown) {
@@ -69,7 +69,7 @@ export async function updateIncome(id: string, data: unknown) {
     const updated = await service.updateIncome(id, parsed.data);
     
     revalidatePath('/dashboard');
-    revalidateTag(`incomes-${existing.periodId}`);
+    updateTag(`incomes-${session.userId}-${existing.periodId}`);
     
     return { success: true, data: updated };
   } catch (error: any) {
@@ -94,7 +94,7 @@ export async function deleteIncome(id: string) {
     await service.deleteIncome(id);
     
     revalidatePath('/dashboard');
-    revalidateTag(`incomes-${existing.periodId}`);
+    updateTag(`incomes-${session.userId}-${existing.periodId}`);
     
     return { success: true };
   } catch (error: any) {
