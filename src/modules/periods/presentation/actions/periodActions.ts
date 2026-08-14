@@ -20,10 +20,20 @@ class UserSettingsRepoWrapper {
   }
 }
 
+class PeriodRepoWrapper {
+  constructor(private repo: PeriodDrizzleRepository) {}
+  async findByExactDates(userId: string, startDate: Date, endDate: Date) {
+    return this.repo.findByExactDates(userId, startDate, endDate);
+  }
+  async create(userId: string, startDate: Date, endDate: Date) {
+    return this.repo.create({ userId, startDate, endDate, status: 'open' });
+  }
+}
+
 // Initialize dependencies
 const periodRepository = new PeriodDrizzleRepository();
 const userSettingsRepository = new UserSettingsRepoWrapper(new UserSettingsDrizzleRepository());
-const financialPeriodService = new FinancialPeriodService(periodRepository as unknown as any, userSettingsRepository);
+const financialPeriodService = new FinancialPeriodService(new PeriodRepoWrapper(periodRepository), userSettingsRepository);
 const closePeriodUseCase = new ClosePeriodUseCase(periodRepository, financialPeriodService);
 
 export async function closePeriodAction(periodId: string): Promise<{ success: boolean; message?: string }> {

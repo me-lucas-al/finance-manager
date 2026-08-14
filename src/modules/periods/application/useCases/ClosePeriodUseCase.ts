@@ -27,7 +27,7 @@ export class ClosePeriodUseCase {
     const nextPeriodData = await this.financialPeriodService.determineNextPeriodData(period.userId, period.endDate);
 
     if (this.periodRepository.closePeriodAndCreateNext) {
-      return this.periodRepository.closePeriodAndCreateNext(periodId, nextPeriodData as any);
+      return this.periodRepository.closePeriodAndCreateNext(periodId, nextPeriodData as import('../../domain/repositories/IPeriodRepository').NewFinancialPeriod);
     }
 
     // Fallback without transaction

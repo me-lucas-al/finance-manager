@@ -43,6 +43,16 @@ export class PeriodDrizzleRepository implements IPeriodRepository {
   async delete(id: string): Promise<void> {
     await db.delete(financialPeriods).where(eq(financialPeriods.id, id));
   }
+
+  async findEndedOpenPeriods(currentDate: Date): Promise<FinancialPeriod[]> {
+    const { and, lte } = await import('drizzle-orm');
+    return db.select().from(financialPeriods).where(
+      and(
+        eq(financialPeriods.status, 'open'),
+        lte(financialPeriods.endDate, currentDate)
+      )
+    );
+  }
   async closePeriodAndCreateNext(periodId: string, nextPeriodData: NewFinancialPeriod): Promise<FinancialPeriod> {
     return db.transaction(async (tx) => {
       const [period] = await tx

@@ -17,12 +17,12 @@ describe('ClosePeriodUseCase', () => {
       delete: vi.fn(),
       closePeriodTransaction: vi.fn(),
       closePeriodAndCreateNext: vi.fn(),
-    } as any;
+    } as unknown as import('vitest').Mocked<IPeriodRepository>;
 
     financialPeriodService = {
       createNextPeriod: vi.fn(),
       determineNextPeriodData: vi.fn(),
-    } as any;
+    } as unknown as import('vitest').Mocked<FinancialPeriodService>;
 
     useCase = new ClosePeriodUseCase(periodRepository, financialPeriodService);
   });
@@ -44,8 +44,8 @@ describe('ClosePeriodUseCase', () => {
         userId: 'user-1',
         startDate: new Date(),
         endDate: new Date(),
-        status: 'open'
-    } as any);
+        status: 'open' as const
+    });
 
     (periodRepository.closePeriodAndCreateNext as import('vitest').Mock).mockResolvedValue({
       ...mockPeriod,

@@ -12,4 +12,5 @@ export interface IPeriodRepository {
   update(id: string, data: Partial<NewFinancialPeriod>): Promise<FinancialPeriod>;
   delete(id: string): Promise<void>;
   closePeriodAndCreateNext?(periodId: string, nextPeriodData: NewFinancialPeriod): Promise<FinancialPeriod>;
+  findEndedOpenPeriods?(currentDate: Date): Promise<FinancialPeriod[]>;
 }
