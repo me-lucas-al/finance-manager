@@ -64,8 +64,8 @@ export function PushNotificationManager() {
       
       const subJson = sub.toJSON();
       await saveSubscriptionAction({
-        endpoint: subJson.endpoint,
-        keys: subJson.keys,
+        endpoint: subJson.endpoint ?? '',
+        keys: (subJson.keys as { p256dh: string; auth: string; }) ?? { p256dh: '', auth: '' },
       });
 
     } catch (err) {
