@@ -1,0 +1,103 @@
+'use server';
+
+import { z } from 'zod';
+import { getSession } from '@/lib/session';
+import { IncomeService } from '@/modules/incomes/application/useCases/IncomeService';
+import { IncomeDrizzleRepository } from '@/modules/incomes/infra/repositories/IncomeDrizzleRepository';
+import { revalidatePath, revalidateTag } from 'next/cache';
+
+const createIncomeSchema = z.object({
+  periodId: z.string().uuid(),
+  description: z.string().min(1),
+  amount: z.number().int().positive(),
+  category: z.string().min(1),
+  receivedAt: z.string().datetime().or(z.date()).transform((val) => new Date(val)),
+});
+
+const updateIncomeSchema = createIncomeSchema.partial();
+
+const getIncomeService = () => {
+  return new IncomeService(new IncomeDrizzleRepository());
+};
+
+export async function createIncome(data: unknown) {
+  const session = await getSession();
+  if (!session || !session.userId) {
+    return { error: 'Unauthorized' };
+  }
+
+  const parsed = createIncomeSchema.safeParse(data);
+  if (!parsed.success) {
+    return { error: `Validation Error: ${parsed.error.message}` };
+  }
+
+  try {
+    const service = getIncomeService();
+    const income = await service.createIncome({
+      ...parsed.data,
+      userId: session.userId,
+    });
+
+    revalidatePath('/dashboard');
+    revalidateTag(`incomes-${parsed.data.periodId}`);
+    
+    return { success: true, data: income };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function updateIncome(id: string, data: unknown) {
+  const session = await getSession();
+  if (!session || !session.userId) {
+    return { error: 'Unauthorized' };
+  }
+
+  const parsed = updateIncomeSchema.safeParse(data);
+  if (!parsed.success) {
+    return { error: `Validation Error: ${parsed.error.message}` };
+  }
+
+  try {
+    const service = getIncomeService();
+    const existing = await service.getIncomeById(id);
+    
+    if (!existing || existing.userId !== session.userId) {
+      return { error: 'Unauthorized or Income not found' };
+    }
+
+    const updated = await service.updateIncome(id, parsed.data);
+    
+    revalidatePath('/dashboard');
+    revalidateTag(`incomes-${existing.periodId}`);
+    
+    return { success: true, data: updated };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function deleteIncome(id: string) {
+  const session = await getSession();
+  if (!session || !session.userId) {
+    return { error: 'Unauthorized' };
+  }
+
+  try {
+    const service = getIncomeService();
+    const existing = await service.getIncomeById(id);
+    
+    if (!existing || existing.userId !== session.userId) {
+      return { error: 'Unauthorized or Income not found' };
+    }
+
+    await service.deleteIncome(id);
+    
+    revalidatePath('/dashboard');
+    revalidateTag(`incomes-${existing.periodId}`);
+    
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
