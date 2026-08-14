@@ -110,4 +110,12 @@ describe('FinancialMetrics', () => {
     const metrics = new FinancialMetrics(period, incomes, [], []);
     expect(metrics.totalIncome).toBe(1000);
   });
+
+  it('should set investmentPercentage to Infinity if zero income and positive investment', () => {
+    const investments = [new Investment('v1', 'Stocks', 100, dateInPeriod)];
+    const metrics = new FinancialMetrics(period, [], [], investments);
+    expect(metrics.totalIncome).toBe(0);
+    expect(metrics.investmentPercentage).toBe(Infinity);
+    expect(metrics.status).toBe(FinancialStatus.OFF_TRACK);
+  });
 });

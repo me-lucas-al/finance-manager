@@ -174,5 +174,44 @@ describe('FinancialPeriodService', () => {
       );
       expect(result.id).toBe('next-period-id');
     });
+
+    it('should create the next period across year boundary', async () => {
+      const userId = 'user-123';
+      const currentDate = new Date(Date.UTC(2026, 11, 20)); // Dec 20 (Period: Dec 15 - Jan 14)
+
+      mockUserSettingsRepo.getSettingsByUserId.mockResolvedValue({
+        periodStartDay: 15,
+        periodEndDay: 14,
+      });
+
+      mockPeriodRepo.findByExactDates.mockResolvedValue(null);
+      mockPeriodRepo.create.mockResolvedValue({ id: 'next-period-id' });
+
+      await service.createNextPeriod(userId, currentDate);
+
+      // Next period should be Jan 15 - Feb 14 of 2027
+      expect(mockPeriodRepo.create).toHaveBeenCalledWith(
+        userId,
+        new Date(Date.UTC(2027, 0, 15, 0, 0, 0, 0)),
+        new Date(Date.UTC(2027, 1, 14, 23, 59, 59, 999))
+      );
+    });
+
+    it('should not create if next period already exists', async () => {
+      const userId = 'user-123';
+      const currentDate = new Date(Date.UTC(2026, 2, 20)); // March 20
+
+      mockUserSettingsRepo.getSettingsByUserId.mockResolvedValue({
+        periodStartDay: 15,
+        periodEndDay: 14,
+      });
+
+      mockPeriodRepo.findByExactDates.mockResolvedValue({ id: 'existing-next' });
+
+      const result = await service.createNextPeriod(userId, currentDate);
+
+      expect(mockPeriodRepo.create).not.toHaveBeenCalled();
+      expect(result.id).toBe('existing-next');
+    });
   });
 });

@@ -38,7 +38,7 @@ export function NotificationsPageClient() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
   }, [page, filter]);
 

@@ -103,5 +103,13 @@ describe('NotificationService', () => {
 
       expect(notifications).toHaveLength(0);
     });
+
+    it('should not generate period notifications if date is past the end date', () => {
+      const period = new FinancialPeriod(1, 31, 2026, 8);
+      const pastDate = new Date(period.endDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+      const notifications = service.generateForPeriod(period, pastDate);
+
+      expect(notifications).toHaveLength(0);
+    });
   });
 });

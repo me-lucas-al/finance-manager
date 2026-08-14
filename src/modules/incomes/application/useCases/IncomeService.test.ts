@@ -106,4 +106,18 @@ describe('IncomeService', () => {
     const incomes = await service.getIncomesByPeriod('period-1');
     expect(incomes).toHaveLength(0);
   });
+
+  it('should get an income by id', async () => {
+    const created = await service.createIncome({
+      userId: 'user-1',
+      periodId: 'period-1',
+      description: 'Salary',
+      amount: 500000,
+      category: 'salary',
+      receivedAt: new Date(),
+    });
+
+    const found = await service.getIncomeById(created.id);
+    expect(found?.description).toBe('Salary');
+  });
 });

@@ -110,4 +110,32 @@ describe('InvestmentService', () => {
     const investments = await service.getInvestmentsByUser('user-1');
     expect(investments).toHaveLength(0);
   });
+
+  it('should get an investment by id', async () => {
+    const created = await service.createInvestment({
+      userId: 'user-1',
+      periodId: 'period-1',
+      description: 'Stocks',
+      amount: 100000,
+      type: 'stocks',
+      date: new Date(),
+    });
+
+    const found = await service.getInvestmentById(created.id);
+    expect(found?.description).toBe('Stocks');
+  });
+
+  it('should get investments by period', async () => {
+    await service.createInvestment({
+      userId: 'user-1',
+      periodId: 'period-1',
+      description: 'Stocks',
+      amount: 100000,
+      type: 'stocks',
+      date: new Date(),
+    });
+
+    const found = await service.getInvestmentsByPeriod('period-1');
+    expect(found).toHaveLength(1);
+  });
 });

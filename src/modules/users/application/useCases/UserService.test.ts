@@ -111,4 +111,23 @@ describe('UserService', () => {
     const found = await service.getUserById(created.id);
     expect(found).toBeNull();
   });
+
+  it('should find user by email', async () => {
+    await service.createUser({
+      name: 'John',
+      email: 'john@example.com',
+      passwordHash: '123',
+    });
+
+    const found = await service.getUserByEmail('john@example.com');
+    expect(found?.name).toBe('John');
+  });
+
+  it('should get all users', async () => {
+    await service.createUser({ name: 'User 1', email: '1@example.com', passwordHash: '123' });
+    await service.createUser({ name: 'User 2', email: '2@example.com', passwordHash: '123' });
+
+    const all = await service.getAllUsers();
+    expect(all.length).toBe(2);
+  });
 });

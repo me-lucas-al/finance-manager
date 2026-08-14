@@ -83,4 +83,14 @@ describe('UserSettingsService', () => {
     const settings = await service.getUserSettings('user-1');
     expect(settings).toBeNull();
   });
+
+  it('should throw error if settings already exist', async () => {
+    await service.createUserSettings({
+      userId: 'user-1',
+    });
+
+    await expect(
+      service.createUserSettings({ userId: 'user-1' })
+    ).rejects.toThrow('User settings already exist');
+  });
 });

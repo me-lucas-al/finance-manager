@@ -106,4 +106,18 @@ describe('ExpenseService', () => {
     const expenses = await service.getExpensesByPeriod('period-1');
     expect(expenses).toHaveLength(0);
   });
+
+  it('should get an expense by id', async () => {
+    const created = await service.createExpense({
+      userId: 'user-1',
+      periodId: 'period-1',
+      description: 'Groceries',
+      amount: 15000,
+      category: 'food',
+      date: new Date(),
+    });
+
+    const found = await service.getExpenseById(created.id);
+    expect(found?.description).toBe('Groceries');
+  });
 });

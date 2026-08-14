@@ -103,4 +103,16 @@ describe('PeriodService', () => {
     const periods = await service.getUserPeriods('user-1');
     expect(periods).toHaveLength(0);
   });
+
+  it('should get a period by id', async () => {
+    const created = await service.createPeriod({
+      userId: 'user-1',
+      startDate: new Date('2026-08-01'),
+      endDate: new Date('2026-08-31'),
+      status: 'open',
+    });
+
+    const found = await service.getPeriodById(created.id);
+    expect(found?.status).toBe('open');
+  });
 });

@@ -85,4 +85,31 @@ describe('ClosePeriodUseCase', () => {
     await expect(useCase.execute('period-1')).rejects.toThrow('Period not found');
     expect(periodRepository.update).not.toHaveBeenCalled();
   });
+
+  it('should use fallback if closePeriodAndCreateNext is not available', async () => {
+    const mockPeriod: FinancialPeriod = {
+      id: 'period-1',
+      userId: 'user-1',
+      startDate: new Date('2026-08-01T00:00:00Z'),
+      endDate: new Date('2026-08-31T23:59:59Z'),
+      status: 'open',
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    periodRepository.findById.mockResolvedValue(mockPeriod);
+    periodRepository.closePeriodAndCreateNext = undefined;
+    periodRepository.update.mockResolvedValue({
+      ...mockPeriod,
+      status: 'closed',
+      closedAt: new Date()
+    });
+
+    const result = await useCase.execute('period-1');
+
+    expect(periodRepository.update).toHaveBeenCalledWith('period-1', expect.objectContaining({ status: 'closed' }));
+    expect(financialPeriodService.createNextPeriod).toHaveBeenCalled();
+    expect(result.status).toBe('closed');
+  });
 });
