@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { deleteIncome } from '@/modules/incomes/presentation/actions/incomeActions';
 import {
   AlertDialog,
@@ -34,9 +35,11 @@ export function DeleteIncomeDialog({ income, open, onOpenChange }: DeleteIncomeD
     try {
       await deleteIncome(income.id);
       onOpenChange(false);
+      toast.success('Receita excluída com sucesso!');
       router.refresh();
     } catch (error) {
       console.error(error);
+      toast.error('Ocorreu um erro ao excluir a receita. Tente novamente.');
     } finally {
       setIsDeleting(false);
     }

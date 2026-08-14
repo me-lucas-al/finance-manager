@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { createInvestment, updateInvestment } from '@/modules/investments/presentation/actions/investmentActions';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
@@ -80,10 +81,11 @@ export function InvestmentFormDialog({ investment, periodId, types, open: contro
       if (!isEditing) {
         form.reset();
       }
+      toast.success(isEditing ? 'Investimento atualizado com sucesso!' : 'Investimento criado com sucesso!');
       router.refresh();
     } catch (error) {
       console.error(error);
-      // In a real app, use a toast to show the error
+      toast.error('Ocorreu um erro ao salvar o investimento. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }

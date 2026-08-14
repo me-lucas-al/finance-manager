@@ -26,6 +26,8 @@ export const metadata: Metadata = {
 export const viewport = {
   themeColor: "#000000",
 };
+import { Toaster } from "@/components/ui/sonner";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -35,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         {children}
         <InstallPrompt />
+        <Toaster />
       </body>
     </html>
   );

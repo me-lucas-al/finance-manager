@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { createIncome, updateIncome } from '@/modules/incomes/presentation/actions/incomeActions';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
@@ -80,10 +81,11 @@ export function IncomeFormDialog({ income, periodId, categories, open: controlle
       if (!isEditing) {
         form.reset();
       }
+      toast.success(isEditing ? 'Receita atualizada com sucesso!' : 'Receita criada com sucesso!');
       router.refresh();
     } catch (error) {
       console.error(error);
-      // In a real app, use a toast to show the error
+      toast.error('Ocorreu um erro ao salvar a receita. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }

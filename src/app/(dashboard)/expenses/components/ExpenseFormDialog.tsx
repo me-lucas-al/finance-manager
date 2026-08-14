@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { createExpense, updateExpense } from '@/modules/expenses/presentation/actions/expenseActions';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
@@ -80,10 +81,11 @@ export function ExpenseFormDialog({ expense, periodId, categories, open: control
       if (!isEditing) {
         form.reset();
       }
+      toast.success(isEditing ? 'Despesa atualizada com sucesso!' : 'Despesa criada com sucesso!');
       router.refresh();
     } catch (error) {
       console.error(error);
-      // In a real app, use a toast to show the error
+      toast.error('Ocorreu um erro ao salvar a despesa. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }

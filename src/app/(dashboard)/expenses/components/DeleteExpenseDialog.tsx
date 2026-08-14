@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { deleteExpense } from '@/modules/expenses/presentation/actions/expenseActions';
 import {
   AlertDialog,
@@ -34,9 +35,11 @@ export function DeleteExpenseDialog({ expense, open, onOpenChange }: DeleteExpen
     try {
       await deleteExpense(expense.id);
       onOpenChange(false);
+      toast.success('Despesa excluída com sucesso!');
       router.refresh();
     } catch (error) {
       console.error(error);
+      toast.error('Ocorreu um erro ao excluir a despesa. Tente novamente.');
     } finally {
       setIsDeleting(false);
     }

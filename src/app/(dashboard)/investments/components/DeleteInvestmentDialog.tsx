@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { deleteInvestment } from '@/modules/investments/presentation/actions/investmentActions';
 import {
   AlertDialog,
@@ -34,9 +35,11 @@ export function DeleteInvestmentDialog({ investment, open, onOpenChange }: Delet
     try {
       await deleteInvestment(investment.id);
       onOpenChange(false);
+      toast.success('Investimento excluído com sucesso!');
       router.refresh();
     } catch (error) {
       console.error(error);
+      toast.error('Ocorreu um erro ao excluir o investimento. Tente novamente.');
     } finally {
       setIsDeleting(false);
     }
