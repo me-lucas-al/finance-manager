@@ -11,8 +11,9 @@ import { headers } from 'next/headers';
 
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
-function checkRateLimit(): boolean {
-  const ip = headers().get('x-forwarded-for') || headers().get('x-real-ip') || 'unknown';
+async function checkRateLimit(): Promise<boolean> {
+  const reqHeaders = await headers();
+  const ip = reqHeaders.get('x-forwarded-for') || reqHeaders.get('x-real-ip') || 'unknown';
   if (ip === 'unknown') return true;
 
   const now = Date.now();
@@ -46,7 +47,8 @@ const signupSchema = z.object({
 
 export async function signup(formData: unknown) {
   try {
-    if (!checkRateLimit()) {
+    const isRateAllowed = await checkRateLimit();
+    if (!isRateAllowed) {
       return { success: false, error: 'Muitas tentativas. Tente novamente mais tarde.' };
     }
 
@@ -81,7 +83,7 @@ export async function signup(formData: unknown) {
     await setSessionCookie(newUser.id);
 
     return { success: true };
-  } catch (_error) {
+  } catch {
     return { success: false, error: 'Ocorreu um erro no servidor' };
   }
 }
@@ -93,7 +95,8 @@ const loginSchema = z.object({
 
 export async function login(formData: unknown) {
   try {
-    if (!checkRateLimit()) {
+    const isRateAllowed = await checkRateLimit();
+    if (!isRateAllowed) {
       return { success: false, error: 'Muitas tentativas. Tente novamente mais tarde.' };
     }
 
