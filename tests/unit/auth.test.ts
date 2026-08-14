@@ -73,6 +73,7 @@ describe('Authentication', () => {
           returning: vi.fn().mockResolvedValue([{ id: 'new-user-id' }])
         })
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.insert as any) = mockInsert;
 
       // Mock user existence check (select returns empty array = no user exists)
@@ -83,6 +84,7 @@ describe('Authentication', () => {
           })
         })
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.select as any) = mockSelect;
 
       const result = await authActions.signup({
@@ -105,6 +107,7 @@ describe('Authentication', () => {
           })
         })
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.select as any) = mockSelect;
 
       const result = await authActions.login({
@@ -125,6 +128,7 @@ describe('Authentication', () => {
           })
         })
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.select as any) = mockSelect;
 
       const result = await authActions.login({
@@ -139,9 +143,9 @@ describe('Authentication', () => {
     it('logout deletes session cookie', async () => {
       try {
         await authActions.logout();
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Next.js redirect throws NEXT_REDIRECT error, so we catch it
-        expect(error.message).toBe('NEXT_REDIRECT');
+        expect(error instanceof Error ? error.message : '').toBe('NEXT_REDIRECT');
       }
       const cookiesStore = await cookies();
       expect(cookiesStore.delete).toHaveBeenCalledWith('session');

@@ -72,8 +72,8 @@ export async function updateIncome(id: string, data: unknown) {
     updateTag(`incomes-${session.userId}-${existing.periodId}`);
     
     return { success: true, data: updated };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -97,7 +97,7 @@ export async function deleteIncome(id: string) {
     updateTag(`incomes-${session.userId}-${existing.periodId}`);
     
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

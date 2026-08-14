@@ -28,3 +28,11 @@ export async function getUserInvestmentById(userId: string, id: string) {
   
   return investment;
 }
+
+export async function getUserInvestments(userId: string) {
+  'use cache';
+  cacheTag(`investments-${userId}`);
+  
+  const service = getInvestmentService();
+  return service.getInvestmentsByUser(userId);
+}
