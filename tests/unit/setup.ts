@@ -1,2 +1,3 @@
 import "@testing-library/react";
-// We can add jest-dom later if needed
+import { vi } from 'vitest';
+vi.mock('server-only', () => ({}));
