@@ -18,6 +18,10 @@ export class InvestmentDrizzleRepository implements IInvestmentRepository {
     return db.select().from(investments).where(eq(investments.userId, userId));
   }
 
+  async findByPeriodId(periodId: string): Promise<Investment[]> {
+    return db.select().from(investments).where(eq(investments.periodId, periodId));
+  }
+
   async update(id: string, data: Partial<NewInvestment>): Promise<Investment> {
     const [investment] = await db
       .update(investments)

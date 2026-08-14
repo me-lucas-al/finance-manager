@@ -29,6 +29,10 @@ class MockInvestmentRepository implements IInvestmentRepository {
     return this.investments.filter((i) => i.userId === userId);
   }
 
+  async findByPeriodId(periodId: string): Promise<Investment[]> {
+    return this.investments.filter((i) => i.periodId === periodId);
+  }
+
   async update(id: string, data: Partial<NewInvestment>): Promise<Investment> {
     const index = this.investments.findIndex((i) => i.id === id);
     if (index === -1) throw new Error('Investment not found');

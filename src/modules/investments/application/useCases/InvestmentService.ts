@@ -15,6 +15,10 @@ export class InvestmentService {
     return this.investmentRepository.findByUserId(userId);
   }
 
+  async getInvestmentsByPeriod(periodId: string): Promise<Investment[]> {
+    return this.investmentRepository.findByPeriodId(periodId);
+  }
+
   async updateInvestment(id: string, data: Partial<NewInvestment>): Promise<Investment> {
     return this.investmentRepository.update(id, data);
   }

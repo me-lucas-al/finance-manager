@@ -8,6 +8,7 @@ export interface IInvestmentRepository {
   create(data: NewInvestment): Promise<Investment>;
   findById(id: string): Promise<Investment | null>;
   findByUserId(userId: string): Promise<Investment[]>;
+  findByPeriodId(periodId: string): Promise<Investment[]>;
   update(id: string, data: Partial<NewInvestment>): Promise<Investment>;
   delete(id: string): Promise<void>;
 }
