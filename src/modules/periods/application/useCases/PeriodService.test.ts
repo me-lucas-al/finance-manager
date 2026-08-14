@@ -28,6 +28,10 @@ class MockPeriodRepository implements IPeriodRepository {
     return this.periods.filter((p) => p.userId === userId);
   }
 
+  async findByExactDates(userId: string, startDate: Date, endDate: Date): Promise<FinancialPeriod | null> {
+    return this.periods.find((p) => p.userId === userId && p.startDate.getTime() === startDate.getTime() && p.endDate.getTime() === endDate.getTime()) || null;
+  }
+
   async update(id: string, data: Partial<NewFinancialPeriod>): Promise<FinancialPeriod> {
     const index = this.periods.findIndex((p) => p.id === id);
     if (index === -1) throw new Error('Financial period not found');

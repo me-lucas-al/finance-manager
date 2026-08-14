@@ -47,7 +47,7 @@ export class FinancialPeriodService {
     return this.periodRepository.create(userId, period.startDate, period.endDate);
   }
 
-  public async createNextPeriod(userId: string, currentDate: Date): Promise<{ id: string }> {
+  public async determineNextPeriodData(userId: string, currentDate: Date): Promise<{ userId: string, startDate: Date, endDate: Date, status: string }> {
     const settings = await this.userSettingsRepository.getSettingsByUserId(userId);
     const currentPeriod = this.determinePeriodForDate(currentDate, settings.periodStartDay, settings.periodEndDay);
 
@@ -61,11 +61,22 @@ export class FinancialPeriodService {
 
     const nextPeriod = new FinancialPeriod(settings.periodStartDay, settings.periodEndDay, nextYear, nextMonth);
 
-    const existingPeriod = await this.periodRepository.findByExactDates(userId, nextPeriod.startDate, nextPeriod.endDate);
+    return {
+      userId,
+      startDate: nextPeriod.startDate,
+      endDate: nextPeriod.endDate,
+      status: 'open',
+    };
+  }
+
+  public async createNextPeriod(userId: string, currentDate: Date): Promise<{ id: string }> {
+    const nextPeriodData = await this.determineNextPeriodData(userId, currentDate);
+
+    const existingPeriod = await this.periodRepository.findByExactDates(userId, nextPeriodData.startDate, nextPeriodData.endDate);
     if (existingPeriod) {
       return existingPeriod;
     }
 
-    return this.periodRepository.create(userId, nextPeriod.startDate, nextPeriod.endDate);
+    return this.periodRepository.create(userId, nextPeriodData.startDate, nextPeriodData.endDate);
   }
 }
