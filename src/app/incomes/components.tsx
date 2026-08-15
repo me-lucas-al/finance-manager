@@ -5,6 +5,7 @@ import { createIncome, deleteIncome } from '../actions/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { DeleteButton } from '@/components/DeleteButton';
 
@@ -19,7 +20,7 @@ export function DeleteIncomeButton({ id }: { id: string }) {
   );
 }
 
-export function IncomeForm() {
+export function IncomeForm({ categories }: { categories: string[] }) {
   const [isPending, startTransition] = useTransition();
 
   async function action(formData: FormData) {
@@ -38,7 +39,16 @@ export function IncomeForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="category">Categoria</Label>
-        <Input id="category" name="category" required />
+        <Select name="category">
+          <SelectTrigger id="category" className="w-full">
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category} value={category}>{category}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-2">
         <Label htmlFor="receivedAt">Data de Recebimento</Label>

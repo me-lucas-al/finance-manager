@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { ExpenseForm, DeleteExpenseButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getUserSettings } from '@/app/actions/users';
 
 export default async function ExpensesPage() {
   const session = await getSession();
@@ -13,7 +14,11 @@ export default async function ExpensesPage() {
   }
 
   const userId = session.user.id;
-  const userExpenses = await db.select().from(expenses).where(eq(expenses.userId, userId)).orderBy(expenses.date);
+  const [userExpenses, settings] = await Promise.all([
+    db.select().from(expenses).where(eq(expenses.userId, userId)).orderBy(expenses.date),
+    getUserSettings(),
+  ]);
+  const categories = settings?.expenseCategories ?? [];
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -27,7 +32,7 @@ export default async function ExpensesPage() {
             <CardTitle>Nova Despesa</CardTitle>
           </CardHeader>
           <CardContent>
-            <ExpenseForm />
+            <ExpenseForm categories={categories} />
           </CardContent>
         </Card>
 

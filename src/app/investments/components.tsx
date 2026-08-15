@@ -5,6 +5,7 @@ import { createInvestment, deleteInvestment } from '../actions/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { DeleteButton } from '@/components/DeleteButton';
 
@@ -19,7 +20,7 @@ export function DeleteInvestmentButton({ id }: { id: string }) {
   );
 }
 
-export function InvestmentForm() {
+export function InvestmentForm({ types }: { types: string[] }) {
   const [isPending, startTransition] = useTransition();
 
   async function action(formData: FormData) {
@@ -38,7 +39,16 @@ export function InvestmentForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="type">Tipo</Label>
-        <Input id="type" name="type" required />
+        <Select name="type">
+          <SelectTrigger id="type" className="w-full">
+            <SelectValue placeholder="Selecione um tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            {types.map((type) => (
+              <SelectItem key={type} value={type}>{type}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-2">
         <Label htmlFor="date">Data do Investimento</Label>

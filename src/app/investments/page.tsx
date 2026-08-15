@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { InvestmentForm, DeleteInvestmentButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getUserSettings } from '@/app/actions/users';
 
 export default async function InvestmentsPage() {
   const session = await getSession();
@@ -13,7 +14,11 @@ export default async function InvestmentsPage() {
   }
 
   const userId = session.user.id;
-  const userInvestments = await db.select().from(investments).where(eq(investments.userId, userId)).orderBy(investments.date);
+  const [userInvestments, settings] = await Promise.all([
+    db.select().from(investments).where(eq(investments.userId, userId)).orderBy(investments.date),
+    getUserSettings(),
+  ]);
+  const types = settings?.investmentTypes ?? [];
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -27,7 +32,7 @@ export default async function InvestmentsPage() {
             <CardTitle>Novo Investimento</CardTitle>
           </CardHeader>
           <CardContent>
-            <InvestmentForm />
+            <InvestmentForm types={types} />
           </CardContent>
         </Card>
 

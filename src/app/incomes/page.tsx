@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { IncomeForm, DeleteIncomeButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getUserSettings } from '@/app/actions/users';
 
 export default async function IncomesPage() {
   const session = await getSession();
@@ -13,7 +14,11 @@ export default async function IncomesPage() {
   }
 
   const userId = session.user.id;
-  const userIncomes = await db.select().from(incomes).where(eq(incomes.userId, userId)).orderBy(incomes.receivedAt);
+  const [userIncomes, settings] = await Promise.all([
+    db.select().from(incomes).where(eq(incomes.userId, userId)).orderBy(incomes.receivedAt),
+    getUserSettings(),
+  ]);
+  const categories = settings?.expenseCategories ?? [];
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -27,7 +32,7 @@ export default async function IncomesPage() {
             <CardTitle>Nova Receita</CardTitle>
           </CardHeader>
           <CardContent>
-            <IncomeForm />
+            <IncomeForm categories={categories} />
           </CardContent>
         </Card>
 
