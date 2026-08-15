@@ -18,11 +18,10 @@ export function DeleteExpenseButton({ id }: { id: string }) {
     />
   );
 }
-export function ExpenseForm({ periodId }: { periodId: string }) {
+export function ExpenseForm() {
   const [isPending, startTransition] = useTransition();
 
   async function action(formData: FormData) {
-    formData.append('periodId', periodId);
     await createExpense(formData);
   }
 

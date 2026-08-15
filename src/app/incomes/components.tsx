@@ -19,11 +19,10 @@ export function DeleteIncomeButton({ id }: { id: string }) {
   );
 }
 
-export function IncomeForm({ periodId }: { periodId: string }) {
+export function IncomeForm() {
   const [isPending, startTransition] = useTransition();
 
   async function action(formData: FormData) {
-    formData.append('periodId', periodId);
     await createIncome(formData);
   }
 

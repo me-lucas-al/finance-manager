@@ -1,6 +1,6 @@
 import { getSession } from '../../modules/auth/application/session';
 import { db } from '../../db';
-import { expenses, financialPeriods } from '../../db/schema';
+import { expenses } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { ExpenseForm, DeleteExpenseButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,10 +14,6 @@ export default async function ExpensesPage() {
 
   const userId = session.user.id;
   const userExpenses = await db.select().from(expenses).where(eq(expenses.userId, userId)).orderBy(expenses.date);
-  
-  // Try to get current period, or fallback
-  const periods = await db.select().from(financialPeriods).where(eq(financialPeriods.userId, userId));
-  const periodId = periods.length > 0 ? periods[0].id : "default-period";
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -31,7 +27,7 @@ export default async function ExpensesPage() {
             <CardTitle>Nova Despesa</CardTitle>
           </CardHeader>
           <CardContent>
-            <ExpenseForm periodId={periodId} />
+            <ExpenseForm />
           </CardContent>
         </Card>
 

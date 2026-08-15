@@ -19,11 +19,10 @@ export function DeleteInvestmentButton({ id }: { id: string }) {
   );
 }
 
-export function InvestmentForm({ periodId }: { periodId: string }) {
+export function InvestmentForm() {
   const [isPending, startTransition] = useTransition();
 
   async function action(formData: FormData) {
-    formData.append('periodId', periodId);
     await createInvestment(formData);
   }
 

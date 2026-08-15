@@ -1,6 +1,6 @@
 import { getSession } from '../../modules/auth/application/session';
 import { db } from '../../db';
-import { investments, financialPeriods } from '../../db/schema';
+import { investments } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { InvestmentForm, DeleteInvestmentButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,10 +14,6 @@ export default async function InvestmentsPage() {
 
   const userId = session.user.id;
   const userInvestments = await db.select().from(investments).where(eq(investments.userId, userId)).orderBy(investments.date);
-  
-  // Try to get current period, or fallback
-  const periods = await db.select().from(financialPeriods).where(eq(financialPeriods.userId, userId));
-  const periodId = periods.length > 0 ? periods[0].id : "default-period";
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -31,7 +27,7 @@ export default async function InvestmentsPage() {
             <CardTitle>Novo Investimento</CardTitle>
           </CardHeader>
           <CardContent>
-            <InvestmentForm periodId={periodId} />
+            <InvestmentForm />
           </CardContent>
         </Card>
 

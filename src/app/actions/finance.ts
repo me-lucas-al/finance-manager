@@ -2,15 +2,23 @@
 
 import { z } from 'zod';
 import { revalidateTag } from 'next/cache';
-import { getSession } from '../../modules/auth/application/session';
+import { requireUserId, requireOwnedEntity } from './require-session';
 import { CreateIncomeUseCase, UpdateIncomeUseCase, DeleteIncomeUseCase } from '../../modules/finance/application/use-cases/manage-income';
 import { CreateExpenseUseCase, UpdateExpenseUseCase, DeleteExpenseUseCase } from '../../modules/finance/application/use-cases/manage-expense';
 import { CreateInvestmentUseCase, UpdateInvestmentUseCase, DeleteInvestmentUseCase } from '../../modules/finance/application/use-cases/manage-investment';
 import { DrizzleIncomeRepository, DrizzleExpenseRepository, DrizzleInvestmentRepository } from '../../modules/finance/infrastructure/repositories';
+import { ResolveCurrentPeriodUseCase } from '../../modules/periods/application/use-cases/resolve-current-period';
+import { DrizzlePeriodRepository } from '../../modules/periods/infrastructure/repositories';
+import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
 
-// Schemas
+async function resolvePeriodId(userId: string, referenceDate: Date): Promise<string> {
+  const useCase = new ResolveCurrentPeriodUseCase(new DrizzlePeriodRepository(), new DrizzleSettingRepository());
+  const period = await useCase.execute(userId, referenceDate);
+  return period.id;
+}
+
+// Schemas (no periodId/userId: those are resolved server-side, never trusted from the client)
 const createIncomeSchema = z.object({
-  periodId: z.string().min(1),
   description: z.string().min(1),
   amount: z.coerce.number().positive(),
   category: z.string().min(1),
@@ -20,7 +28,6 @@ const createIncomeSchema = z.object({
 const updateIncomeSchema = createIncomeSchema.partial();
 
 const createExpenseSchema = z.object({
-  periodId: z.string().min(1),
   description: z.string().min(1),
   amount: z.coerce.number().positive(),
   category: z.string().min(1),
@@ -30,7 +37,6 @@ const createExpenseSchema = z.object({
 const updateExpenseSchema = createExpenseSchema.partial();
 
 const createInvestmentSchema = z.object({
-  periodId: z.string().min(1),
   description: z.string().min(1),
   amount: z.coerce.number().positive(),
   type: z.string().min(1),
@@ -41,135 +47,108 @@ const updateInvestmentSchema = createInvestmentSchema.partial();
 
 // Incomes
 export async function createIncome(formData: FormData) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
-  const rawData = Object.fromEntries(formData.entries());
-  const parsedData = createIncomeSchema.parse(rawData);
+  const userId = await requireUserId();
+  const parsedData = createIncomeSchema.parse(Object.fromEntries(formData.entries()));
+  const periodId = await resolvePeriodId(userId, parsedData.receivedAt);
 
   const useCase = new CreateIncomeUseCase(new DrizzleIncomeRepository());
-  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId: session.user.id });
+  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId, periodId });
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function updateIncome(id: string, formData: FormData) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
+  const userId = await requireUserId();
   const repo = new DrizzleIncomeRepository();
-  const existing = await repo.findById(id);
-  if (!existing || existing.userId !== session.user.id) throw new Error('Not found or unauthorized');
+  await requireOwnedEntity(repo, id, userId);
 
-  const rawData = Object.fromEntries(formData.entries());
-  const parsedData = updateIncomeSchema.parse(rawData);
+  const parsedData = updateIncomeSchema.parse(Object.fromEntries(formData.entries()));
 
   const useCase = new UpdateIncomeUseCase(repo);
   await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function deleteIncome(id: string) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
+  const userId = await requireUserId();
   const repo = new DrizzleIncomeRepository();
-  const existing = await repo.findById(id);
-  if (!existing || existing.userId !== session.user.id) throw new Error('Not found or unauthorized');
+  await requireOwnedEntity(repo, id, userId);
 
   const useCase = new DeleteIncomeUseCase(repo);
   await useCase.execute(id);
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 // Expenses
 export async function createExpense(formData: FormData) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
-  const rawData = Object.fromEntries(formData.entries());
-  const parsedData = createExpenseSchema.parse(rawData);
+  const userId = await requireUserId();
+  const parsedData = createExpenseSchema.parse(Object.fromEntries(formData.entries()));
+  const periodId = await resolvePeriodId(userId, parsedData.date);
 
   const useCase = new CreateExpenseUseCase(new DrizzleExpenseRepository());
-  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId: session.user.id });
+  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId, periodId });
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function updateExpense(id: string, formData: FormData) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
+  const userId = await requireUserId();
   const repo = new DrizzleExpenseRepository();
-  const existing = await repo.findById(id);
-  if (!existing || existing.userId !== session.user.id) throw new Error('Not found or unauthorized');
+  await requireOwnedEntity(repo, id, userId);
 
-  const rawData = Object.fromEntries(formData.entries());
-  const parsedData = updateExpenseSchema.parse(rawData);
+  const parsedData = updateExpenseSchema.parse(Object.fromEntries(formData.entries()));
 
   const useCase = new UpdateExpenseUseCase(repo);
   await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function deleteExpense(id: string) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
+  const userId = await requireUserId();
   const repo = new DrizzleExpenseRepository();
-  const existing = await repo.findById(id);
-  if (!existing || existing.userId !== session.user.id) throw new Error('Not found or unauthorized');
+  await requireOwnedEntity(repo, id, userId);
 
   const useCase = new DeleteExpenseUseCase(repo);
   await useCase.execute(id);
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 // Investments
 export async function createInvestment(formData: FormData) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
-  const rawData = Object.fromEntries(formData.entries());
-  const parsedData = createInvestmentSchema.parse(rawData);
+  const userId = await requireUserId();
+  const parsedData = createInvestmentSchema.parse(Object.fromEntries(formData.entries()));
+  const periodId = await resolvePeriodId(userId, parsedData.date);
 
   const useCase = new CreateInvestmentUseCase(new DrizzleInvestmentRepository());
-  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId: session.user.id });
+  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId, periodId });
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function updateInvestment(id: string, formData: FormData) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
+  const userId = await requireUserId();
   const repo = new DrizzleInvestmentRepository();
-  const existing = await repo.findById(id);
-  if (!existing || existing.userId !== session.user.id) throw new Error('Not found or unauthorized');
+  await requireOwnedEntity(repo, id, userId);
 
-  const rawData = Object.fromEntries(formData.entries());
-  const parsedData = updateInvestmentSchema.parse(rawData);
+  const parsedData = updateInvestmentSchema.parse(Object.fromEntries(formData.entries()));
 
   const useCase = new UpdateInvestmentUseCase(repo);
   await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function deleteInvestment(id: string) {
-  const session = await getSession();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-
+  const userId = await requireUserId();
   const repo = new DrizzleInvestmentRepository();
-  const existing = await repo.findById(id);
-  if (!existing || existing.userId !== session.user.id) throw new Error('Not found or unauthorized');
+  await requireOwnedEntity(repo, id, userId);
 
   const useCase = new DeleteInvestmentUseCase(repo);
   await useCase.execute(id);
 
-  revalidateTag(`finance-${session.user.id}`, 'max');
+  revalidateTag(`finance-${userId}`, 'max');
 }
