@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1786767498107,
+      "tag": "0000_gray_dreaming_celestial",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1786768883358,
+      "tag": "0001_ambiguous_masque",
+      "breakpoints": true
+    }
+  ]
+}
