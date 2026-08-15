@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { financialPeriods } from '@/db/schema';
-import { lte, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { closeFinancialPeriod } from '@/modules/finance/application/periods/close-financial-period';
 
 export async function GET(req: NextRequest) {
@@ -21,24 +21,24 @@ export async function GET(req: NextRequest) {
     const expiredPeriods = periodsToClose.filter(p => new Date(p.endDate) < now);
 
     let closedCount = 0;
-    const errors = [];
+    const errors: { periodId: string; error: string }[] = [];
 
     // 2. Iterate and close each period securely
     for (const period of expiredPeriods) {
       try {
         await closeFinancialPeriod(period.id, period.userId);
         closedCount++;
-      } catch (error: any) {
-        errors.push({ periodId: period.id, error: error.message });
+      } catch (error) {
+        errors.push({ periodId: period.id, error: error instanceof Error ? error.message : String(error) });
       }
     }
 
     return NextResponse.json({
-      success: true,
+      success: errors.length === 0,
       message: `Checked ${expiredPeriods.length} expired periods. Successfully closed ${closedCount}.`,
       errors: errors.length > 0 ? errors : undefined,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error executing closing cron:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
