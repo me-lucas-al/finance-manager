@@ -35,7 +35,12 @@ export async function updateUserSettings(formData: FormData) {
     try { investmentTypes = JSON.parse(parsedData.investmentTypes); } catch {}
   }
 
-  const dataToUpdate: Partial<NewSetting> = { ...parsedData };
+  const dataToUpdate: Partial<NewSetting> = {
+    periodStartDay: parsedData.periodStartDay,
+    periodEndDay: parsedData.periodEndDay,
+    maxExpensesPercentage: parsedData.maxExpensesPercentage,
+    minInvestmentPercentage: parsedData.minInvestmentPercentage,
+  };
   if (expenseCategories) dataToUpdate.expenseCategories = expenseCategories;
   if (investmentTypes) dataToUpdate.investmentTypes = investmentTypes;
   
