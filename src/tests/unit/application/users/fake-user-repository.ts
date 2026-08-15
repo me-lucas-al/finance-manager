@@ -17,6 +17,9 @@ export class FakeUserRepository implements UserRepository {
   async findById(id: string): Promise<User | null> {
     return this.items.find(i => i.id === id) || null;
   }
+  async findByEmail(email: string): Promise<User | null> {
+    return this.items.find(i => i.email === email) || null;
+  }
   async update(id: string, data: Partial<NewUser>): Promise<User> {
     const index = this.items.findIndex(i => i.id === id);
     if (index === -1) throw new Error('Not found');
