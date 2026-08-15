@@ -44,9 +44,9 @@ describe('Financial Metrics', () => {
     expect(metrics.status).toBe('WARNING');
   });
 
-  it('should be WARNING if investment is close to limit', () => {
+  it('should be ON_TRACK when investment exceeds the minimum goal', () => {
     const metrics = calculateMetrics([1000], [500], [220], 80, 20);
-    expect(metrics.status).toBe('WARNING');
+    expect(metrics.status).toBe('ON_TRACK');
   });
 
   it('should allow custom configuration percentages', () => {

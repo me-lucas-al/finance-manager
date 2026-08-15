@@ -17,8 +17,6 @@ export function calculateMetrics(incomes: number[], expenses: number[], investme
       status = 'OFF_TRACK';
     } else if (expensePercentage > maxExpensesPercentage - 5 && expensePercentage <= maxExpensesPercentage) {
       status = 'WARNING';
-    } else if (investmentPercentage >= minInvestmentPercentage && investmentPercentage < minInvestmentPercentage + 5) {
-      status = 'WARNING';
     }
   }
 
