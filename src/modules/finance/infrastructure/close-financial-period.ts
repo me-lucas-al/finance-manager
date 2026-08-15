@@ -1,7 +1,36 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/db';
-import { financialPeriods, periodSnapshots, incomes, expenses, investments, userSettings } from '@/db/schema';
-import { calculateMetrics } from '../../domain/financial-metrics';
+import {
+  financialPeriods,
+  periodSnapshots,
+  incomes,
+  expenses,
+  investments,
+  userSettings,
+  notifications,
+  notificationPreferences,
+} from '@/db/schema';
+import { calculateMetrics } from '../domain/financial-metrics';
+import { getFinancialPeriod } from '@/modules/periods/domain/financial-period';
+import { NotificationFactory } from '@/modules/notifications/domain/NotificationFactory';
+import { NotificationPayload } from '@/modules/notifications/domain/NotificationTypes';
+import { PushService } from '@/modules/notifications/push/PushService';
+
+async function notifyUser(payload: NotificationPayload, pushEnabled: boolean) {
+  await db.insert(notifications).values({
+    id: crypto.randomUUID(),
+    userId: payload.userId,
+    type: payload.type,
+    title: payload.title,
+    message: payload.message,
+  });
+
+  if (pushEnabled) {
+    await PushService.sendNotificationToUser(payload.userId, payload).catch((error) => {
+      console.error('Failed to send push notification:', error);
+    });
+  }
+}
 
 // neon-http does not support transactions, so idempotency is guaranteed by a
 // conditional UPDATE (OPEN -> CLOSED) that acts as a single-winner lock instead.
@@ -61,18 +90,27 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
     status: metrics.status,
   }).onConflictDoNothing({ target: periodSnapshots.periodId });
 
+  const [prefs] = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId));
+  const closingNotificationsEnabled = prefs?.closingNotificationsEnabled ?? true;
+  const pushNotificationsEnabled = prefs?.pushNotificationsEnabled ?? false;
+
+  if (closingNotificationsEnabled) {
+    await notifyUser(NotificationFactory.createPeriodClosed(userId), pushNotificationsEnabled);
+  }
+
   const existingOpenPeriods = await db.select().from(financialPeriods).where(
     and(eq(financialPeriods.userId, userId), eq(financialPeriods.status, 'OPEN'))
   );
 
   if (existingOpenPeriods.length === 0) {
-    const nextStart = new Date(period.endDate);
-    nextStart.setDate(nextStart.getDate() + 1);
+    const nextReferenceDate = new Date(period.endDate);
+    nextReferenceDate.setDate(nextReferenceDate.getDate() + 1);
 
-    const nextEnd = new Date(nextStart);
-    nextEnd.setMonth(nextEnd.getMonth() + 1);
-    // Simple logic for next end date based on settings
-    nextEnd.setDate(settings?.periodEndDay ?? 14);
+    const { start: nextStart, end: nextEnd } = getFinancialPeriod(
+      nextReferenceDate,
+      settings?.periodStartDay ?? 15,
+      settings?.periodEndDay ?? 14
+    );
 
     await db.insert(financialPeriods).values({
       id: crypto.randomUUID(),
@@ -81,6 +119,10 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
       endDate: nextEnd,
       status: 'OPEN',
     });
+
+    if (closingNotificationsEnabled) {
+      await notifyUser(NotificationFactory.createNewPeriod(userId), pushNotificationsEnabled);
+    }
   }
 
   return { success: true, message: 'Period closed and next period created' };

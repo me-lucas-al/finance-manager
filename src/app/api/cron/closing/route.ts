@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { financialPeriods } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { closeFinancialPeriod } from '@/modules/finance/application/periods/close-financial-period';
+import { closeFinancialPeriod } from '@/modules/finance/infrastructure/close-financial-period';
 
 export async function GET(req: NextRequest) {
   // Protect cron route (assuming Vercel passes a secret)

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { getFinancialPeriod } from '../../modules/periods/domain/financial-period';
 
 export default async function PeriodsPage() {
   const session = await getSession();
@@ -25,12 +26,14 @@ export default async function PeriodsPage() {
   const currentPeriod = periods.find((p) => p.status === 'OPEN' || p.status === 'CURRENT') || periods[0];
   const pastPeriods = periods.filter((p) => p.status === 'CLOSED');
   
-  // Predict upcoming period
-  const nextStartDate = currentPeriod ? new Date(currentPeriod.endDate) : new Date();
-  nextStartDate.setDate(nextStartDate.getDate() + 1);
-  const nextEndDate = new Date(nextStartDate);
-  nextEndDate.setMonth(nextEndDate.getMonth() + 1);
-  nextEndDate.setDate(settings?.periodEndDay || 14);
+  // Predict upcoming period using the same domain logic the closing job uses
+  const nextReferenceDate = currentPeriod ? new Date(currentPeriod.endDate) : new Date();
+  nextReferenceDate.setDate(nextReferenceDate.getDate() + 1);
+  const { start: nextStartDate, end: nextEndDate } = getFinancialPeriod(
+    nextReferenceDate,
+    settings?.periodStartDay ?? 15,
+    settings?.periodEndDay ?? 14
+  );
 
   const today = new Date();
   const daysRemaining = currentPeriod ? differenceInDays(new Date(currentPeriod.endDate), today) : 0;
