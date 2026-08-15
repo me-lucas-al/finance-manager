@@ -1,3 +1,18 @@
+function lastDayOfMonth(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function dayInMonth(year: number, month: number, day: number): Date {
+  const clampedDay = Math.min(day, lastDayOfMonth(year, month));
+  return new Date(year, month, clampedDay);
+}
+
+function endOfDay(date: Date): Date {
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+
 export function getFinancialPeriod(date: Date, startDay: number = 15, endDay: number = 14) {
   const currentDay = date.getDate();
   const currentMonth = date.getMonth();
@@ -6,15 +21,25 @@ export function getFinancialPeriod(date: Date, startDay: number = 15, endDay: nu
   let start: Date;
   let end: Date;
 
-  if (currentDay >= startDay) {
-    // Current date is in the first part of the period (e.g., Oct 15 -> Nov 14, date is Oct 20)
-    start = new Date(currentYear, currentMonth, startDay);
-    end = new Date(currentYear, currentMonth + 1, endDay);
+  if (endDay >= startDay) {
+    // Period fits within a single month (e.g., 1st -> 30th).
+    if (currentDay >= startDay) {
+      start = dayInMonth(currentYear, currentMonth, startDay);
+      end = dayInMonth(currentYear, currentMonth, endDay);
+    } else {
+      start = dayInMonth(currentYear, currentMonth - 1, startDay);
+      end = dayInMonth(currentYear, currentMonth - 1, endDay);
+    }
   } else {
-    // Current date is in the second part of the period (e.g., Oct 15 -> Nov 14, date is Nov 5)
-    start = new Date(currentYear, currentMonth - 1, startDay);
-    end = new Date(currentYear, currentMonth, endDay);
+    // Period spans two months (e.g., 15th -> 14th of the next month).
+    if (currentDay >= startDay) {
+      start = dayInMonth(currentYear, currentMonth, startDay);
+      end = dayInMonth(currentYear, currentMonth + 1, endDay);
+    } else {
+      start = dayInMonth(currentYear, currentMonth - 1, startDay);
+      end = dayInMonth(currentYear, currentMonth, endDay);
+    }
   }
 
-  return { start, end };
+  return { start, end: endOfDay(end) };
 }
