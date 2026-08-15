@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, json, integer, numeric, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, json, integer, numeric, index, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -20,6 +20,10 @@ export const userSettings = pgTable('user_settings', {
   investmentTypes: json('investment_types').default([]).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    userIdIdx: uniqueIndex('user_settings_user_id_idx').on(table.userId),
+  };
 });
 
 export const financialPeriods = pgTable('financial_periods', {
@@ -82,6 +86,11 @@ export const investments = pgTable('investments', {
   date: timestamp('date').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    userIdIdx: index('investments_user_id_idx').on(table.userId),
+    periodIdIdx: index('investments_period_id_idx').on(table.periodId),
+  };
 });
 
 export const notificationPreferences = pgTable('notification_preferences', {
@@ -95,6 +104,10 @@ export const notificationPreferences = pgTable('notification_preferences', {
   pushNotificationsEnabled: boolean('push_notifications_enabled').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    userIdIdx: uniqueIndex('notification_preferences_user_id_idx').on(table.userId),
+  };
 });
 
 export const pushSubscriptions = pgTable('push_subscriptions', {
@@ -105,6 +118,10 @@ export const pushSubscriptions = pgTable('push_subscriptions', {
   auth: text('auth').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    userEndpointIdx: uniqueIndex('push_subscriptions_user_id_endpoint_idx').on(table.userId, table.endpoint),
+  };
 });
 
 export const notifications = pgTable('notifications', {
@@ -115,6 +132,10 @@ export const notifications = pgTable('notifications', {
   message: text('message').notNull(),
   readAt: timestamp('read_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    userIdIdx: index('notifications_user_id_idx').on(table.userId),
+  };
 });
 
 export const periodSnapshots = pgTable('period_snapshots', {

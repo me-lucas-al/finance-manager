@@ -15,6 +15,13 @@
       "when": 1786768883358,
       "tag": "0001_ambiguous_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786817375780,
+      "tag": "0002_add_missing_indexes",
+      "breakpoints": true
     }
   ]
 }

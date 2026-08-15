@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { db } from '@/db';
 import { pushSubscriptions } from '@/db/schema';
 import { getSession } from '@/modules/auth/application/session';
 
+const subscribeSchema = z.object({
+  endpoint: z.string().min(1),
+  keys: z.object({
+    p256dh: z.string().min(1),
+    auth: z.string().min(1),
+  }),
+});
+
 export async function POST(req: Request) {
   try {
-    const subscription = await req.json();
-    
     const session = await getSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const subscription = subscribeSchema.parse(await req.json());
 
     await db.insert(pushSubscriptions).values({
       id: crypto.randomUUID(),
@@ -18,6 +27,13 @@ export async function POST(req: Request) {
       endpoint: subscription.endpoint,
       p256dh: subscription.keys.p256dh,
       auth: subscription.keys.auth,
+    }).onConflictDoUpdate({
+      target: [pushSubscriptions.userId, pushSubscriptions.endpoint],
+      set: {
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth,
+        updatedAt: new Date(),
+      },
     });
 
     return NextResponse.json({ success: true });
