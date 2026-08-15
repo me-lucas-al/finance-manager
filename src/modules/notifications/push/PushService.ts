@@ -4,18 +4,26 @@ import { pushSubscriptions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { NotificationPayload } from '../domain/NotificationTypes';
 
-// Configuração seria feita com variáveis de ambiente reais
-const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_KEY || 'dummy_public_key';
-const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'dummy_private_key';
+// VAPID keys are read and applied lazily so a missing/incomplete config never
+// crashes module import (e.g. during build or in environments without push set up).
+function configureWebPush(): boolean {
+  const publicKey = process.env.PUSH_PUBLIC_KEY;
+  const privateKey = process.env.PUSH_PRIVATE_KEY;
+  const subject = process.env.PUSH_SUBJECT;
 
-webpush.setVapidDetails(
-  'mailto:contato@financemanager.com',
-  publicVapidKey,
-  privateVapidKey
-);
+  if (!publicKey || !privateKey || !subject) return false;
+
+  webpush.setVapidDetails(subject, publicKey, privateKey);
+  return true;
+}
 
 export class PushService {
   static async sendNotificationToUser(userId: string, payload: NotificationPayload) {
+    if (!configureWebPush()) {
+      console.warn('Push notifications are not configured (missing PUSH_PUBLIC_KEY/PUSH_PRIVATE_KEY/PUSH_SUBJECT); skipping.');
+      return;
+    }
+
     const subscriptions = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
 
     const pushPayload = JSON.stringify({
