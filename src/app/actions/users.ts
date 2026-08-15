@@ -3,8 +3,9 @@
 import { z } from 'zod';
 import { revalidateTag } from 'next/cache';
 import { getSession } from '../../modules/auth/application/session';
-import { UpdateSettingUseCase, GetSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
+import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
+import type { NewSetting } from '../../modules/users/domain/repositories/setting-repository';
 
 const updateSettingsSchema = z.object({
   periodStartDay: z.coerce.number().min(1).max(31).optional(),
@@ -34,7 +35,7 @@ export async function updateUserSettings(formData: FormData) {
     try { investmentTypes = JSON.parse(parsedData.investmentTypes); } catch {}
   }
 
-  const dataToUpdate: any = { ...parsedData };
+  const dataToUpdate: Partial<NewSetting> = { ...parsedData };
   if (expenseCategories) dataToUpdate.expenseCategories = expenseCategories;
   if (investmentTypes) dataToUpdate.investmentTypes = investmentTypes;
   

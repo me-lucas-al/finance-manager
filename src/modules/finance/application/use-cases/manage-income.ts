@@ -1,8 +1,8 @@
-import { IncomeRepository } from '../../domain/repositories/income-repository';
+import { IncomeRepository, NewIncome } from '../../domain/repositories/income-repository';
 
 export class CreateIncomeUseCase {
   constructor(private repo: IncomeRepository) {}
-  async execute(data: any) {
+  async execute(data: Omit<NewIncome, 'id'>) {
     return this.repo.create(data);
   }
 }
@@ -14,7 +14,7 @@ export class GetIncomeUseCase {
 }
 export class UpdateIncomeUseCase {
   constructor(private repo: IncomeRepository) {}
-  async execute(id: string, data: any) {
+  async execute(id: string, data: Partial<NewIncome>) {
     return this.repo.update(id, data);
   }
 }

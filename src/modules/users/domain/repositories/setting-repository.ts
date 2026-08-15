@@ -1,12 +1,13 @@
-export interface Setting {
-  id: string;
-  [key: string]: any;
-}
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import type { userSettings } from '@/db/schema';
+
+export type Setting = InferSelectModel<typeof userSettings>;
+export type NewSetting = InferInsertModel<typeof userSettings>;
 
 export interface SettingRepository {
-  create(data: Omit<Setting, 'id'>): Promise<Setting>;
+  create(data: Omit<NewSetting, 'id'>): Promise<Setting>;
   findById(id: string): Promise<Setting | null>;
-  update(id: string, data: Partial<Setting>): Promise<Setting>;
+  update(id: string, data: Partial<NewSetting>): Promise<Setting>;
   delete(id: string): Promise<void>;
   findByUserId(userId: string): Promise<Setting | null>;
 }

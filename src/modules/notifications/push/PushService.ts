@@ -35,8 +35,9 @@ export class PushService {
 
       try {
         await webpush.sendNotification(pushSubscription, pushPayload);
-      } catch (error: any) {
-        if (error.statusCode === 404 || error.statusCode === 410) {
+      } catch (error) {
+        const statusCode = error instanceof webpush.WebPushError ? error.statusCode : undefined;
+        if (statusCode === 404 || statusCode === 410) {
           console.log('Subscription has expired or is no longer valid: ', error);
           await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, sub.id));
         } else {

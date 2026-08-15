@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,8 @@ export default function ErrorState({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const router = useRouter();
+
   useEffect(() => {
     // Log the error to an error reporting service
     console.error(error);
@@ -29,7 +32,7 @@ export default function ErrorState({
           </p>
         </div>
         <div className="flex gap-4">
-          <Button onClick={() => window.location.href = '/'}>
+          <Button onClick={() => router.push('/')}>
             Ir para Dashboard
           </Button>
           <Button variant="outline" onClick={() => reset()}>

@@ -1,12 +1,12 @@
-export interface Period {
-  id: string;
-  [key: string]: any;
-}
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import type { financialPeriods } from '@/db/schema';
+
+export type Period = InferSelectModel<typeof financialPeriods>;
+export type NewPeriod = InferInsertModel<typeof financialPeriods>;
 
 export interface PeriodRepository {
-  create(data: Omit<Period, 'id'>): Promise<Period>;
+  create(data: Omit<NewPeriod, 'id'>): Promise<Period>;
   findById(id: string): Promise<Period | null>;
-  update(id: string, data: Partial<Period>): Promise<Period>;
+  update(id: string, data: Partial<NewPeriod>): Promise<Period>;
   delete(id: string): Promise<void>;
-  
 }

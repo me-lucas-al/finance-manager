@@ -24,7 +24,6 @@ export const viewport = {
   themeColor: "#1e293b",
 };
 
-import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

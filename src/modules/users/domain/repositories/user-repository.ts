@@ -1,12 +1,12 @@
-export interface User {
-  id: string;
-  [key: string]: any;
-}
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import type { users } from '@/db/schema';
+
+export type User = InferSelectModel<typeof users>;
+export type NewUser = InferInsertModel<typeof users>;
 
 export interface UserRepository {
-  create(data: Omit<User, 'id'>): Promise<User>;
+  create(data: Omit<NewUser, 'id'>): Promise<User>;
   findById(id: string): Promise<User | null>;
-  update(id: string, data: Partial<User>): Promise<User>;
+  update(id: string, data: Partial<NewUser>): Promise<User>;
   delete(id: string): Promise<void>;
-  
 }

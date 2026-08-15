@@ -1,8 +1,8 @@
-import { InvestmentRepository } from '../../domain/repositories/investment-repository';
+import { InvestmentRepository, NewInvestment } from '../../domain/repositories/investment-repository';
 
 export class CreateInvestmentUseCase {
   constructor(private repo: InvestmentRepository) {}
-  async execute(data: any) {
+  async execute(data: Omit<NewInvestment, 'id'>) {
     return this.repo.create(data);
   }
 }
@@ -14,7 +14,7 @@ export class GetInvestmentUseCase {
 }
 export class UpdateInvestmentUseCase {
   constructor(private repo: InvestmentRepository) {}
-  async execute(id: string, data: any) {
+  async execute(id: string, data: Partial<NewInvestment>) {
     return this.repo.update(id, data);
   }
 }

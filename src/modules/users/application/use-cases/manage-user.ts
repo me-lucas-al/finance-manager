@@ -1,8 +1,8 @@
-import { UserRepository } from '../../domain/repositories/user-repository';
+import { UserRepository, NewUser } from '../../domain/repositories/user-repository';
 
 export class CreateUserUseCase {
   constructor(private repo: UserRepository) {}
-  async execute(data: any) {
+  async execute(data: Omit<NewUser, 'id'>) {
     return this.repo.create(data);
   }
 }
@@ -14,7 +14,7 @@ export class GetUserUseCase {
 }
 export class UpdateUserUseCase {
   constructor(private repo: UserRepository) {}
-  async execute(id: string, data: any) {
+  async execute(id: string, data: Partial<NewUser>) {
     return this.repo.update(id, data);
   }
 }

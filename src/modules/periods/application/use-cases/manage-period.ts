@@ -1,8 +1,8 @@
-import { PeriodRepository } from '../../domain/repositories/period-repository';
+import { PeriodRepository, NewPeriod } from '../../domain/repositories/period-repository';
 
 export class CreatePeriodUseCase {
   constructor(private repo: PeriodRepository) {}
-  async execute(data: any) {
+  async execute(data: Omit<NewPeriod, 'id'>) {
     return this.repo.create(data);
   }
 }
@@ -14,7 +14,7 @@ export class GetPeriodUseCase {
 }
 export class UpdatePeriodUseCase {
   constructor(private repo: PeriodRepository) {}
-  async execute(id: string, data: any) {
+  async execute(id: string, data: Partial<NewPeriod>) {
     return this.repo.update(id, data);
   }
 }

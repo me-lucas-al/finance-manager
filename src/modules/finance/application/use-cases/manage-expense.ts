@@ -1,8 +1,8 @@
-import { ExpenseRepository } from '../../domain/repositories/expense-repository';
+import { ExpenseRepository, NewExpense } from '../../domain/repositories/expense-repository';
 
 export class CreateExpenseUseCase {
   constructor(private repo: ExpenseRepository) {}
-  async execute(data: any) {
+  async execute(data: Omit<NewExpense, 'id'>) {
     return this.repo.create(data);
   }
 }
@@ -14,7 +14,7 @@ export class GetExpenseUseCase {
 }
 export class UpdateExpenseUseCase {
   constructor(private repo: ExpenseRepository) {}
-  async execute(id: string, data: any) {
+  async execute(id: string, data: Partial<NewExpense>) {
     return this.repo.update(id, data);
   }
 }

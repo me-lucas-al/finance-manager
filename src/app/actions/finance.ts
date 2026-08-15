@@ -48,7 +48,7 @@ export async function createIncome(formData: FormData) {
   const parsedData = createIncomeSchema.parse(rawData);
 
   const useCase = new CreateIncomeUseCase(new DrizzleIncomeRepository());
-  await useCase.execute({ ...parsedData, userId: session.user.id });
+  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId: session.user.id });
 
   revalidateTag(`finance-${session.user.id}`, 'max');
 }
@@ -65,7 +65,7 @@ export async function updateIncome(id: string, formData: FormData) {
   const parsedData = updateIncomeSchema.parse(rawData);
 
   const useCase = new UpdateIncomeUseCase(repo);
-  await useCase.execute(id, parsedData);
+  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
 
   revalidateTag(`finance-${session.user.id}`, 'max');
 }
@@ -93,7 +93,7 @@ export async function createExpense(formData: FormData) {
   const parsedData = createExpenseSchema.parse(rawData);
 
   const useCase = new CreateExpenseUseCase(new DrizzleExpenseRepository());
-  await useCase.execute({ ...parsedData, userId: session.user.id });
+  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId: session.user.id });
 
   revalidateTag(`finance-${session.user.id}`, 'max');
 }
@@ -110,7 +110,7 @@ export async function updateExpense(id: string, formData: FormData) {
   const parsedData = updateExpenseSchema.parse(rawData);
 
   const useCase = new UpdateExpenseUseCase(repo);
-  await useCase.execute(id, parsedData);
+  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
 
   revalidateTag(`finance-${session.user.id}`, 'max');
 }
@@ -138,7 +138,7 @@ export async function createInvestment(formData: FormData) {
   const parsedData = createInvestmentSchema.parse(rawData);
 
   const useCase = new CreateInvestmentUseCase(new DrizzleInvestmentRepository());
-  await useCase.execute({ ...parsedData, userId: session.user.id });
+  await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId: session.user.id });
 
   revalidateTag(`finance-${session.user.id}`, 'max');
 }
@@ -155,7 +155,7 @@ export async function updateInvestment(id: string, formData: FormData) {
   const parsedData = updateInvestmentSchema.parse(rawData);
 
   const useCase = new UpdateInvestmentUseCase(repo);
-  await useCase.execute(id, parsedData);
+  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
 
   revalidateTag(`finance-${session.user.id}`, 'max');
 }

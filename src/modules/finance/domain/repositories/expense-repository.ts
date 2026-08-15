@@ -1,12 +1,13 @@
-export interface Expense {
-  id: string;
-  [key: string]: any;
-}
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import type { expenses } from '@/db/schema';
+
+export type Expense = InferSelectModel<typeof expenses>;
+export type NewExpense = InferInsertModel<typeof expenses>;
 
 export interface ExpenseRepository {
-  create(data: Omit<Expense, 'id'>): Promise<Expense>;
+  create(data: Omit<NewExpense, 'id'>): Promise<Expense>;
   findById(id: string): Promise<Expense | null>;
-  update(id: string, data: Partial<Expense>): Promise<Expense>;
+  findAllByUserId(userId: string): Promise<Expense[]>;
+  update(id: string, data: Partial<NewExpense>): Promise<Expense>;
   delete(id: string): Promise<void>;
-  
 }

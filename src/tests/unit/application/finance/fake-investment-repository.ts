@@ -12,6 +12,9 @@ export class FakeInvestmentRepository implements InvestmentRepository {
   async findById(id: string): Promise<Investment | null> {
     return this.items.find(i => i.id === id) || null;
   }
+  async findAllByUserId(userId: string): Promise<Investment[]> {
+    return this.items.filter(i => i.userId === userId);
+  }
   async update(id: string, data: Partial<Investment>): Promise<Investment> {
     const index = this.items.findIndex(i => i.id === id);
     if (index === -1) throw new Error('Not found');

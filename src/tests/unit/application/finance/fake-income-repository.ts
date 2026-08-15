@@ -12,6 +12,9 @@ export class FakeIncomeRepository implements IncomeRepository {
   async findById(id: string): Promise<Income | null> {
     return this.items.find(i => i.id === id) || null;
   }
+  async findAllByUserId(userId: string): Promise<Income[]> {
+    return this.items.filter(i => i.userId === userId);
+  }
   async update(id: string, data: Partial<Income>): Promise<Income> {
     const index = this.items.findIndex(i => i.id === id);
     if (index === -1) throw new Error('Not found');

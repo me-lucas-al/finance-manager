@@ -18,7 +18,8 @@ export class CreateFinancialPeriodUseCase {
     return this.periodRepo.create({
       userId,
       startDate: start,
-      endDate: end
+      endDate: end,
+      status: 'OPEN',
     });
   }
 }
