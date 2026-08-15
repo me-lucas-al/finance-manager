@@ -1,14 +1,12 @@
 import { getSession } from '../../modules/auth/application/session';
 import { db } from '../../db';
 import { financialPeriods, userSettings } from '../../db/schema';
-import { eq, desc, asc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-export const dynamic = "force-dynamic";
 
 export default async function PeriodsPage() {
   const session = await getSession();

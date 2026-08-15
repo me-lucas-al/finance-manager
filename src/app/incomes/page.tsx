@@ -6,8 +6,6 @@ import { IncomeForm, DeleteIncomeButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-export const dynamic = "force-dynamic";
-
 export default async function IncomesPage() {
   const session = await getSession();
   if (!session?.user?.id) {
@@ -53,7 +51,7 @@ export default async function IncomesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userIncomes.map((income: any) => (
+                {userIncomes.map((income) => (
                   <TableRow key={income.id}>
                     <TableCell>{new Date(income.receivedAt).toLocaleDateString()}</TableCell>
                     <TableCell>{income.description}</TableCell>

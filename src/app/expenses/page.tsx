@@ -6,8 +6,6 @@ import { ExpenseForm, DeleteExpenseButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-export const dynamic = "force-dynamic";
-
 export default async function ExpensesPage() {
   const session = await getSession();
   if (!session?.user?.id) {
@@ -53,7 +51,7 @@ export default async function ExpensesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userExpenses.map((expense: any) => (
+                {userExpenses.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
                     <TableCell>{expense.description}</TableCell>

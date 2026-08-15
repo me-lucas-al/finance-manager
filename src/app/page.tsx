@@ -5,8 +5,6 @@ import { eq } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
-export const dynamic = "force-dynamic";
-
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session?.user?.id) {

@@ -6,8 +6,6 @@ import { InvestmentForm, DeleteInvestmentButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-export const dynamic = "force-dynamic";
-
 export default async function InvestmentsPage() {
   const session = await getSession();
   if (!session?.user?.id) {
@@ -53,7 +51,7 @@ export default async function InvestmentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userInvestments.map((inv: any) => (
+                {userInvestments.map((inv) => (
                   <TableRow key={inv.id}>
                     <TableCell>{new Date(inv.date).toLocaleDateString()}</TableCell>
                     <TableCell>{inv.description}</TableCell>
