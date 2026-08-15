@@ -1,35 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import * as crypto from 'crypto';
-
-export function hashPassword(password: string, salt: string): string {
-  return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-}
-
-export function verifyPassword(password: string, hash: string, salt: string): boolean {
-  return hashPassword(password, salt) === hash;
-}
-
-export function generateSalt(): string {
-  return crypto.randomBytes(16).toString('hex');
-}
+import { hashPassword, verifyPassword } from '../../../modules/auth/domain/password';
 
 describe('Authentication Domain', () => {
-  it('should hash a password correctly', () => {
-    const salt = generateSalt();
-    const hash = hashPassword('myPassword123', salt);
+  it('should hash a password', async () => {
+    const hash = await hashPassword('myPassword123');
     expect(hash).toBeDefined();
-    expect(hash.length).toBeGreaterThan(0);
+    expect(hash).toContain(':');
   });
 
-  it('should verify a correct password', () => {
-    const salt = generateSalt();
-    const hash = hashPassword('myPassword123', salt);
-    expect(verifyPassword('myPassword123', hash, salt)).toBe(true);
+  it('should verify a correct password', async () => {
+    const hash = await hashPassword('myPassword123');
+    expect(await verifyPassword('myPassword123', hash)).toBe(true);
   });
 
-  it('should reject an incorrect password', () => {
-    const salt = generateSalt();
-    const hash = hashPassword('myPassword123', salt);
-    expect(verifyPassword('wrongPassword', hash, salt)).toBe(false);
+  it('should reject an incorrect password', async () => {
+    const hash = await hashPassword('myPassword123');
+    expect(await verifyPassword('wrongPassword', hash)).toBe(false);
+  });
+
+  it('should produce different hashes for the same password', async () => {
+    const hash1 = await hashPassword('myPassword123');
+    const hash2 = await hashPassword('myPassword123');
+    expect(hash1).not.toBe(hash2);
   });
 });

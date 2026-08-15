@@ -1,19 +1,14 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
-import * as crypto from 'crypto';
+import { hashPassword } from '../modules/auth/domain/password';
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
-function hashPassword(password: string, salt: string) {
-  return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-}
-
 async function main() {
   console.log('Seeding database...');
-  const salt = crypto.randomBytes(16).toString('hex');
-  const passwordHash = `${salt}:${hashPassword('123456', salt)}`;
+  const passwordHash = await hashPassword('123456');
 
   const [user] = await db.insert(schema.users).values({
     id: crypto.randomUUID(),
