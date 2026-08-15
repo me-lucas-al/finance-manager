@@ -2,10 +2,13 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Navigation } from "@/components/Navigation";
 import { getSession } from "@/modules/auth/application/session";
+import { getNotifications } from "@/app/actions/notifications";
 
 export async function AppHeader() {
   const session = await getSession();
   if (!session) return null;
+
+  const notifications = await getNotifications();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -15,7 +18,7 @@ export async function AppHeader() {
           <Navigation />
         </div>
         <div className="flex items-center gap-4">
-          <NotificationCenter />
+          <NotificationCenter initialNotifications={notifications} />
           <LogoutButton />
         </div>
       </div>

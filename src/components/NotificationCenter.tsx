@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Bell, Check, Trash2, Settings } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,30 +13,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { markAllNotificationsAsRead, markNotificationAsRead, clearAllNotifications } from '@/app/actions/notifications';
 
-// Mock data until integrated with backend
-const MOCK_NOTIFICATIONS = [
-  { id: '1', type: 'EXPENSE_WARNING', title: 'Aviso de Gastos', message: 'Você já utilizou 76% da sua renda em gastos.', readAt: null, createdAt: new Date() },
-  { id: '2', type: 'EXPENSE_LIMIT_REACHED', title: 'Limite Atingido', message: 'Restam R$ 120 até atingir o limite.', readAt: null, createdAt: new Date(Date.now() - 3600000) },
-  { id: '3', type: 'PERIOD_CLOSED', title: 'Período Fechado', message: 'O período foi fechado com sucesso.', readAt: new Date(), createdAt: new Date(Date.now() - 86400000) },
-];
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  readAt: Date | null;
+  createdAt: Date;
+}
 
-export function NotificationCenter() {
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+export function NotificationCenter({ initialNotifications }: { initialNotifications: Notification[] }) {
+  const [notifications, setNotifications] = useState(initialNotifications);
+  const [, startTransition] = useTransition();
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
   const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, readAt: new Date() } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, readAt: new Date() } : n)));
+    startTransition(() => markNotificationAsRead(id));
   };
 
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, readAt: new Date() })));
+    startTransition(() => markAllNotificationsAsRead());
   };
 
   const clearAll = () => {
     setNotifications([]);
+    startTransition(() => clearAllNotifications());
   };
 
   return (
@@ -90,7 +95,7 @@ export function NotificationCenter() {
           <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs text-destructive">
             <Trash2 className="h-3 w-3 mr-1" /> Limpar
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs">
+          <Button variant="ghost" size="sm" className="text-xs" render={<Link href="/settings" />}>
             <Settings className="h-3 w-3 mr-1" /> Configurações
           </Button>
         </div>
