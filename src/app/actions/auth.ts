@@ -43,11 +43,18 @@ export async function signUp(formData: FormData) {
     userId: user.id,
   });
 
-  await nextAuthSignIn('credentials', {
-    email: parsed.email,
-    password: parsed.password,
-    redirectTo: '/',
-  });
+  try {
+    await nextAuthSignIn('credentials', {
+      email: parsed.email,
+      password: parsed.password,
+      redirectTo: '/',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      throw new Error('Conta criada, mas houve um erro ao entrar automaticamente. Faça login.');
+    }
+    throw error;
+  }
 }
 
 const signInSchema = z.object({
