@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { revalidateTag } from 'next/cache';
+import { updateTag } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { notificationPreferences } from '@/db/schema';
@@ -54,5 +54,5 @@ export async function updateNotificationPreferences(formData: FormData) {
     .set(parsedData)
     .where(eq(notificationPreferences.userId, userId));
 
-  revalidateTag(`notification-preferences-${userId}`, 'max');
+  updateTag(`notification-preferences-${userId}`);
 }

@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { revalidateTag } from 'next/cache';
+import { updateTag } from 'next/cache';
 import { auth } from '@/auth';
 import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
@@ -53,7 +53,7 @@ export async function updateUserSettings(formData: FormData) {
   const useCase = new UpdateSettingUseCase(repo);
   await useCase.execute(existing.id, dataToUpdate);
 
-  revalidateTag(`settings-${session.user.id}`, 'max');
+  updateTag(`settings-${session.user.id}`);
 }
 
 async function fetchUserSettingsCached(userId: string) {

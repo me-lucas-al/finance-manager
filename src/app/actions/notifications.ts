@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { updateTag } from 'next/cache';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { notifications } from '@/db/schema';
@@ -27,7 +27,7 @@ export async function markNotificationAsRead(id: string) {
   await db.update(notifications)
     .set({ readAt: new Date() })
     .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
-  revalidateTag(`notifications-${userId}`, 'max');
+  updateTag(`notifications-${userId}`);
 }
 
 export async function markAllNotificationsAsRead() {
@@ -35,11 +35,11 @@ export async function markAllNotificationsAsRead() {
   await db.update(notifications)
     .set({ readAt: new Date() })
     .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
-  revalidateTag(`notifications-${userId}`, 'max');
+  updateTag(`notifications-${userId}`);
 }
 
 export async function clearAllNotifications() {
   const userId = await requireUserId();
   await db.delete(notifications).where(eq(notifications.userId, userId));
-  revalidateTag(`notifications-${userId}`, 'max');
+  updateTag(`notifications-${userId}`);
 }

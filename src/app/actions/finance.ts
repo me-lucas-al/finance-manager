@@ -1,7 +1,6 @@
 'use server';
 
 import { z } from 'zod';
-import { revalidateTag } from 'next/cache';
 import { requireUserId, requireOwnedEntity } from './require-session';
 import { CreateIncomeUseCase, UpdateIncomeUseCase, DeleteIncomeUseCase } from '../../modules/finance/application/use-cases/manage-income';
 import { CreateExpenseUseCase, UpdateExpenseUseCase, DeleteExpenseUseCase } from '../../modules/finance/application/use-cases/manage-expense';
@@ -53,8 +52,6 @@ export async function createIncome(formData: FormData) {
 
   const useCase = new CreateIncomeUseCase(new DrizzleIncomeRepository());
   await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId, periodId });
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function updateIncome(id: string, formData: FormData) {
@@ -67,8 +64,6 @@ export async function updateIncome(id: string, formData: FormData) {
 
   const useCase = new UpdateIncomeUseCase(repo);
   await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString(), periodId });
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function deleteIncome(id: string) {
@@ -78,8 +73,6 @@ export async function deleteIncome(id: string) {
 
   const useCase = new DeleteIncomeUseCase(repo);
   await useCase.execute(id);
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 // Expenses
@@ -90,8 +83,6 @@ export async function createExpense(formData: FormData) {
 
   const useCase = new CreateExpenseUseCase(new DrizzleExpenseRepository());
   await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId, periodId });
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function updateExpense(id: string, formData: FormData) {
@@ -104,8 +95,6 @@ export async function updateExpense(id: string, formData: FormData) {
 
   const useCase = new UpdateExpenseUseCase(repo);
   await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString(), periodId });
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function deleteExpense(id: string) {
@@ -115,8 +104,6 @@ export async function deleteExpense(id: string) {
 
   const useCase = new DeleteExpenseUseCase(repo);
   await useCase.execute(id);
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 // Investments
@@ -127,8 +114,6 @@ export async function createInvestment(formData: FormData) {
 
   const useCase = new CreateInvestmentUseCase(new DrizzleInvestmentRepository());
   await useCase.execute({ ...parsedData, amount: parsedData.amount.toString(), userId, periodId });
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function updateInvestment(id: string, formData: FormData) {
@@ -141,8 +126,6 @@ export async function updateInvestment(id: string, formData: FormData) {
 
   const useCase = new UpdateInvestmentUseCase(repo);
   await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString(), periodId });
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
 
 export async function deleteInvestment(id: string) {
@@ -152,6 +135,4 @@ export async function deleteInvestment(id: string) {
 
   const useCase = new DeleteInvestmentUseCase(repo);
   await useCase.execute(id);
-
-  revalidateTag(`finance-${userId}`, 'max');
 }
