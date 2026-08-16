@@ -1,4 +1,4 @@
-import { getSession } from '../../modules/auth/application/session';
+import { auth } from '@/auth';
 import { db } from '../../db';
 import { expenses } from '../../db/schema';
 import { eq } from 'drizzle-orm';
@@ -8,7 +8,7 @@ import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function ExpensesPage() {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return <div>Acesso negado</div>;
   }

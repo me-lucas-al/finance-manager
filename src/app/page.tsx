@@ -1,5 +1,5 @@
 import { connection } from 'next/server';
-import { getSession } from '../modules/auth/application/session';
+import { auth } from '@/auth';
 import { db } from '../db';
 import { expenses, incomes, investments } from '../db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -28,7 +28,7 @@ function daysUntil(date: Date): number {
 }
 
 export default async function DashboardPage() {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return <div>Acesso negado</div>;
   }

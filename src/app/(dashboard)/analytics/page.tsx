@@ -1,7 +1,7 @@
 import { and, desc, eq, sum } from 'drizzle-orm';
 import { db } from '@/db';
 import { expenses, incomes, investments, periodSnapshots, financialPeriods } from '@/db/schema';
-import { getSession } from '@/modules/auth/application/session';
+import { auth } from '@/auth';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
 import { DrizzlePeriodRepository } from '@/modules/periods/infrastructure/repositories';
 import { DrizzleSettingRepository } from '@/modules/users/infrastructure/repositories';
@@ -21,7 +21,7 @@ function periodLabel(date: Date): string {
 }
 
 export default async function AnalyticsPage() {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return <div className="p-8">Acesso negado</div>;
   }

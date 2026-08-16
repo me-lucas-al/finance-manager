@@ -1,11 +1,11 @@
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Navigation } from "@/components/Navigation";
-import { getSession } from "@/modules/auth/application/session";
+import { auth } from "@/auth";
 import { getNotifications } from "@/app/actions/notifications";
 
 export async function AppHeader() {
-  const session = await getSession();
+  const session = await auth();
   if (!session) return null;
 
   const notifications = await getNotifications();

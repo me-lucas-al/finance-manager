@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { revalidateTag } from 'next/cache';
-import { getSession } from '../../modules/auth/application/session';
+import { auth } from '@/auth';
 import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
 import type { NewSetting } from '../../modules/users/domain/repositories/setting-repository';
@@ -28,7 +28,7 @@ const updateSettingsSchema = z.object({
 });
 
 export async function updateUserSettings(formData: FormData) {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) throw new Error('Unauthorized');
 
   const rawData = Object.fromEntries(formData.entries());
@@ -66,7 +66,7 @@ async function fetchUserSettingsCached(userId: string) {
 }
 
 export async function getUserSettings() {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) throw new Error('Unauthorized');
   return fetchUserSettingsCached(session.user.id);
 }

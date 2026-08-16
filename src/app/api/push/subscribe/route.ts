@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/db';
 import { pushSubscriptions } from '@/db/schema';
-import { getSession } from '@/modules/auth/application/session';
+import { auth } from '@/auth';
 
 const subscribeSchema = z.object({
   endpoint: z.string().min(1),
@@ -14,7 +14,7 @@ const subscribeSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await getSession();
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

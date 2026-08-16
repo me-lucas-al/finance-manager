@@ -1,4 +1,4 @@
-import { getSession } from '../../modules/auth/application/session';
+import { auth } from '@/auth';
 import { db } from '../../db';
 import { financialPeriods, userSettings } from '../../db/schema';
 import { eq, desc } from 'drizzle-orm';
@@ -10,7 +10,7 @@ import { ptBR } from 'date-fns/locale';
 import { getFinancialPeriod } from '../../modules/periods/domain/financial-period';
 
 export default async function PeriodsPage() {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return <div>Acesso negado</div>;
   }
