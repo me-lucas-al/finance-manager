@@ -2,9 +2,9 @@ import { getSession } from '../../modules/auth/application/session';
 import { db } from '../../db';
 import { expenses } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { ExpenseForm, DeleteExpenseButton } from './components';
+import { ExpenseForm, EditExpenseButton, DeleteExpenseButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function ExpensesPage() {
@@ -19,6 +19,14 @@ export default async function ExpensesPage() {
     getUserSettings(),
   ]);
   const categories = settings?.expenseCategories ?? [];
+
+  const rows: EntryRow[] = userExpenses.map((expense) => ({
+    id: expense.id,
+    date: new Date(expense.date),
+    description: expense.description,
+    category: expense.category,
+    amount: Number(expense.amount),
+  }));
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -41,35 +49,17 @@ export default async function ExpensesPage() {
             <CardTitle>Histórico de Despesas</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userExpenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{expense.description}</TableCell>
-                    <TableCell>{expense.category}</TableCell>
-                    <TableCell>R$ {Number(expense.amount).toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      <DeleteExpenseButton id={expense.id} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {userExpenses.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">Nenhuma despesa registrada.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <EntryTable
+              rows={rows}
+              categoryLabel="Categoria"
+              emptyMessage="Nenhuma despesa registrada."
+              renderActions={(row) => (
+                <>
+                  <EditExpenseButton row={row} categories={categories} />
+                  <DeleteExpenseButton id={row.id} />
+                </>
+              )}
+            />
           </CardContent>
         </Card>
       </div>

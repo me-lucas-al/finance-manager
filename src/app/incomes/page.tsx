@@ -2,9 +2,9 @@ import { getSession } from '../../modules/auth/application/session';
 import { db } from '../../db';
 import { incomes } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { IncomeForm, DeleteIncomeButton } from './components';
+import { IncomeForm, EditIncomeButton, DeleteIncomeButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function IncomesPage() {
@@ -19,6 +19,14 @@ export default async function IncomesPage() {
     getUserSettings(),
   ]);
   const categories = settings?.expenseCategories ?? [];
+
+  const rows: EntryRow[] = userIncomes.map((income) => ({
+    id: income.id,
+    date: new Date(income.receivedAt),
+    description: income.description,
+    category: income.category,
+    amount: Number(income.amount),
+  }));
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -41,35 +49,17 @@ export default async function IncomesPage() {
             <CardTitle>Histórico de Receitas</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userIncomes.map((income) => (
-                  <TableRow key={income.id}>
-                    <TableCell>{new Date(income.receivedAt).toLocaleDateString()}</TableCell>
-                    <TableCell>{income.description}</TableCell>
-                    <TableCell>{income.category}</TableCell>
-                    <TableCell>R$ {Number(income.amount).toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      <DeleteIncomeButton id={income.id} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {userIncomes.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">Nenhuma receita registrada.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <EntryTable
+              rows={rows}
+              categoryLabel="Categoria"
+              emptyMessage="Nenhuma receita registrada."
+              renderActions={(row) => (
+                <>
+                  <EditIncomeButton row={row} categories={categories} />
+                  <DeleteIncomeButton id={row.id} />
+                </>
+              )}
+            />
           </CardContent>
         </Card>
       </div>

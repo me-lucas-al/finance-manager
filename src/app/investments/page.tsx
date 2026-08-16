@@ -2,9 +2,9 @@ import { getSession } from '../../modules/auth/application/session';
 import { db } from '../../db';
 import { investments } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import { InvestmentForm, DeleteInvestmentButton } from './components';
+import { InvestmentForm, EditInvestmentButton, DeleteInvestmentButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function InvestmentsPage() {
@@ -19,6 +19,14 @@ export default async function InvestmentsPage() {
     getUserSettings(),
   ]);
   const types = settings?.investmentTypes ?? [];
+
+  const rows: EntryRow[] = userInvestments.map((investment) => ({
+    id: investment.id,
+    date: new Date(investment.date),
+    description: investment.description,
+    category: investment.type,
+    amount: Number(investment.amount),
+  }));
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6 min-h-screen bg-slate-50">
@@ -41,35 +49,17 @@ export default async function InvestmentsPage() {
             <CardTitle>Histórico de Investimentos</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userInvestments.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell>{new Date(inv.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{inv.description}</TableCell>
-                    <TableCell>{inv.type}</TableCell>
-                    <TableCell>R$ {Number(inv.amount).toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      <DeleteInvestmentButton id={inv.id} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {userInvestments.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center">Nenhum investimento registrado.</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <EntryTable
+              rows={rows}
+              categoryLabel="Tipo"
+              emptyMessage="Nenhum investimento registrado."
+              renderActions={(row) => (
+                <>
+                  <EditInvestmentButton row={row} types={types} />
+                  <DeleteInvestmentButton id={row.id} />
+                </>
+              )}
+            />
           </CardContent>
         </Card>
       </div>

@@ -1,21 +1,41 @@
 'use client';
 
 import { useTransition } from 'react';
-import { createInvestment, deleteInvestment } from '../actions/finance';
+import { createInvestment, deleteInvestment, updateInvestment } from '../actions/finance';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 import { DeleteButton } from '@/components/DeleteButton';
+import { EntryFormFields } from '@/components/entries/EntryFormFields';
+import { EditEntryDialog } from '@/components/entries/EditEntryDialog';
+import type { EntryRow } from '@/components/entries/EntryTable';
+import { toDatetimeLocalValue } from '@/components/entries/format';
 
 export function DeleteInvestmentButton({ id }: { id: string }) {
   return (
-    <DeleteButton 
-      itemType="investimento" 
+    <DeleteButton
+      itemType="investimento"
       onDelete={async () => {
         await deleteInvestment(id);
-      }} 
+      }}
+    />
+  );
+}
+
+export function EditInvestmentButton({ row, types }: { row: EntryRow; types: string[] }) {
+  return (
+    <EditEntryDialog
+      title="Editar Investimento"
+      categoryLabel="Tipo"
+      categoryFieldName="type"
+      categoryOptions={types}
+      dateFieldName="date"
+      dateLabel="Data do Investimento"
+      defaultValues={{
+        description: row.description,
+        amount: row.amount,
+        category: row.category,
+        date: toDatetimeLocalValue(row.date),
+      }}
+      onSubmit={(formData) => updateInvestment(row.id, formData)}
     />
   );
 }
@@ -29,31 +49,13 @@ export function InvestmentForm({ types }: { types: string[] }) {
 
   return (
     <form action={(data) => startTransition(() => action(data))} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição</Label>
-        <Input id="description" name="description" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="amount">Valor (R$)</Label>
-        <Input id="amount" name="amount" type="number" step="0.01" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="type">Tipo</Label>
-        <Select name="type">
-          <SelectTrigger id="type" className="w-full">
-            <SelectValue placeholder="Selecione um tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            {types.map((type) => (
-              <SelectItem key={type} value={type}>{type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="date">Data do Investimento</Label>
-        <Input id="date" name="date" type="datetime-local" required />
-      </div>
+      <EntryFormFields
+        categoryLabel="Tipo"
+        categoryFieldName="type"
+        categoryOptions={types}
+        dateFieldName="date"
+        dateLabel="Data do Investimento"
+      />
       <Button type="submit" disabled={isPending}>
         {isPending ? 'Salvando...' : 'Adicionar Investimento'}
       </Button>

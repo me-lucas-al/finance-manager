@@ -1,21 +1,41 @@
 'use client';
 
 import { useTransition } from 'react';
-import { createIncome, deleteIncome } from '../actions/finance';
+import { createIncome, deleteIncome, updateIncome } from '../actions/finance';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 import { DeleteButton } from '@/components/DeleteButton';
+import { EntryFormFields } from '@/components/entries/EntryFormFields';
+import { EditEntryDialog } from '@/components/entries/EditEntryDialog';
+import type { EntryRow } from '@/components/entries/EntryTable';
+import { toDatetimeLocalValue } from '@/components/entries/format';
 
 export function DeleteIncomeButton({ id }: { id: string }) {
   return (
-    <DeleteButton 
-      itemType="receita" 
+    <DeleteButton
+      itemType="receita"
       onDelete={async () => {
         await deleteIncome(id);
-      }} 
+      }}
+    />
+  );
+}
+
+export function EditIncomeButton({ row, categories }: { row: EntryRow; categories: string[] }) {
+  return (
+    <EditEntryDialog
+      title="Editar Receita"
+      categoryLabel="Categoria"
+      categoryFieldName="category"
+      categoryOptions={categories}
+      dateFieldName="receivedAt"
+      dateLabel="Data de Recebimento"
+      defaultValues={{
+        description: row.description,
+        amount: row.amount,
+        category: row.category,
+        date: toDatetimeLocalValue(row.date),
+      }}
+      onSubmit={(formData) => updateIncome(row.id, formData)}
     />
   );
 }
@@ -29,31 +49,13 @@ export function IncomeForm({ categories }: { categories: string[] }) {
 
   return (
     <form action={(data) => startTransition(() => action(data))} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição</Label>
-        <Input id="description" name="description" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="amount">Valor (R$)</Label>
-        <Input id="amount" name="amount" type="number" step="0.01" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="category">Categoria</Label>
-        <Select name="category">
-          <SelectTrigger id="category" className="w-full">
-            <SelectValue placeholder="Selecione uma categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>{category}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="receivedAt">Data de Recebimento</Label>
-        <Input id="receivedAt" name="receivedAt" type="datetime-local" required />
-      </div>
+      <EntryFormFields
+        categoryLabel="Categoria"
+        categoryFieldName="category"
+        categoryOptions={categories}
+        dateFieldName="receivedAt"
+        dateLabel="Data de Recebimento"
+      />
       <Button type="submit" disabled={isPending}>
         {isPending ? 'Salvando...' : 'Adicionar Receita'}
       </Button>

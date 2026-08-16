@@ -1,24 +1,45 @@
 'use client';
 
 import { useTransition } from 'react';
-import { createExpense, deleteExpense } from '../actions/finance';
+import { createExpense, deleteExpense, updateExpense } from '../actions/finance';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 import { DeleteButton } from '@/components/DeleteButton';
+import { EntryFormFields } from '@/components/entries/EntryFormFields';
+import { EditEntryDialog } from '@/components/entries/EditEntryDialog';
+import type { EntryRow } from '@/components/entries/EntryTable';
+import { toDatetimeLocalValue } from '@/components/entries/format';
 
 export function DeleteExpenseButton({ id }: { id: string }) {
   return (
-    <DeleteButton 
-      itemType="despesa" 
+    <DeleteButton
+      itemType="despesa"
       onDelete={async () => {
         await deleteExpense(id);
-      }} 
+      }}
     />
   );
 }
+
+export function EditExpenseButton({ row, categories }: { row: EntryRow; categories: string[] }) {
+  return (
+    <EditEntryDialog
+      title="Editar Despesa"
+      categoryLabel="Categoria"
+      categoryFieldName="category"
+      categoryOptions={categories}
+      dateFieldName="date"
+      dateLabel="Data"
+      defaultValues={{
+        description: row.description,
+        amount: row.amount,
+        category: row.category,
+        date: toDatetimeLocalValue(row.date),
+      }}
+      onSubmit={(formData) => updateExpense(row.id, formData)}
+    />
+  );
+}
+
 export function ExpenseForm({ categories }: { categories: string[] }) {
   const [isPending, startTransition] = useTransition();
 
@@ -28,31 +49,13 @@ export function ExpenseForm({ categories }: { categories: string[] }) {
 
   return (
     <form action={(data) => startTransition(() => action(data))} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição</Label>
-        <Input id="description" name="description" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="amount">Valor (R$)</Label>
-        <Input id="amount" name="amount" type="number" step="0.01" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="category">Categoria</Label>
-        <Select name="category">
-          <SelectTrigger id="category" className="w-full">
-            <SelectValue placeholder="Selecione uma categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>{category}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="date">Data</Label>
-        <Input id="date" name="date" type="datetime-local" required />
-      </div>
+      <EntryFormFields
+        categoryLabel="Categoria"
+        categoryFieldName="category"
+        categoryOptions={categories}
+        dateFieldName="date"
+        dateLabel="Data"
+      />
       <Button type="submit" disabled={isPending}>
         {isPending ? 'Salvando...' : 'Adicionar Despesa'}
       </Button>
