@@ -4,7 +4,7 @@ import { expenses } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { ExpenseForm, EditExpenseButton, DeleteExpenseButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
+import { EntryTable, type EntryRow, type EntryTableRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function ExpensesPage() {
@@ -26,6 +26,16 @@ export default async function ExpensesPage() {
     description: expense.description,
     category: expense.category,
     amount: Number(expense.amount),
+  }));
+
+  const tableRows: EntryTableRow[] = rows.map((row) => ({
+    ...row,
+    actions: (
+      <>
+        <EditExpenseButton row={row} categories={categories} />
+        <DeleteExpenseButton id={row.id} />
+      </>
+    ),
   }));
 
   return (
@@ -50,15 +60,9 @@ export default async function ExpensesPage() {
           </CardHeader>
           <CardContent>
             <EntryTable
-              rows={rows}
+              rows={tableRows}
               categoryLabel="Categoria"
               emptyMessage="Nenhuma despesa registrada."
-              renderActions={(row) => (
-                <>
-                  <EditExpenseButton row={row} categories={categories} />
-                  <DeleteExpenseButton id={row.id} />
-                </>
-              )}
             />
           </CardContent>
         </Card>

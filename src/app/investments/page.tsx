@@ -4,7 +4,7 @@ import { investments } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { InvestmentForm, EditInvestmentButton, DeleteInvestmentButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
+import { EntryTable, type EntryRow, type EntryTableRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function InvestmentsPage() {
@@ -26,6 +26,16 @@ export default async function InvestmentsPage() {
     description: investment.description,
     category: investment.type,
     amount: Number(investment.amount),
+  }));
+
+  const tableRows: EntryTableRow[] = rows.map((row) => ({
+    ...row,
+    actions: (
+      <>
+        <EditInvestmentButton row={row} types={types} />
+        <DeleteInvestmentButton id={row.id} />
+      </>
+    ),
   }));
 
   return (
@@ -50,15 +60,9 @@ export default async function InvestmentsPage() {
           </CardHeader>
           <CardContent>
             <EntryTable
-              rows={rows}
+              rows={tableRows}
               categoryLabel="Tipo"
               emptyMessage="Nenhum investimento registrado."
-              renderActions={(row) => (
-                <>
-                  <EditInvestmentButton row={row} types={types} />
-                  <DeleteInvestmentButton id={row.id} />
-                </>
-              )}
             />
           </CardContent>
         </Card>

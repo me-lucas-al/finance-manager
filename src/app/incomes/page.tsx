@@ -4,7 +4,7 @@ import { incomes } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { IncomeForm, EditIncomeButton, DeleteIncomeButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
+import { EntryTable, type EntryRow, type EntryTableRow } from '@/components/entries/EntryTable';
 import { getUserSettings } from '@/app/actions/users';
 
 export default async function IncomesPage() {
@@ -26,6 +26,16 @@ export default async function IncomesPage() {
     description: income.description,
     category: income.category,
     amount: Number(income.amount),
+  }));
+
+  const tableRows: EntryTableRow[] = rows.map((row) => ({
+    ...row,
+    actions: (
+      <>
+        <EditIncomeButton row={row} categories={categories} />
+        <DeleteIncomeButton id={row.id} />
+      </>
+    ),
   }));
 
   return (
@@ -50,15 +60,9 @@ export default async function IncomesPage() {
           </CardHeader>
           <CardContent>
             <EntryTable
-              rows={rows}
+              rows={tableRows}
               categoryLabel="Categoria"
               emptyMessage="Nenhuma receita registrada."
-              renderActions={(row) => (
-                <>
-                  <EditIncomeButton row={row} categories={categories} />
-                  <DeleteIncomeButton id={row.id} />
-                </>
-              )}
             />
           </CardContent>
         </Card>

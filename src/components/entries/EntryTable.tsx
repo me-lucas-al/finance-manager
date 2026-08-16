@@ -15,18 +15,19 @@ export interface EntryRow {
   amount: number;
 }
 
+export type EntryTableRow = EntryRow & { actions: ReactNode };
+
 type SortField = 'date' | 'description' | 'amount';
 
 const PAGE_SIZE = 10;
 
 interface EntryTableProps {
-  rows: EntryRow[];
+  rows: EntryTableRow[];
   categoryLabel: string;
   emptyMessage: string;
-  renderActions: (row: EntryRow) => ReactNode;
 }
 
-export function EntryTable({ rows, categoryLabel, emptyMessage, renderActions }: EntryTableProps) {
+export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProps) {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortField, setSortField] = useState<SortField>('date');
@@ -131,7 +132,7 @@ export function EntryTable({ rows, categoryLabel, emptyMessage, renderActions }:
                 <TableCell>{row.description}</TableCell>
                 <TableCell>{row.category}</TableCell>
                 <TableCell className="tabular-nums">{formatCurrency(row.amount)}</TableCell>
-                <TableCell className="flex justify-end gap-1 text-right">{renderActions(row)}</TableCell>
+                <TableCell className="flex justify-end gap-1 text-right">{row.actions}</TableCell>
               </TableRow>
             ))}
             {paginated.length === 0 && (
