@@ -32,7 +32,7 @@ export function DeleteButton({ onDelete, itemType }: DeleteButtonProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8" />}>
+      <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8" />}>
         <Trash2 className="h-4 w-4" />
         <span className="sr-only">Excluir</span>
       </AlertDialogTrigger>

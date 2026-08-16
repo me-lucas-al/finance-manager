@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatCurrency } from '@/lib/format';
 
 export interface EntryRow {
   id: string;
@@ -16,7 +17,6 @@ export interface EntryRow {
 
 type SortField = 'date' | 'description' | 'amount';
 
-const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const PAGE_SIZE = 10;
 
 interface EntryTableProps {
@@ -130,7 +130,7 @@ export function EntryTable({ rows, categoryLabel, emptyMessage, renderActions }:
                 <TableCell>{row.date.toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell>{row.description}</TableCell>
                 <TableCell>{row.category}</TableCell>
-                <TableCell className="tabular-nums">{currencyFormatter.format(row.amount)}</TableCell>
+                <TableCell className="tabular-nums">{formatCurrency(row.amount)}</TableCell>
                 <TableCell className="flex justify-end gap-1 text-right">{renderActions(row)}</TableCell>
               </TableRow>
             ))}

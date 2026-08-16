@@ -75,12 +75,12 @@ export function NotificationCenter({ initialNotifications }: { initialNotificati
             notifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`flex flex-col p-3 border-b cursor-pointer hover:bg-slate-50 transition-colors ${!notif.readAt ? 'bg-blue-50' : ''}`}
+                className={`flex flex-col p-3 border-b border-border cursor-pointer hover:bg-muted transition-colors ${!notif.readAt ? 'bg-primary/10' : ''}`}
                 onClick={() => markAsRead(notif.id)}
               >
                 <div className="flex justify-between items-start mb-1">
                   <span className="font-semibold text-sm">{notif.title}</span>
-                  {!notif.readAt && <div className="h-2 w-2 bg-blue-600 rounded-full"></div>}
+                  {!notif.readAt && <div className="h-2 w-2 bg-primary rounded-full"></div>}
                 </div>
                 <p className="text-xs text-muted-foreground">{notif.message}</p>
                 <span className="text-[10px] text-muted-foreground mt-2">

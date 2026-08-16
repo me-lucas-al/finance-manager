@@ -13,15 +13,14 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
+import { formatCurrency } from '@/lib/format';
 
 // Fixed categorical order, validated for CVD-safe adjacent separation (see dataviz skill).
 const CATEGORY_COLORS = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#0891b2', '#dc2626'];
 
-const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-
 function formatCurrencyTooltip(value: unknown) {
   const numeric = Array.isArray(value) ? value[0] : value;
-  return currencyFormatter.format(Number(numeric ?? 0));
+  return formatCurrency(Number(numeric ?? 0));
 }
 
 function formatPercentTooltip(value: unknown) {
@@ -71,7 +70,7 @@ export function EvolutionChart({ data }: { data: EvolutionDatum[] }) {
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
         <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => currencyFormatter.format(value)} width={90} />
+        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => formatCurrency(value)} width={90} />
         <Tooltip formatter={formatCurrencyTooltip} />
         <Legend />
         <Bar dataKey="income" name="Receitas" fill="#2563eb" radius={[4, 4, 0, 0]} />

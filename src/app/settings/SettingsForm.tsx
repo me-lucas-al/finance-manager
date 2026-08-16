@@ -79,7 +79,7 @@ export function SettingsForm(props: SettingsFormProps) {
         <Button type="submit" disabled={isPending}>
           {isPending ? 'Salvando...' : 'Salvar regras'}
         </Button>
-        {saved && <span className="text-sm text-green-600">Salvo com sucesso.</span>}
+        {saved && <span className="text-sm text-emerald-500">Salvo com sucesso.</span>}
       </div>
     </form>
   );

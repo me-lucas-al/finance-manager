@@ -8,8 +8,7 @@ import { DrizzleSettingRepository } from '@/modules/users/infrastructure/reposit
 import { calculateMetrics } from '@/modules/finance/domain/financial-metrics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReportFilters } from './ReportFilters';
-
-const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+import { formatCurrency } from '@/lib/format';
 
 type Range = 'current' | 'last' | 'all';
 
@@ -74,9 +73,9 @@ export default async function ReportsPage({
   );
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6 bg-slate-50 min-h-screen">
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Relatórios</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Relatórios</h2>
       </div>
 
       <ReportFilters range={range} />
@@ -92,7 +91,7 @@ export default async function ReportsPage({
               <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tabular-nums">{currencyFormatter.format(metrics.totalIncome)}</div>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.totalIncome)}</div>
             </CardContent>
           </Card>
           <Card>
@@ -100,7 +99,7 @@ export default async function ReportsPage({
               <CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tabular-nums">{currencyFormatter.format(metrics.totalExpenses)}</div>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.totalExpenses)}</div>
               <p className="text-xs text-muted-foreground mt-1">{metrics.expensePercentage.toFixed(1)}% da receita</p>
             </CardContent>
           </Card>
@@ -109,7 +108,7 @@ export default async function ReportsPage({
               <CardTitle className="text-sm font-medium">Total Investido</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tabular-nums">{currencyFormatter.format(metrics.totalInvestments)}</div>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.totalInvestments)}</div>
               <p className="text-xs text-muted-foreground mt-1">{metrics.investmentPercentage.toFixed(1)}% da receita</p>
             </CardContent>
           </Card>
@@ -118,7 +117,7 @@ export default async function ReportsPage({
               <CardTitle className="text-sm font-medium">Saldo</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tabular-nums">{currencyFormatter.format(metrics.balance)}</div>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.balance)}</div>
             </CardContent>
           </Card>
         </div>

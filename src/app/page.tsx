@@ -10,6 +10,7 @@ import { calculateMetrics } from '../modules/finance/domain/financial-metrics';
 import { ResolveCurrentPeriodUseCase } from '../modules/periods/application/use-cases/resolve-current-period';
 import { DrizzlePeriodRepository } from '../modules/periods/infrastructure/repositories';
 import { DrizzleSettingRepository } from '../modules/users/infrastructure/repositories';
+import { formatCurrency } from '@/lib/format';
 
 const STATUS_LABEL: Record<string, string> = {
   ON_TRACK: 'No caminho certo',
@@ -64,12 +65,12 @@ export default async function DashboardPage() {
   const daysRemaining = daysUntil(period.endDate);
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6 bg-slate-50 min-h-screen">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h2>
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
+      <div className="flex flex-wrap items-center justify-between gap-2 space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
         <div className="flex items-center gap-3">
           <Badge variant={STATUS_VARIANT[metrics.status]}>{STATUS_LABEL[metrics.status]}</Badge>
-          <span className="text-sm text-slate-500">{daysRemaining} dias restantes no período</span>
+          <span className="text-sm text-muted-foreground">{daysRemaining} dias restantes no período</span>
         </div>
       </div>
 
@@ -79,7 +80,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">R$ {metrics.totalIncome.toFixed(2)}</div>
+            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.totalIncome)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -87,8 +88,8 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">R$ {metrics.totalExpenses.toFixed(2)}</div>
-            <p className="text-xs text-slate-500">
+            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.totalExpenses)}</div>
+            <p className="text-xs text-muted-foreground">
               {metrics.expensePercentage.toFixed(1)}% da receita (Máx: {maxExpensesPercentage}%)
             </p>
           </CardContent>
@@ -98,8 +99,8 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium">Total Investido</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">R$ {metrics.totalInvestments.toFixed(2)}</div>
-            <p className="text-xs text-slate-500">
+            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.totalInvestments)}</div>
+            <p className="text-xs text-muted-foreground">
               {metrics.investmentPercentage.toFixed(1)}% da receita (Mín: {minInvestmentPercentage}%)
             </p>
           </CardContent>
@@ -109,7 +110,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-sm font-medium">Saldo Atual</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">R$ {metrics.balance.toFixed(2)}</div>
+            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.balance)}</div>
           </CardContent>
         </Card>
       </div>
@@ -119,7 +120,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Limite de Gastos</CardTitle>
             <CardDescription>
-              Disponível para gastar: R$ {availableForExpenses.toFixed(2)}
+              Disponível para gastar: {formatCurrency(availableForExpenses)}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -131,7 +132,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Meta de Investimento</CardTitle>
             <CardDescription>
-              Falta investir: R$ {remainingForInvestment.toFixed(2)}
+              Falta investir: {formatCurrency(remainingForInvestment)}
             </CardDescription>
           </CardHeader>
           <CardContent>

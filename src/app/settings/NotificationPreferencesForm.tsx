@@ -45,7 +45,7 @@ export function NotificationPreferencesForm(props: NotificationPreferencesFormPr
               type="checkbox"
               defaultChecked={props[field.name]}
               value="true"
-              className="h-4 w-4 rounded border-slate-300"
+              className="h-4 w-4 rounded border-border accent-primary"
             />
           </label>
         ))}
@@ -55,7 +55,7 @@ export function NotificationPreferencesForm(props: NotificationPreferencesFormPr
         <Button type="submit" disabled={isPending}>
           {isPending ? 'Salvando...' : 'Salvar preferências'}
         </Button>
-        {saved && <span className="text-sm text-green-600">Salvo com sucesso.</span>}
+        {saved && <span className="text-sm text-emerald-500">Salvo com sucesso.</span>}
       </div>
     </form>
   );

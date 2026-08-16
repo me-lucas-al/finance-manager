@@ -75,7 +75,7 @@ export function PushNotificationButton() {
 
   if (status === 'granted' || status === 'subscribed') {
     return (
-      <div className="flex items-center gap-2 text-sm text-green-600">
+      <div className="flex items-center gap-2 text-sm text-emerald-500">
         <Bell className="h-4 w-4" /> Notificações push ativadas neste dispositivo.
       </div>
     );
@@ -94,7 +94,7 @@ export function PushNotificationButton() {
       <Button type="button" variant="outline" size="sm" onClick={enablePush} disabled={isLoading}>
         <Bell className="h-4 w-4" /> {isLoading ? 'Ativando...' : 'Ativar notificações push neste dispositivo'}
       </Button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

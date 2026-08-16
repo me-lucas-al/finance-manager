@@ -16,9 +16,9 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6 bg-slate-50 min-h-screen">
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Configurações</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Configurações</h2>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -60,7 +60,7 @@ export default async function SettingsPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-slate-500">Preferências de notificação não encontradas.</p>
+              <p className="text-sm text-muted-foreground">Preferências de notificação não encontradas.</p>
             )}
           </CardContent>
         </Card>

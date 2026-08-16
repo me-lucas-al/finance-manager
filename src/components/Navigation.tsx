@@ -33,7 +33,7 @@ export function Navigation() {
           </SheetTrigger>
           <SheetContent side="left" className="w-[240px] sm:w-[300px]">
             <div className="flex flex-col space-y-4 py-4">
-              <div className="font-bold text-xl text-slate-900 mb-4 px-2">FinanceManager</div>
+              <div className="font-bold text-xl text-foreground mb-4 px-2">FinanceManager</div>
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -41,8 +41,8 @@ export function Navigation() {
                   onClick={() => setOpen(false)}
                   className={`px-2 py-1.5 text-sm font-medium rounded-md transition-colors ${
                     pathname === link.href
-                      ? "bg-slate-100 text-blue-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-muted text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   {link.label}
@@ -59,8 +59,8 @@ export function Navigation() {
           <Link
             key={link.href}
             href={link.href}
-            className={`transition-colors hover:text-slate-900 ${
-              pathname === link.href ? "text-slate-900" : "text-slate-600"
+            className={`transition-colors hover:text-foreground ${
+              pathname === link.href ? "text-foreground" : "text-muted-foreground"
             }`}
           >
             {link.label}
