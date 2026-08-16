@@ -20,14 +20,14 @@ export default function ErrorState({
   }, [error]);
 
   return (
-    <div className="flex-1 flex items-center justify-center min-h-[calc(100vh-4rem)] p-8 bg-slate-50">
+    <div className="flex-1 flex items-center justify-center min-h-[calc(100vh-4rem)] p-8 bg-background">
       <div className="max-w-md w-full flex flex-col items-center text-center space-y-6">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-          <AlertCircle className="w-8 h-8 text-red-600" />
+        <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+          <AlertCircle className="w-8 h-8 text-destructive" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900">Algo deu errado!</h2>
-          <p className="text-slate-500">
+          <h2 className="text-2xl font-bold text-foreground">Algo deu errado!</h2>
+          <p className="text-muted-foreground">
             Encontramos um problema inesperado ao carregar esta página.
           </p>
         </div>
