@@ -63,9 +63,10 @@ export async function updateIncome(id: string, formData: FormData) {
   await requireOwnedEntity(repo, id, userId);
 
   const parsedData = updateIncomeSchema.parse(Object.fromEntries(formData.entries()));
+  const periodId = parsedData.receivedAt ? await resolvePeriodId(userId, parsedData.receivedAt) : undefined;
 
   const useCase = new UpdateIncomeUseCase(repo);
-  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
+  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString(), periodId });
 
   revalidateTag(`finance-${userId}`, 'max');
 }
@@ -99,9 +100,10 @@ export async function updateExpense(id: string, formData: FormData) {
   await requireOwnedEntity(repo, id, userId);
 
   const parsedData = updateExpenseSchema.parse(Object.fromEntries(formData.entries()));
+  const periodId = parsedData.date ? await resolvePeriodId(userId, parsedData.date) : undefined;
 
   const useCase = new UpdateExpenseUseCase(repo);
-  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
+  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString(), periodId });
 
   revalidateTag(`finance-${userId}`, 'max');
 }
@@ -135,9 +137,10 @@ export async function updateInvestment(id: string, formData: FormData) {
   await requireOwnedEntity(repo, id, userId);
 
   const parsedData = updateInvestmentSchema.parse(Object.fromEntries(formData.entries()));
+  const periodId = parsedData.date ? await resolvePeriodId(userId, parsedData.date) : undefined;
 
   const useCase = new UpdateInvestmentUseCase(repo);
-  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString() });
+  await useCase.execute(id, { ...parsedData, amount: parsedData.amount?.toString(), periodId });
 
   revalidateTag(`finance-${userId}`, 'max');
 }
