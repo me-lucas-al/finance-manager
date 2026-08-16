@@ -7,14 +7,24 @@ import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
 import type { NewSetting } from '../../modules/users/domain/repositories/setting-repository';
 
+// Arrays arrive as a JSON-encoded string in FormData; parse and validate the
+// shape so a malformed payload fails loudly instead of being persisted as-is.
+const jsonStringArray = z.string().transform((val, ctx) => {
+  try {
+    return JSON.parse(val);
+  } catch {
+    ctx.addIssue({ code: 'custom', message: 'Invalid JSON' });
+    return z.NEVER;
+  }
+}).pipe(z.array(z.string()));
+
 const updateSettingsSchema = z.object({
   periodStartDay: z.coerce.number().min(1).max(31).optional(),
   periodEndDay: z.coerce.number().min(1).max(31).optional(),
   maxExpensesPercentage: z.coerce.number().min(0).max(100).optional(),
   minInvestmentPercentage: z.coerce.number().min(0).max(100).optional(),
-  // For arrays, FormData handling might be complex, let's allow stringified JSON or plain strings
-  expenseCategories: z.string().optional(),
-  investmentTypes: z.string().optional(),
+  expenseCategories: jsonStringArray.optional(),
+  investmentTypes: jsonStringArray.optional(),
 });
 
 export async function updateUserSettings(formData: FormData) {
@@ -24,26 +34,15 @@ export async function updateUserSettings(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
   const parsedData = updateSettingsSchema.parse(rawData);
 
-  // If we receive stringified arrays, parse them
-  let expenseCategories: string[] | undefined;
-  let investmentTypes: string[] | undefined;
-
-  if (parsedData.expenseCategories) {
-    try { expenseCategories = JSON.parse(parsedData.expenseCategories); } catch {}
-  }
-  if (parsedData.investmentTypes) {
-    try { investmentTypes = JSON.parse(parsedData.investmentTypes); } catch {}
-  }
-
   const dataToUpdate: Partial<NewSetting> = {
     periodStartDay: parsedData.periodStartDay,
     periodEndDay: parsedData.periodEndDay,
     maxExpensesPercentage: parsedData.maxExpensesPercentage,
     minInvestmentPercentage: parsedData.minInvestmentPercentage,
   };
-  if (expenseCategories) dataToUpdate.expenseCategories = expenseCategories;
-  if (investmentTypes) dataToUpdate.investmentTypes = investmentTypes;
-  
+  if (parsedData.expenseCategories) dataToUpdate.expenseCategories = parsedData.expenseCategories;
+  if (parsedData.investmentTypes) dataToUpdate.investmentTypes = parsedData.investmentTypes;
+
   const repo = new DrizzleSettingRepository();
   const existing = await repo.findByUserId(session.user.id);
 
