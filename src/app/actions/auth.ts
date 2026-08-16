@@ -1,12 +1,12 @@
 'use server';
 
 import { z } from 'zod';
-import { redirect } from 'next/navigation';
+import { AuthError } from 'next-auth';
 import { db } from '@/db';
 import { notificationPreferences, userSettings } from '@/db/schema';
-import { hashPassword, verifyPassword } from '@/modules/auth/domain/password';
-import { createSession, destroySession } from '@/modules/auth/application/session';
+import { hashPassword } from '@/modules/auth/domain/password';
 import { DrizzleUserRepository } from '@/modules/users/infrastructure/repositories';
+import { signIn as nextAuthSignIn, signOut as nextAuthSignOut } from '@/auth';
 
 const DEFAULT_EXPENSE_CATEGORIES = ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Lazer', 'Educação'];
 const DEFAULT_INVESTMENT_TYPES = ['Reserva de Emergência', 'Renda Fixa', 'FIIs', 'Ações'];
@@ -43,8 +43,11 @@ export async function signUp(formData: FormData) {
     userId: user.id,
   });
 
-  await createSession(user.id, user.email);
-  redirect('/');
+  await nextAuthSignIn('credentials', {
+    email: parsed.email,
+    password: parsed.password,
+    redirectTo: '/',
+  });
 }
 
 const signInSchema = z.object({
@@ -54,19 +57,21 @@ const signInSchema = z.object({
 
 export async function signIn(formData: FormData) {
   const parsed = signInSchema.parse(Object.fromEntries(formData.entries()));
-  const userRepo = new DrizzleUserRepository();
 
-  const user = await userRepo.findByEmail(parsed.email);
-  if (!user) throw new Error('Credenciais inválidas');
-
-  const isValid = await verifyPassword(parsed.password, user.passwordHash);
-  if (!isValid) throw new Error('Credenciais inválidas');
-
-  await createSession(user.id, user.email);
-  redirect('/');
+  try {
+    await nextAuthSignIn('credentials', {
+      email: parsed.email,
+      password: parsed.password,
+      redirectTo: '/',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      throw new Error('Credenciais inválidas');
+    }
+    throw error;
+  }
 }
 
 export async function signOut() {
-  await destroySession();
-  redirect('/login');
+  await nextAuthSignOut({ redirectTo: '/login' });
 }
