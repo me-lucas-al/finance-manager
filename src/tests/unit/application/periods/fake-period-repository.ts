@@ -21,6 +21,11 @@ export class FakePeriodRepository implements PeriodRepository {
   async findOpenByUserId(userId: string): Promise<Period | null> {
     return this.items.find(i => i.userId === userId && i.status === 'OPEN') || null;
   }
+  async findOrCreateOpenPeriod(data: Omit<NewPeriod, 'id' | 'status'>): Promise<Period> {
+    const existing = await this.findOpenByUserId(data.userId);
+    if (existing) return existing;
+    return this.create({ ...data, status: 'OPEN' });
+  }
   async update(id: string, data: Partial<NewPeriod>): Promise<Period> {
     const index = this.items.findIndex(i => i.id === id);
     if (index === -1) throw new Error('Not found');

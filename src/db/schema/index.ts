@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, boolean, json, integer, numeric, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -39,6 +40,11 @@ export const financialPeriods = pgTable('financial_periods', {
   return {
     userIdIdx: index('financial_periods_user_id_idx').on(table.userId),
     statusIdx: index('financial_periods_status_idx').on(table.status),
+    // At most one OPEN period per user, enforced at the database level so
+    // concurrent requests can't both resolve "no open period" and create two.
+    oneOpenPeriodPerUserIdx: uniqueIndex('financial_periods_one_open_per_user_idx')
+      .on(table.userId)
+      .where(sql`${table.status} = 'OPEN'`),
   };
 });
 

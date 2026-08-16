@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { PeriodRepository, NewPeriod } from '../domain/repositories/period-repository';
 import { db } from '../../../db';
 import { financialPeriods } from '../../../db/schema';
@@ -17,6 +17,21 @@ export class DrizzlePeriodRepository implements PeriodRepository {
       and(eq(financialPeriods.userId, userId), eq(financialPeriods.status, 'OPEN'))
     );
     return result ?? null;
+  }
+  async findOrCreateOpenPeriod(data: Omit<NewPeriod, 'id' | 'status'>) {
+    const [inserted] = await db.insert(financialPeriods)
+      .values({ ...data, id: crypto.randomUUID(), status: 'OPEN' })
+      .onConflictDoNothing({
+        target: financialPeriods.userId,
+        where: sql`${financialPeriods.status} = 'OPEN'`,
+      })
+      .returning();
+
+    if (inserted) return inserted;
+
+    const existing = await this.findOpenByUserId(data.userId);
+    if (!existing) throw new Error('Failed to resolve open period after conflict');
+    return existing;
   }
   async update(id: string, data: Partial<NewPeriod>) {
     const [result] = await db.update(financialPeriods).set(data).where(eq(financialPeriods.id, id)).returning();

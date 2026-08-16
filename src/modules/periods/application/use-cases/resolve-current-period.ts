@@ -18,11 +18,10 @@ export class ResolveCurrentPeriodUseCase {
 
     const { start, end } = getFinancialPeriod(referenceDate, startDay, endDay);
 
-    return this.periodRepo.create({
+    return this.periodRepo.findOrCreateOpenPeriod({
       userId,
       startDate: start,
       endDate: end,
-      status: 'OPEN',
     });
   }
 }
