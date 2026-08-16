@@ -12,6 +12,9 @@ const credentialsSchema = z.object({
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
+  // Vercel is auto-detected, but self-hosting (Docker, `next start` behind a
+  // reverse proxy) needs this to trust the forwarded host header.
+  trustHost: true,
   providers: [
     Credentials({
       // Empty label/type: this form is never rendered — the app uses its own
