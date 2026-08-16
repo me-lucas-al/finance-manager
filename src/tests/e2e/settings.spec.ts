@@ -1,9 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+// Both tests mutate the same user's settings row; run them serially so they
+// can't race each other.
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Configurações', () => {
   test('atualiza as regras financeiras', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible();
+
+    const originalMaxExpenses = await page.getByLabel('Máximo de gastos (%)').inputValue();
+    const originalMinInvestment = await page.getByLabel('Mínimo de investimento (%)').inputValue();
 
     await page.getByLabel('Máximo de gastos (%)').fill('75');
     await page.getByLabel('Mínimo de investimento (%)').fill('25');
@@ -14,6 +21,12 @@ test.describe('Configurações', () => {
     await page.reload();
     await expect(page.getByLabel('Máximo de gastos (%)')).toHaveValue('75');
     await expect(page.getByLabel('Mínimo de investimento (%)')).toHaveValue('25');
+
+    // Restore the original values so other tests/runs aren't affected.
+    await page.getByLabel('Máximo de gastos (%)').fill(originalMaxExpenses);
+    await page.getByLabel('Mínimo de investimento (%)').fill(originalMinInvestment);
+    await page.getByRole('button', { name: 'Salvar regras' }).click();
+    await expect(page.getByText('Salvo com sucesso.')).toBeVisible();
   });
 
   test('desativa e persiste uma preferência de notificação', async ({ page }) => {
