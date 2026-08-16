@@ -7,13 +7,18 @@ import { db } from '@/db';
 import { notificationPreferences } from '@/db/schema';
 import { requireUserId } from './require-session';
 
+// z.coerce.boolean() would turn the string "false" into `true` (any non-empty
+// string is truthy), so checkboxes could never be turned off. Parse the exact
+// "true"/"false" strings we send instead.
+const booleanField = z.enum(['true', 'false']).transform((value) => value === 'true');
+
 const updatePreferencesSchema = z.object({
-  expenseNotificationsEnabled: z.coerce.boolean(),
-  investmentNotificationsEnabled: z.coerce.boolean(),
-  goalNotificationsEnabled: z.coerce.boolean(),
-  closingNotificationsEnabled: z.coerce.boolean(),
-  generalNotificationsEnabled: z.coerce.boolean(),
-  pushNotificationsEnabled: z.coerce.boolean(),
+  expenseNotificationsEnabled: booleanField,
+  investmentNotificationsEnabled: booleanField,
+  goalNotificationsEnabled: booleanField,
+  closingNotificationsEnabled: booleanField,
+  generalNotificationsEnabled: booleanField,
+  pushNotificationsEnabled: booleanField,
 });
 
 async function fetchPreferencesCached(userId: string) {
