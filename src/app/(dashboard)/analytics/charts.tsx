@@ -1,0 +1,109 @@
+'use client';
+
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
+
+// Fixed categorical order, validated for CVD-safe adjacent separation (see dataviz skill).
+const CATEGORY_COLORS = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#0891b2', '#dc2626'];
+
+const currencyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function formatCurrencyTooltip(value: unknown) {
+  const numeric = Array.isArray(value) ? value[0] : value;
+  return currencyFormatter.format(Number(numeric ?? 0));
+}
+
+function formatPercentTooltip(value: unknown) {
+  const numeric = Array.isArray(value) ? value[0] : value;
+  return `${numeric}%`;
+}
+
+export interface CategoryDatum {
+  category: string;
+  total: number;
+}
+
+export function ExpensesByCategoryChart({ data }: { data: CategoryDatum[] }) {
+  if (data.length === 0) {
+    return <EmptyState message="Nenhuma despesa registrada neste período." />;
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <PieChart>
+        <Pie data={data} dataKey="total" nameKey="category" innerRadius={50} outerRadius={80} paddingAngle={2}>
+          {data.map((entry, index) => (
+            <Cell key={entry.category} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip formatter={formatCurrencyTooltip} />
+        <Legend verticalAlign="bottom" height={36} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
+
+export interface EvolutionDatum {
+  label: string;
+  income: number;
+  expenses: number;
+  investments: number;
+}
+
+export function EvolutionChart({ data }: { data: EvolutionDatum[] }) {
+  if (data.length === 0) {
+    return <EmptyState message="Sem histórico suficiente para exibir a evolução." />;
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+        <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => currencyFormatter.format(value)} width={90} />
+        <Tooltip formatter={formatCurrencyTooltip} />
+        <Legend />
+        <Bar dataKey="income" name="Receitas" fill="#2563eb" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="expenses" name="Despesas" fill="#dc2626" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="investments" name="Investimentos" fill="#059669" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function InvestmentsVsTargetChart({ current, target }: { current: number; target: number }) {
+  const data = [{ label: 'Investimentos', current: Math.round(current * 10) / 10, target: Math.round(target * 10) / 10 }];
+
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={data} layout="vertical" margin={{ left: 24 }}>
+        <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
+        <XAxis type="number" unit="%" tick={{ fontSize: 12 }} />
+        <YAxis type="category" dataKey="label" tick={{ fontSize: 12 }} width={100} />
+        <Tooltip formatter={formatPercentTooltip} />
+        <Legend />
+        <Bar dataKey="current" name="Atual" fill="#2563eb" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="target" name="Meta" fill="#0891b2" radius={[0, 4, 4, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
+      {message}
+    </div>
+  );
+}
