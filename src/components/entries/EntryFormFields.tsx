@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,20 +27,26 @@ export function EntryFormFields({
   dateLabel,
   defaultValues,
 }: EntryFormFieldsProps) {
+  const uid = useId();
+  const descriptionId = `${uid}-description`;
+  const amountId = `${uid}-amount`;
+  const categoryId = `${uid}-${categoryFieldName}`;
+  const dateId = `${uid}-${dateFieldName}`;
+
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="description">Descrição</Label>
-        <Input id="description" name="description" defaultValue={defaultValues?.description} required />
+        <Label htmlFor={descriptionId}>Descrição</Label>
+        <Input id={descriptionId} name="description" defaultValue={defaultValues?.description} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="amount">Valor (R$)</Label>
-        <Input id="amount" name="amount" type="number" step="0.01" defaultValue={defaultValues?.amount} required />
+        <Label htmlFor={amountId}>Valor (R$)</Label>
+        <Input id={amountId} name="amount" type="number" step="0.01" defaultValue={defaultValues?.amount} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor={categoryFieldName}>{categoryLabel}</Label>
+        <Label htmlFor={categoryId}>{categoryLabel}</Label>
         <Select name={categoryFieldName} defaultValue={defaultValues?.category}>
-          <SelectTrigger id={categoryFieldName} className="w-full">
+          <SelectTrigger id={categoryId} className="w-full">
             <SelectValue placeholder={`Selecione ${categoryLabel.toLowerCase()}`} />
           </SelectTrigger>
           <SelectContent>
@@ -50,8 +57,8 @@ export function EntryFormFields({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor={dateFieldName}>{dateLabel}</Label>
-        <Input id={dateFieldName} name={dateFieldName} type="datetime-local" defaultValue={defaultValues?.date} required />
+        <Label htmlFor={dateId}>{dateLabel}</Label>
+        <Input id={dateId} name={dateFieldName} type="datetime-local" defaultValue={defaultValues?.date} required />
       </div>
     </>
   );
