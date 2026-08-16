@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
-import { verifyPassword } from '@/modules/auth/domain/password';
+import { authorizeCredentials } from '@/modules/auth/application/authorize-credentials';
 import { DrizzleUserRepository } from '@/modules/users/infrastructure/repositories';
 
 const credentialsSchema = z.object({
@@ -14,6 +14,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: '/login' },
   providers: [
     Credentials({
+      // Empty label/type: this form is never rendered — the app uses its own
+      // login page, so these just satisfy the provider's required shape.
       credentials: {
         email: {},
         password: {},
@@ -22,14 +24,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const userRepo = new DrizzleUserRepository();
-        const user = await userRepo.findByEmail(parsed.data.email);
-        if (!user) return null;
-
-        const isValid = await verifyPassword(parsed.data.password, user.passwordHash);
-        if (!isValid) return null;
-
-        return { id: user.id, email: user.email, name: user.name };
+        return authorizeCredentials(new DrizzleUserRepository(), parsed.data.email, parsed.data.password);
       },
     }),
   ],
@@ -39,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     session({ session, token }) {
-      if (session.user) session.user.id = token.id as string;
+      if (session.user && typeof token.id === 'string') session.user.id = token.id;
       return session;
     },
   },
