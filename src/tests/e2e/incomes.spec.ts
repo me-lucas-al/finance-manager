@@ -34,4 +34,21 @@ test.describe('Receitas', () => {
     await page.getByRole('button', { name: 'Sim, excluir' }).click();
     await expect(page.getByRole('row').filter({ hasText: editedDescription })).toHaveCount(0);
   });
+
+  test('filtra receitas por categoria', async ({ page }) => {
+    const description = `Filtro Receita E2E ${Date.now()}`;
+
+    await page.goto('/incomes');
+    await page.getByLabel('Descrição').fill(description);
+    await page.getByLabel('Valor (R$)').fill('1000.00');
+    await selectOption(page, 'Categoria', 'Moradia');
+    await page.getByLabel('Data de Recebimento').fill(datetimeLocalNow());
+    await page.getByRole('button', { name: 'Adicionar Receita' }).click();
+
+    await expect(page.getByRole('row').filter({ hasText: description })).toBeVisible();
+
+    await page.getByPlaceholder('Buscar por descrição...').fill('nome-que-nao-existe-xyz');
+    await expect(page.getByRole('row').filter({ hasText: description })).toHaveCount(0);
+    await expect(page.getByText('Nenhuma receita registrada.')).toBeVisible();
+  });
 });

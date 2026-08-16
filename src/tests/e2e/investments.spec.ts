@@ -35,4 +35,21 @@ test.describe('Investimentos', () => {
     await page.getByRole('button', { name: 'Sim, excluir' }).click();
     await expect(page.getByRole('row').filter({ hasText: editedDescription })).toHaveCount(0);
   });
+
+  test('filtra investimentos por tipo', async ({ page }) => {
+    const description = `Filtro Investimento E2E ${Date.now()}`;
+
+    await page.goto('/investments');
+    await page.getByLabel('Descrição').fill(description);
+    await page.getByLabel('Valor (R$)').fill('150.00');
+    await selectOption(page, 'Tipo', 'Renda Fixa');
+    await page.getByLabel('Data do Investimento').fill(datetimeLocalNow());
+    await page.getByRole('button', { name: 'Adicionar Investimento' }).click();
+
+    await expect(page.getByRole('row').filter({ hasText: description })).toBeVisible();
+
+    await page.getByPlaceholder('Buscar por descrição...').fill('nome-que-nao-existe-xyz');
+    await expect(page.getByRole('row').filter({ hasText: description })).toHaveCount(0);
+    await expect(page.getByText('Nenhum investimento registrado.')).toBeVisible();
+  });
 });
