@@ -1,27 +1,23 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { verifySessionToken } from '@/modules/auth/application/session-token';
-import { SESSION_COOKIE_NAME } from '@/modules/auth/application/session';
+import { auth } from '@/auth';
 
 const PUBLIC_PATHS = ['/login', '/register'];
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = token ? await verifySessionToken(token) : null;
-
+export const proxy = auth((req) => {
+  const { pathname } = req.nextUrl;
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
+  const isLoggedIn = !!req.auth;
 
-  if (!session && !isPublicPath) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  if (!isLoggedIn && !isPublicPath) {
+    return NextResponse.redirect(new URL('/login', req.nextUrl));
   }
 
-  if (session && isPublicPath) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (isLoggedIn && isPublicPath) {
+    return NextResponse.redirect(new URL('/', req.nextUrl));
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
