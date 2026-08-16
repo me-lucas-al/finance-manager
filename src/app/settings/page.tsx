@@ -3,6 +3,7 @@ import { getUserSettings } from '@/app/actions/users';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
 import { SettingsForm } from './SettingsForm';
 import { NotificationPreferencesForm } from './NotificationPreferencesForm';
+import { PushNotificationButton } from './PushNotificationButton';
 
 export default async function SettingsPage() {
   const [settings, preferences] = await Promise.all([
@@ -45,14 +46,19 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent>
             {preferences ? (
-              <NotificationPreferencesForm
-                expenseNotificationsEnabled={preferences.expenseNotificationsEnabled}
-                investmentNotificationsEnabled={preferences.investmentNotificationsEnabled}
-                goalNotificationsEnabled={preferences.goalNotificationsEnabled}
-                closingNotificationsEnabled={preferences.closingNotificationsEnabled}
-                generalNotificationsEnabled={preferences.generalNotificationsEnabled}
-                pushNotificationsEnabled={preferences.pushNotificationsEnabled}
-              />
+              <div className="space-y-4">
+                <NotificationPreferencesForm
+                  expenseNotificationsEnabled={preferences.expenseNotificationsEnabled}
+                  investmentNotificationsEnabled={preferences.investmentNotificationsEnabled}
+                  goalNotificationsEnabled={preferences.goalNotificationsEnabled}
+                  closingNotificationsEnabled={preferences.closingNotificationsEnabled}
+                  generalNotificationsEnabled={preferences.generalNotificationsEnabled}
+                  pushNotificationsEnabled={preferences.pushNotificationsEnabled}
+                />
+                <div className="border-t pt-4">
+                  <PushNotificationButton />
+                </div>
+              </div>
             ) : (
               <p className="text-sm text-slate-500">Preferências de notificação não encontradas.</p>
             )}
