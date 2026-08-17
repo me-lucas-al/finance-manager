@@ -49,4 +49,23 @@ test.describe('Configurações', () => {
     await page.getByRole('button', { name: 'Salvar preferências' }).click();
     await expect(page.getByText('Salvo com sucesso.')).toBeVisible();
   });
+
+  test('ativa e persiste a preferência de notificações push', async ({ page }) => {
+    await page.goto('/settings');
+
+    const pushPreference = page.getByLabel('Notificações push');
+    const wasChecked = await pushPreference.isChecked();
+
+    await pushPreference.setChecked(!wasChecked);
+    await page.getByRole('button', { name: 'Salvar preferências' }).click();
+    await expect(page.getByText('Salvo com sucesso.')).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByLabel('Notificações push')).toBeChecked({ checked: !wasChecked });
+
+    // Restore the original value so other tests/runs aren't affected.
+    await page.getByLabel('Notificações push').setChecked(wasChecked);
+    await page.getByRole('button', { name: 'Salvar preferências' }).click();
+    await expect(page.getByText('Salvo com sucesso.')).toBeVisible();
+  });
 });
