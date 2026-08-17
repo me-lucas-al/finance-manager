@@ -5,7 +5,11 @@ describe('Authentication Domain', () => {
   it('should hash a password', async () => {
     const hash = await hashPassword('myPassword123');
     expect(hash).toBeDefined();
-    expect(hash).toContain(':');
+    expect(hash).toContain('$argon2');
+  });
+
+  it('should reject a malformed stored hash instead of throwing', async () => {
+    expect(await verifyPassword('myPassword123', 'not-a-valid-hash')).toBe(false);
   });
 
   it('should verify a correct password', async () => {
