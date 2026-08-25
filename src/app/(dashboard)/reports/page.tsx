@@ -1,137 +1,127 @@
-import { getSession } from '@/lib/session';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { getReportData } from '@/modules/reports/presentation/queries/reportsQueries';
-import { calculateReportMetrics } from '@/lib/reports';
-import { ReportsFilters } from './ReportsFilters';
+import { and, desc, eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { expenses, incomes, investments, financialPeriods } from '@/db/schema';
+import { auth } from '@/auth';
+import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
+import { DrizzlePeriodRepository } from '@/modules/periods/infrastructure/repositories';
+import { DrizzleSettingRepository } from '@/modules/users/infrastructure/repositories';
+import { calculateMetrics } from '@/modules/finance/domain/financial-metrics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getUserPeriodsData } from '@/modules/periods/presentation/queries/periodQueries';
+import { ReportFilters } from './ReportFilters';
+import { formatCurrency } from '@/lib/format';
 
-interface ReportsPageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
+type Range = 'current' | 'last' | 'all';
 
-export default async function ReportsPage({ searchParams }: ReportsPageProps) {
-  const session = await getSession();
-  
-  if (!session?.userId) {
-    redirect('/login');
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return <div className="p-8">Acesso negado</div>;
+  }
+  const userId = session.user.id;
+
+  const { range: rawRange } = await searchParams;
+  const range: Range = rawRange === 'last' || rawRange === 'all' ? rawRange : 'current';
+
+  const settingRepo = new DrizzleSettingRepository();
+  const settings = await settingRepo.findByUserId(userId);
+  const maxExpensesPercentage = settings?.maxExpensesPercentage ?? 80;
+  const minInvestmentPercentage = settings?.minInvestmentPercentage ?? 20;
+
+  let periodId: string | null = null;
+  let noDataMessage: string | null = null;
+
+  if (range === 'current') {
+    const resolveCurrentPeriod = new ResolveCurrentPeriodUseCase(new DrizzlePeriodRepository(), settingRepo);
+    const currentPeriod = await resolveCurrentPeriod.execute(userId);
+    periodId = currentPeriod.id;
+  } else if (range === 'last') {
+    const [lastClosed] = await db.select().from(financialPeriods)
+      .where(and(eq(financialPeriods.userId, userId), eq(financialPeriods.status, 'CLOSED')))
+      .orderBy(desc(financialPeriods.endDate))
+      .limit(1);
+    if (!lastClosed) {
+      noDataMessage = 'Nenhum período fechado ainda.';
+    } else {
+      periodId = lastClosed.id;
+    }
   }
 
-  const periods = await getUserPeriodsData(session.userId);
+  const scopedIncomes = periodId
+    ? db.select().from(incomes).where(and(eq(incomes.userId, userId), eq(incomes.periodId, periodId)))
+    : db.select().from(incomes).where(eq(incomes.userId, userId));
+  const scopedExpenses = periodId
+    ? db.select().from(expenses).where(and(eq(expenses.userId, userId), eq(expenses.periodId, periodId)))
+    : db.select().from(expenses).where(eq(expenses.userId, userId));
+  const scopedInvestments = periodId
+    ? db.select().from(investments).where(and(eq(investments.userId, userId), eq(investments.periodId, periodId)))
+    : db.select().from(investments).where(eq(investments.userId, userId));
 
-  const resolvedParams = await searchParams;
-  const periodIdParam = typeof resolvedParams.periodId === 'string' ? resolvedParams.periodId : undefined;
-  const startDateParam = typeof resolvedParams.startDate === 'string' ? resolvedParams.startDate : undefined;
-  const endDateParam = typeof resolvedParams.endDate === 'string' ? resolvedParams.endDate : undefined;
-  const categoryParam = typeof resolvedParams.category === 'string' ? resolvedParams.category : undefined;
+  const [rangeIncomes, rangeExpenses, rangeInvestments] = noDataMessage
+    ? [[], [], []]
+    : await Promise.all([scopedIncomes, scopedExpenses, scopedInvestments]);
 
-  const startDate = startDateParam ? new Date(startDateParam + 'T00:00:00') : undefined;
-  const endDate = endDateParam ? new Date(endDateParam + 'T23:59:59') : undefined;
-
-  const data = await getReportData({
-    userId: session.userId,
-    periodId: periodIdParam,
-    startDate,
-    endDate,
-    category: categoryParam,
-  });
-
-  const metrics = calculateReportMetrics(data.incomes, data.expenses, data.investments);
-
-  const formatCurrency = (amountInCents: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amountInCents / 100);
-  };
-
-  const formatPercentage = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value / 100);
-  };
+  const metrics = calculateMetrics(
+    rangeIncomes.map((i) => Number(i.amount)),
+    rangeExpenses.map((e) => Number(e.amount)),
+    rangeInvestments.map((i) => Number(i.amount)),
+    maxExpensesPercentage,
+    minInvestmentPercentage
+  );
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6 bg-white min-h-screen text-black">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Relatórios Financeiros</h2>
-        <div className="flex items-center space-x-2">
-          <Link href="/dashboard" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input hover:bg-accent hover:text-accent-foreground h-10 py-2 px-4">
-            Voltar ao Dashboard
-          </Link>
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Relatórios</h2>
+      </div>
+
+      <ReportFilters range={range} />
+
+      {noDataMessage ? (
+        <Card>
+          <CardContent className="p-6 text-center text-sm text-muted-foreground">{noDataMessage}</CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.totalIncome)}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.totalExpenses)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{metrics.expensePercentage.toFixed(1)}% da receita</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Total Investido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.totalInvestments)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{metrics.investmentPercentage.toFixed(1)}% da receita</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">{formatCurrency(metrics.balance)}</div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      <ReportsFilters periods={periods} />
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(metrics.totalIncomes)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gastos Totais</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{formatCurrency(metrics.totalExpenses)}</div>
-            <p className="text-xs text-muted-foreground">{formatPercentage(metrics.expensePercentage)} da receita</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Investimentos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{formatCurrency(metrics.totalInvestments)}</div>
-            <p className="text-xs text-muted-foreground">{formatPercentage(metrics.investmentPercentage)} da receita</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo Líquido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${metrics.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(metrics.balance)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Média de Gastos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(metrics.averageExpense)}</div>
-            <p className="text-xs text-muted-foreground">Por transação de gasto</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Maior Gasto</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{formatCurrency(metrics.maxExpense)}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2 lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categoria Dominante</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold capitalize">{metrics.dominantCategory || 'Nenhuma'}</div>
-            {metrics.dominantCategory && (
-               <p className="text-xs text-muted-foreground">Categoria com maior volume de gastos no período selecionado</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      )}
     </div>
   );
 }

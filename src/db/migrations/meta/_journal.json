@@ -1,12 +1,33 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
+  "version": "5",
+  "dialect": "pg",
   "entries": [
     {
       "idx": 0,
+      "version": "5",
+      "when": 1786767498107,
+      "tag": "0000_gray_dreaming_celestial",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1786768883358,
+      "tag": "0001_ambiguous_masque",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
       "version": "7",
-      "when": 1786742023075,
-      "tag": "0000_windy_lord_tyger",
+      "when": 1786817375780,
+      "tag": "0002_add_missing_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786848265398,
+      "tag": "0003_one_open_period_per_user",
       "breakpoints": true
     }
   ]

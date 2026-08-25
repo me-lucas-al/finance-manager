@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Finance Manager
 
-## Getting Started
+## Visão Geral
+Finance Manager é um aplicativo web moderno para controle e gestão financeira pessoal. Ele permite registrar receitas e despesas, acompanhar fechamentos de faturas e personalizar categorias.
 
-First, run the development server:
+## Stack
+- **Framework:** Next.js (App Router)
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS & shadcn/ui
+- **Banco de Dados:** Neon (Serverless Postgres)
+- **ORM:** Drizzle ORM
+- **Gerenciamento de Pacotes:** pnpm
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Arquitetura
+O projeto utiliza uma arquitetura baseada nos princípios da Clean Architecture adaptada para o Next.js, separando responsabilidades entre componentes de UI, ações do servidor (Server Actions), e a camada de acesso a dados.
+
+## DDD (Domain-Driven Design)
+Aplicamos conceitos de DDD focando nos domínios centrais:
+- **Transações:** Entidade central de registro de fluxos.
+- **Categorias:** Organização semântica das transações.
+- **Contas/Faturas:** Gestão de fontes de fundos e limites de crédito.
+
+## Instalação
+
+Para rodar localmente, siga os passos:
+
+1. Clone o repositório
+   ```bash
+   git clone <url-do-repo>
+   cd finance-manager
+   ```
+2. Instale as dependências usando pnpm:
+   ```bash
+   pnpm install
+   ```
+
+## Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto e configure as seguintes variáveis:
+
+```env
+# Banco de dados Neon
+DATABASE_URL=postgres://user:password@hostname/dbname
+
+# Autenticação (NextAuth/Auth.js)
+AUTH_SECRET=sua_chave_secreta_gerada_com_openssl
+
+# Web Push Notifications (VAPID)
+PUSH_PUBLIC_KEY=sua_chave_publica_vapid
+PUSH_PRIVATE_KEY=sua_chave_privada_vapid
+PUSH_SUBJECT=mailto:seu_email@dominio.com
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Neon
+Utilizamos o [Neon](https://neon.tech) como banco de dados Postgres serverless. Ele oferece provisionamento instantâneo, branching e escala rápida, ideal para a arquitetura com Next.js.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Drizzle
+O [Drizzle ORM](https://orm.drizzle.team) é utilizado como nosso ORM. Ele é "type-safe" de ponta a ponta e se integra perfeitamente ao nosso banco Neon, oferecendo consultas performáticas e fáceis de escrever em TypeScript.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Migrations
+Para rodar as migrações no banco de dados e atualizar o schema, use os comandos:
+```bash
+pnpm run db:generate
+pnpm run db:migrate
+```
 
-## Learn More
+## Seed
+Para popular o banco de dados com dados iniciais e de teste:
+```bash
+pnpm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Testes
+A qualidade e estabilidade do código são garantidas através de testes rigorosos em múltiplas camadas.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Vitest
+Testes unitários e de integração são executados usando [Vitest](https://vitest.dev).
+```bash
+pnpm run test
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Playwright
+Testes End-to-End (E2E) simulando a navegação de usuários reais são executados com [Playwright](https://playwright.dev).
+```bash
+pnpm run test:e2e
+```
 
-## Deploy on Vercel
+## PWA (Progressive Web App)
+O projeto é configurado como um PWA, permitindo a instalação do aplicativo no celular ou desktop, suporte offline parcial e experiência de app nativo.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notifications
+Notificações web push são implementadas. Usamos chaves VAPID (`PUSH_PUBLIC_KEY`, `PUSH_PRIVATE_KEY`) para garantir que apenas nosso servidor envie mensagens seguras ao Service Worker cadastrado no PWA do usuário.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+O processo de build pode ser feito via:
+```bash
+pnpm run build
+```
+O CI garante que lint, typecheck e testes passem antes do deploy.
+
+### Vercel
+O deploy oficial é feito pela [Vercel](https://vercel.com). O repositório está configurado para deploys automáticos ao dar push para a branch `main`. Lembre-se de configurar todas as variáveis de ambiente na dashboard da Vercel.
+
+## Fechamento Automático
+O sistema suporta fechamento automático de faturas e balanços do mês, processando transações pendentes de cartões de crédito configurados via cron jobs ou webhooks agendados.
+
+## Configurações Personalizáveis
+Cada usuário pode ajustar:
+- Moeda de exibição.
+- Preferências de tema (Dark/Light).
+- Categorias customizadas de transações.
+- Limiares e alertas de limites de gastos.

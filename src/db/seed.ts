@@ -1,59 +1,55 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
-import * as dotenv from 'dotenv';
+import { hashPassword } from '../modules/auth/domain/password';
 
-dotenv.config();
-
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is missing');
-}
-
-const sql = neon(process.env.DATABASE_URL);
+const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
 async function main() {
   console.log('Seeding database...');
-  
-  // Clean up
-  await db.delete(schema.users);
-  
-  // Insert demo user
+  const passwordHash = await hashPassword('123456');
+
   const [user] = await db.insert(schema.users).values({
-    name: 'Demo User',
-    email: 'demo@example.com',
-    passwordHash: 'fake_hash',
+    id: crypto.randomUUID(),
+    name: 'Test User',
+    email: 'test@example.com',
+    passwordHash,
   }).returning();
 
-  console.log('User created:', user.id);
-
-  // Insert settings
   await db.insert(schema.userSettings).values({
+    id: crypto.randomUUID(),
     userId: user.id,
     periodStartDay: 15,
     periodEndDay: 14,
     maxExpensesPercentage: 80,
     minInvestmentPercentage: 20,
-    expenseCategories: ['Housing', 'Food', 'Transport'],
-    investmentTypes: ['Stocks', 'Bonds'],
+    expenseCategories: ['Moradia', 'Alimentação', 'Transporte'],
+    investmentTypes: ['Renda Fixa', 'Ações'],
   });
 
-  console.log('Settings created');
-
-  // Create a period
   const [period] = await db.insert(schema.financialPeriods).values({
+    id: crypto.randomUUID(),
     userId: user.id,
-    startDate: new Date('2026-09-15T00:00:00Z'),
-    endDate: new Date('2026-10-14T23:59:59Z'),
-    status: 'open',
+    startDate: new Date('2026-09-15'),
+    endDate: new Date('2026-10-14'),
+    status: 'OPEN',
   }).returning();
 
-  console.log('Period created:', period.id);
+  await db.insert(schema.incomes).values({
+    id: crypto.randomUUID(),
+    userId: user.id,
+    periodId: period.id,
+    description: 'Salário',
+    amount: '5000.00',
+    category: 'Salário',
+    receivedAt: new Date('2026-09-20'),
+  });
 
-  console.log('Database seeded successfully');
+  console.log('Seeding completed successfully!');
 }
 
 main().catch((err) => {
-  console.error('Seed failed:', err);
+  console.error('Seed error:', err);
   process.exit(1);
 });

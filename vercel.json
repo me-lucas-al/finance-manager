@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/close-periods",
-      "schedule": "0 0 * * *"
+      "path": "/api/cron/closing",
+      "schedule": "0 3 * * *"
     }
   ]
 }

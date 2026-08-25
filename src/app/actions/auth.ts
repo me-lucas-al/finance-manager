@@ -1,143 +1,84 @@
 'use server';
 
-import { db } from '@/db/connection';
-import { users } from '@/db/schema/users';
-import { eq } from 'drizzle-orm';
-import { hashPassword, verifyPassword } from '@/lib/password';
-import { setSessionCookie, deleteSessionCookie } from '@/lib/session';
 import { z } from 'zod';
-import { redirect } from 'next/navigation';
-import { headers } from 'next/headers';
+import { AuthError } from 'next-auth';
+import { db } from '@/db';
+import { notificationPreferences, userSettings } from '@/db/schema';
+import { hashPassword } from '@/modules/auth/domain/password';
+import { DrizzleUserRepository } from '@/modules/users/infrastructure/repositories';
+import { signIn as nextAuthSignIn, signOut as nextAuthSignOut } from '@/auth';
 
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const DEFAULT_EXPENSE_CATEGORIES = ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Lazer', 'Educação'];
+const DEFAULT_INVESTMENT_TYPES = ['Reserva de Emergência', 'Renda Fixa', 'FIIs', 'Ações'];
 
-async function checkRateLimit(): Promise<boolean> {
-  const reqHeaders = await headers();
-  const ip = reqHeaders.get('x-forwarded-for') || reqHeaders.get('x-real-ip') || 'unknown';
-  if (ip === 'unknown') return true;
-
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxRequests = 10; // Allow 10 attempts per 15 mins
-  
-  const record = rateLimitMap.get(ip);
-  if (!record) {
-    rateLimitMap.set(ip, { count: 1, lastReset: now });
-    return true;
-  }
-  
-  if (now - record.lastReset > windowMs) {
-    rateLimitMap.set(ip, { count: 1, lastReset: now });
-    return true;
-  }
-  
-  if (record.count >= maxRequests) {
-    return false;
-  }
-  
-  record.count += 1;
-  return true;
-}
-
-const signupSchema = z.object({
-  name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
-  email: z.string().email({ message: 'Email inválido' }),
-  password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres' }),
+const signUpSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(6),
 });
 
-export async function signup(formData: unknown) {
+export async function signUp(formData: FormData) {
+  const parsed = signUpSchema.parse(Object.fromEntries(formData.entries()));
+  const userRepo = new DrizzleUserRepository();
+
+  const existing = await userRepo.findByEmail(parsed.email);
+  if (existing) throw new Error('Email já cadastrado');
+
+  const passwordHash = await hashPassword(parsed.password);
+  const user = await userRepo.create({
+    name: parsed.name,
+    email: parsed.email,
+    passwordHash,
+  });
+
+  await db.insert(userSettings).values({
+    id: crypto.randomUUID(),
+    userId: user.id,
+    expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
+    investmentTypes: DEFAULT_INVESTMENT_TYPES,
+  });
+
+  await db.insert(notificationPreferences).values({
+    id: crypto.randomUUID(),
+    userId: user.id,
+  });
+
   try {
-    const isRateAllowed = await checkRateLimit();
-    if (!isRateAllowed) {
-      return { success: false, error: 'Muitas tentativas. Tente novamente mais tarde.' };
+    await nextAuthSignIn('credentials', {
+      email: parsed.email,
+      password: parsed.password,
+      redirectTo: '/',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      throw new Error('Conta criada, mas houve um erro ao entrar automaticamente. Faça login.');
     }
-
-    const validatedFields = signupSchema.safeParse(formData);
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        errors: validatedFields.error.flatten().fieldErrors,
-      };
-    }
-
-    const { name, email, password } = validatedFields.data;
-
-    const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
-
-    if (existingUser.length > 0) {
-      return {
-        success: false,
-        error: 'Este email já está em uso',
-      };
-    }
-
-    const hashedPassword = await hashPassword(password);
-
-    const [newUser] = await db.insert(users).values({
-      name,
-      email,
-      passwordHash: hashedPassword,
-    }).returning({ id: users.id });
-
-    await setSessionCookie(newUser.id);
-
-    return { success: true };
-  } catch {
-    return { success: false, error: 'Ocorreu um erro no servidor' };
+    throw error;
   }
 }
 
-const loginSchema = z.object({
-  email: z.string().email({ message: 'Email inválido' }),
-  password: z.string().min(1, { message: 'Senha é obrigatória' }),
+const signInSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
 });
 
-export async function login(formData: unknown) {
+export async function signIn(formData: FormData) {
+  const parsed = signInSchema.parse(Object.fromEntries(formData.entries()));
+
   try {
-    const isRateAllowed = await checkRateLimit();
-    if (!isRateAllowed) {
-      return { success: false, error: 'Muitas tentativas. Tente novamente mais tarde.' };
+    await nextAuthSignIn('credentials', {
+      email: parsed.email,
+      password: parsed.password,
+      redirectTo: '/',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      throw new Error('Credenciais inválidas');
     }
-
-    const validatedFields = loginSchema.safeParse(formData);
-
-    if (!validatedFields.success) {
-      return {
-        success: false,
-        errors: validatedFields.error.flatten().fieldErrors,
-      };
-    }
-
-    const { email, password } = validatedFields.data;
-
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-
-    if (!user) {
-      return {
-        success: false,
-        error: 'Credenciais inválidas',
-      };
-    }
-
-    const passwordsMatch = await verifyPassword(password, user.passwordHash);
-
-    if (!passwordsMatch) {
-      return {
-        success: false,
-        error: 'Credenciais inválidas',
-      };
-    }
-
-    await setSessionCookie(user.id);
-
-    return { success: true };
-  } catch (_error) {
-    return { success: false, error: 'Ocorreu um erro no servidor' };
+    throw error;
   }
 }
 
-export async function logout() {
-  await deleteSessionCookie();
-  redirect('/login');
+export async function signOut() {
+  await nextAuthSignOut({ redirectTo: '/login' });
 }

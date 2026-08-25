@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { InstallPrompt } from "@/components/InstallPrompt";
+import { Suspense } from "react";
+import { Poppins, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { AppHeader } from "@/components/AppHeader";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -15,29 +18,28 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Finance Manager",
-  description: "Manage your finances efficiently.",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Finance Manager",
-  },
+  description: "Gerenciador financeiro pessoal",
+  manifest: "/manifest.json",
 };
 
 export const viewport = {
-  themeColor: "#000000",
+  themeColor: "#0B1120",
 };
-import { Toaster } from "@/components/ui/sonner";
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="pt-BR"
+      className={`${poppins.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
-        {children}
-        <InstallPrompt />
-        <Toaster />
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <ServiceWorkerRegister />
+        <Suspense fallback={null}>
+          <AppHeader />
+        </Suspense>
+        <main className="flex-1">
+          {children}
+        </main>
       </body>
     </html>
   );

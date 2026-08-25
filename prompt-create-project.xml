@@ -1302,3 +1302,10 @@
         Configurações personalizáveis.
         Design profissional (não parece IA).
       </checks>
+
+      <required_commands>
+        pnpm lint
+        pnpm typecheck
+        pnpm test
+        pnpm test:e2e
+       

@@ -1,0 +1,72 @@
+import { auth } from '@/auth';
+import { db } from '../../db';
+import { expenses } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+import { ExpenseForm, EditExpenseButton, DeleteExpenseButton } from './components';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EntryTable, type EntryRow, type EntryTableRow } from '@/components/entries/EntryTable';
+import { getUserSettings } from '@/app/actions/users';
+
+export default async function ExpensesPage() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return <div>Acesso negado</div>;
+  }
+
+  const userId = session.user.id;
+  const [userExpenses, settings] = await Promise.all([
+    db.select().from(expenses).where(eq(expenses.userId, userId)).orderBy(expenses.date),
+    getUserSettings(),
+  ]);
+  const categories = settings?.expenseCategories ?? [];
+
+  const rows: EntryRow[] = userExpenses.map((expense) => ({
+    id: expense.id,
+    date: new Date(expense.date),
+    description: expense.description,
+    category: expense.category,
+    amount: Number(expense.amount),
+  }));
+
+  const tableRows: EntryTableRow[] = rows.map((row) => ({
+    ...row,
+    actions: (
+      <>
+        <EditExpenseButton row={row} categories={categories} />
+        <DeleteExpenseButton id={row.id} />
+      </>
+    ),
+  }));
+
+  return (
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 min-h-screen bg-background">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Despesas</h2>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Nova Despesa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ExpenseForm categories={categories} />
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle>Histórico de Despesas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EntryTable
+              rows={tableRows}
+              categoryLabel="Categoria"
+              emptyMessage="Nenhuma despesa registrada."
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
