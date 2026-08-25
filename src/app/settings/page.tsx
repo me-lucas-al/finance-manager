@@ -4,6 +4,7 @@ import { getNotificationPreferences } from '@/app/actions/notification-preferenc
 import { SettingsForm } from './SettingsForm';
 import { NotificationPreferencesForm } from './NotificationPreferencesForm';
 import { PushNotificationButton } from './PushNotificationButton';
+import { ChangePasswordForm } from './ChangePasswordForm';
 
 export default async function SettingsPage() {
   const [settings, preferences] = await Promise.all([
@@ -40,6 +41,16 @@ export default async function SettingsPage() {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle>Segurança e Senha</CardTitle>
+            <CardDescription>Altere a sua senha de acesso de forma segura.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChangePasswordForm />
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Notificações</CardTitle>
             <CardDescription>Escolha quais avisos você quer receber.</CardDescription>

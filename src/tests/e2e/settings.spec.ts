@@ -68,4 +68,19 @@ test.describe('Configurações', () => {
     await page.getByRole('button', { name: 'Salvar preferências' }).click();
     await expect(page.getByText('Salvo com sucesso.')).toBeVisible();
   });
+
+  test('permite alterar a senha do usuário autenticado e valida erro para senha atual incorreta', async ({ page }) => {
+    await page.goto('/settings');
+    await expect(page.getByText('Segurança e Senha').first()).toBeVisible();
+
+    const changePasswordCard = page.locator('div').filter({ has: page.getByText('Segurança e Senha') }).first();
+
+    // 1. Tenta alterar com senha atual incorreta
+    await changePasswordCard.locator('#current-password').fill('senha_atual_errada');
+    await changePasswordCard.locator('#change-new-password').fill('novaSenha123456');
+    await changePasswordCard.locator('#change-confirm-new-password').fill('novaSenha123456');
+    await changePasswordCard.getByRole('button', { name: 'Alterar Senha' }).click();
+
+    await expect(changePasswordCard.locator('p[role="alert"]')).toContainText('Senha atual incorreta');
+  });
 });

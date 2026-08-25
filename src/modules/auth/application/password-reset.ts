@@ -1,5 +1,6 @@
 import { UserRepository } from '../../users/domain/repositories/user-repository';
-import { hashPassword } from '../domain/password';
+import { hashPassword, verifyPassword } from '../domain/password';
+import { EmailService } from '../../notifications/email/EmailService';
 
 export interface PasswordResetTokenRecord {
   id: string;
@@ -19,13 +20,15 @@ export interface PasswordResetTokenRepository {
 export async function requestPasswordResetToken(
   userRepo: UserRepository,
   tokenRepo: PasswordResetTokenRepository,
-  email: string
+  email: string,
+  appUrl: string = 'http://localhost:3000',
+  emailService?: EmailService
 ): Promise<{ success: boolean; token?: string; message: string }> {
   const user = await userRepo.findByEmail(email);
   if (!user) {
     return {
       success: true,
-      message: 'Se este email estiver cadastrado, as instruções para redefinição foram geradas.',
+      message: 'Se este email estiver cadastrado, enviamos um link para redefinição da sua senha. Verifique sua caixa de entrada e spam.',
     };
   }
 
@@ -39,10 +42,16 @@ export async function requestPasswordResetToken(
     expiresAt,
   });
 
+  const resetUrl = `${appUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+
+  if (emailService) {
+    await emailService.sendPasswordResetEmail(user.email, resetUrl);
+  }
+
   return {
     success: true,
     token,
-    message: 'Se este email estiver cadastrado, as instruções para redefinição foram geradas.',
+    message: 'Se este email estiver cadastrado, enviamos um link para redefinição da sua senha. Verifique sua caixa de entrada e spam.',
   };
 }
 
@@ -60,6 +69,28 @@ export async function resetUserPassword(
   const passwordHash = await hashPassword(newPassword);
   await userRepo.update(tokenRecord.userId, { passwordHash });
   await tokenRepo.markAsUsed(tokenRecord.id);
+
+  return { success: true };
+}
+
+export async function changeUserPassword(
+  userRepo: UserRepository,
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  const user = await userRepo.findById(userId);
+  if (!user) {
+    return { success: false, error: 'Usuário não encontrado' };
+  }
+
+  const isValid = await verifyPassword(currentPassword, user.passwordHash);
+  if (!isValid) {
+    return { success: false, error: 'Senha atual incorreta.' };
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  await userRepo.update(userId, { passwordHash });
 
   return { success: true };
 }

@@ -132,8 +132,11 @@ export async function signOut() {
 import {
   requestPasswordResetToken,
   resetUserPassword,
+  changeUserPassword,
 } from '@/modules/auth/application/password-reset';
 import { DrizzlePasswordResetTokenRepository } from '@/modules/auth/infrastructure/password-reset-repository';
+import { emailService } from '@/modules/notifications/email/EmailService';
+import { requireUserId } from './require-session';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Informe um email válido.'),
@@ -141,7 +144,7 @@ const forgotPasswordSchema = z.object({
 
 export async function requestPasswordReset(
   formData: FormData
-): Promise<{ error?: string; success?: boolean; token?: string; message?: string }> {
+): Promise<{ error?: string; success?: boolean; message?: string }> {
   try {
     const raw = Object.fromEntries(formData.entries());
     const parsed = forgotPasswordSchema.safeParse(raw);
@@ -151,8 +154,20 @@ export async function requestPasswordReset(
 
     const userRepo = new DrizzleUserRepository();
     const tokenRepo = new DrizzlePasswordResetTokenRepository();
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000';
 
-    return await requestPasswordResetToken(userRepo, tokenRepo, parsed.data.email);
+    const result = await requestPasswordResetToken(
+      userRepo,
+      tokenRepo,
+      parsed.data.email,
+      appUrl,
+      emailService
+    );
+
+    return {
+      success: true,
+      message: result.message,
+    };
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Erro ao solicitar redefinição de senha' };
   }
@@ -187,4 +202,39 @@ export async function resetPassword(
     return { error: error instanceof Error ? error.message : 'Erro ao redefinir a senha' };
   }
 }
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Informe a senha atual'),
+    newPassword: z.string().min(6, 'A nova senha precisa ter no mínimo 6 caracteres'),
+    confirmNewPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: 'A confirmação não coincide com a nova senha',
+    path: ['confirmNewPassword'],
+  });
+
+export async function changePassword(
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  try {
+    const userId = await requireUserId();
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = changePasswordSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0]?.message || 'Dados inválidos.' };
+    }
+
+    const userRepo = new DrizzleUserRepository();
+    return await changeUserPassword(
+      userRepo,
+      userId,
+      parsed.data.currentPassword,
+      parsed.data.newPassword
+    );
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Erro ao alterar a senha' };
+  }
+}
+
 

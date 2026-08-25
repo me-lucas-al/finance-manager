@@ -123,9 +123,10 @@ test.describe('Autenticação e Login', () => {
     await expect(page).toHaveURL('/register');
   });
 
-  test('permite navegar para a página de recuperação de senha e redefinir com sucesso', async ({ page }) => {
+  test('permite solicitar recuperação de senha e redefinir com segurança via token do email', async ({ page }) => {
     const testUser = loadTestUser();
 
+    // 1. Solicita recuperação de senha
     await page.goto('/login');
     await page.getByRole('link', { name: 'Esqueceu a senha?' }).click();
     await expect(page).toHaveURL('/forgot-password');
@@ -135,31 +136,17 @@ test.describe('Autenticação e Login', () => {
     await page.getByRole('button', { name: 'Enviar instruções' }).click();
 
     await expect(page.getByRole('status')).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('enviamos um link para redefinição');
 
-    // In dev environment, the reset button is displayed with the generated token
-    const resetLink = page.getByRole('link', { name: 'Redefinir Senha Agora' });
-    await expect(resetLink).toBeVisible();
-    await resetLink.click();
+    // 2. Garante que sem token ou com token inválido a redefinição é bloqueada
+    await page.goto('/reset-password');
+    await expect(page.locator('p[role="alert"]')).toContainText('Token de redefinição não encontrado ou inválido');
 
-    await expect(page).toHaveURL(/\/reset-password\?token=/);
-    await expect(page.getByText('Criar Nova Senha').first()).toBeVisible();
-
-    // Fill new password
-    const newPassword = 'novaSenhaForte123';
-    await page.locator('#reset-password').fill(newPassword);
-    await page.locator('#reset-confirm-password').fill(newPassword);
+    await page.goto('/reset-password?token=token-invalido-inexistente');
+    await page.locator('#reset-password').fill('novaSenha123');
+    await page.locator('#reset-confirm-password').fill('novaSenha123');
     await page.getByRole('button', { name: 'Redefinir senha' }).click();
-
-    await expect(page.getByRole('status')).toContainText('Senha redefinida com sucesso');
-
-    // Wait for redirect to login or click link
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(testUser.email);
-    await page.locator('#password').fill(newPassword);
-    await page.getByRole('button', { name: 'Entrar' }).click();
-
-    await expect(page).toHaveURL('/');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.locator('p[role="alert"]')).toContainText('Link de redefinição inválido ou expirado');
   });
 
   test('permite login com credenciais válidas com sucesso', async ({ page }) => {

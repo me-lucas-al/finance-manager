@@ -16,9 +16,11 @@ test.describe('Navegação', () => {
     const nav = page.getByRole('navigation').first();
     await nav.getByRole('link', { name: 'Despesas' }).click();
     await expect(page).toHaveURL('/expenses');
+    await expect(page.getByRole('heading', { name: 'Despesas' })).toBeVisible();
 
     await nav.getByRole('link', { name: 'Receitas' }).click();
     await expect(page).toHaveURL('/incomes');
+    await expect(page.getByRole('heading', { name: 'Receitas' })).toBeVisible();
 
     await nav.getByRole('link', { name: 'Investimentos' }).click();
     await expect(page).toHaveURL('/investments');
@@ -30,6 +32,7 @@ test.describe('Navegação', () => {
 
     await nav.getByRole('link', { name: 'Configurações' }).click();
     await expect(page).toHaveURL('/settings');
+    await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible();
   });
 
   test('mostra gráficos de análises e relatórios com dados reais', async ({ page }) => {

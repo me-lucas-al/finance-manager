@@ -12,22 +12,17 @@ export function ForgotPasswordForm() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [resetToken, setResetToken] = useState<string | null>(null);
 
   async function action(formData: FormData) {
     setError(null);
     setSuccessMessage(null);
-    setResetToken(null);
 
     try {
       const result = await requestPasswordReset(formData);
       if (result.error) {
         setError(result.error);
       } else if (result.success) {
-        setSuccessMessage(result.message || 'Instruções enviadas com sucesso.');
-        if (result.token) {
-          setResetToken(result.token);
-        }
+        setSuccessMessage(result.message || 'Se este email estiver cadastrado, enviamos um link para redefinição da sua senha.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao solicitar recuperação de senha');
@@ -42,22 +37,9 @@ export function ForgotPasswordForm() {
             {successMessage}
           </div>
 
-          {resetToken && (
-            <div className="p-3 bg-muted rounded-lg space-y-2 text-xs">
-              <p className="font-medium text-foreground">Ambiente Local / Demonstração:</p>
-              <p className="text-muted-foreground">Clique no botão abaixo para redefinir a sua senha:</p>
-              <Link
-                href={`/reset-password?token=${resetToken}`}
-                className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
-              >
-                Redefinir Senha Agora
-              </Link>
-            </div>
-          )}
-
           <Link
             href="/login"
-            className={cn(buttonVariants({ variant: 'ghost' }), 'w-full')}
+            className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
           >
             Voltar para o login
           </Link>
