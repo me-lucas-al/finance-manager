@@ -14,7 +14,10 @@ export function RegisterForm() {
   async function action(formData: FormData) {
     setError(null);
     try {
-      await signUp(formData);
+      const result = await signUp(formData);
+      if (result?.error) {
+        setError(result.error);
+      }
     } catch (err) {
       unstable_rethrow(err);
       setError(err instanceof Error ? err.message : 'Erro ao criar conta');

@@ -14,7 +14,10 @@ export function LoginForm() {
   async function action(formData: FormData) {
     setError(null);
     try {
-      await signIn(formData);
+      const result = await signIn(formData);
+      if (result?.error) {
+        setError(result.error);
+      }
     } catch (err) {
       unstable_rethrow(err);
       setError(err instanceof Error ? err.message : 'Erro ao entrar');

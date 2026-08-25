@@ -1,13 +1,16 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { eq } from 'drizzle-orm';
+import { db } from './index';
 import * as schema from './schema';
 import { hashPassword } from '../modules/auth/domain/password';
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema });
-
 async function main() {
   console.log('Seeding database...');
+  const existing = await db.select().from(schema.users).where(eq(schema.users.email, 'test@example.com'));
+  if (existing.length > 0) {
+    console.log('Database already seeded (user test@example.com exists).');
+    process.exit(0);
+  }
+
   const passwordHash = await hashPassword('123456');
 
   const [user] = await db.insert(schema.users).values({
@@ -47,9 +50,11 @@ async function main() {
   });
 
   console.log('Seeding completed successfully!');
+  process.exit(0);
 }
 
 main().catch((err) => {
   console.error('Seed error:', err);
   process.exit(1);
 });
+

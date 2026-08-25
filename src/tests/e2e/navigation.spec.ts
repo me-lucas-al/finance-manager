@@ -22,6 +22,7 @@ test.describe('Navegação', () => {
 
     await nav.getByRole('link', { name: 'Investimentos' }).click();
     await expect(page).toHaveURL('/investments');
+    await expect(page.getByRole('heading', { name: 'Investimentos' })).toBeVisible();
 
     await nav.getByRole('link', { name: 'Calendário' }).click();
     await expect(page).toHaveURL('/periods');

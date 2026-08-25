@@ -17,43 +17,68 @@ const signUpSchema = z.object({
   password: z.string().min(6),
 });
 
-export async function signUp(formData: FormData) {
-  const parsed = signUpSchema.parse(Object.fromEntries(formData.entries()));
-  const userRepo = new DrizzleUserRepository();
+function isNextRedirect(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    typeof (error as { digest: unknown }).digest === 'string' &&
+    (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+  );
+}
 
-  const existing = await userRepo.findByEmail(parsed.email);
-  if (existing) throw new Error('Email já cadastrado');
-
-  const passwordHash = await hashPassword(parsed.password);
-  const user = await userRepo.create({
-    name: parsed.name,
-    email: parsed.email,
-    passwordHash,
-  });
-
-  await db.insert(userSettings).values({
-    id: crypto.randomUUID(),
-    userId: user.id,
-    expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
-    investmentTypes: DEFAULT_INVESTMENT_TYPES,
-  });
-
-  await db.insert(notificationPreferences).values({
-    id: crypto.randomUUID(),
-    userId: user.id,
-  });
-
+export async function signUp(formData: FormData): Promise<{ error?: string }> {
   try {
-    await nextAuthSignIn('credentials', {
-      email: parsed.email,
-      password: parsed.password,
-      redirectTo: '/',
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      throw new Error('Conta criada, mas houve um erro ao entrar automaticamente. Faça login.');
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = signUpSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { error: 'Preencha os campos corretamente (a senha precisa ter no mínimo 6 caracteres).' };
     }
-    throw error;
+
+    const userRepo = new DrizzleUserRepository();
+
+    const existing = await userRepo.findByEmail(parsed.data.email);
+    if (existing) {
+      return { error: 'Email já cadastrado' };
+    }
+
+    const passwordHash = await hashPassword(parsed.data.password);
+    const user = await userRepo.create({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      passwordHash,
+    });
+
+    await db.insert(userSettings).values({
+      id: crypto.randomUUID(),
+      userId: user.id,
+      expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
+      investmentTypes: DEFAULT_INVESTMENT_TYPES,
+    });
+
+    await db.insert(notificationPreferences).values({
+      id: crypto.randomUUID(),
+      userId: user.id,
+    });
+
+    try {
+      await nextAuthSignIn('credentials', {
+        email: parsed.data.email,
+        password: parsed.data.password,
+        redirectTo: '/',
+      });
+    } catch (error) {
+      if (isNextRedirect(error)) throw error;
+      if (error instanceof AuthError) {
+        return { error: 'Conta criada, mas houve um erro ao entrar automaticamente. Faça login.' };
+      }
+      throw error;
+    }
+
+    return {};
+  } catch (error) {
+    if (isNextRedirect(error)) throw error;
+    return { error: error instanceof Error ? error.message : 'Erro ao criar conta' };
   }
 }
 
@@ -62,20 +87,27 @@ const signInSchema = z.object({
   password: z.string().min(1),
 });
 
-export async function signIn(formData: FormData) {
-  const parsed = signInSchema.parse(Object.fromEntries(formData.entries()));
-
+export async function signIn(formData: FormData): Promise<{ error?: string }> {
   try {
+    const raw = Object.fromEntries(formData.entries());
+    const parsed = signInSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { error: 'Preencha todos os campos corretamente.' };
+    }
+
     await nextAuthSignIn('credentials', {
-      email: parsed.email,
-      password: parsed.password,
+      email: parsed.data.email,
+      password: parsed.data.password,
       redirectTo: '/',
     });
+
+    return {};
   } catch (error) {
+    if (isNextRedirect(error)) throw error;
     if (error instanceof AuthError) {
-      throw new Error('Credenciais inválidas');
+      return { error: 'Credenciais inválidas' };
     }
-    throw error;
+    return { error: error instanceof Error ? error.message : 'Erro ao entrar' };
   }
 }
 
