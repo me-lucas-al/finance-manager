@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { signIn } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 
 export function LoginForm() {
@@ -28,11 +30,19 @@ export function LoginForm() {
     <form action={(data) => startTransition(() => action(data))} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+        <Input id="email" name="email" type="email" placeholder="seu@email.com" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
-        <Input id="password" name="password" type="password" required />
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Senha</Label>
+          <Link
+            href="/forgot-password"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
+          >
+            Esqueceu a senha?
+          </Link>
+        </div>
+        <PasswordInput id="password" name="password" required />
       </div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <Button type="submit" className="w-full" disabled={isPending}>
@@ -41,3 +51,4 @@ export function LoginForm() {
     </form>
   );
 }
+

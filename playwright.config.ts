@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: './src/tests/e2e',
   /* Server actions round-trip to a real Postgres database, which can add
      noticeable latency — give whole tests more room than the 30s default. */
-  timeout: 60000,
+  timeout: 75000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -22,7 +22,7 @@ export default defineConfig({
   /* Server actions in this app round-trip to a real Postgres database, which
      can be slower than typical UI assertions — give expectations more room. */
   expect: {
-    timeout: 10000,
+    timeout: 20000,
   },
 
   use: {

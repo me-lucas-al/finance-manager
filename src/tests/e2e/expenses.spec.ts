@@ -47,7 +47,7 @@ test.describe('Despesas', () => {
     await page.getByLabel('Data', { exact: true }).fill(datetimeLocalNow());
     await page.getByRole('button', { name: 'Adicionar Despesa' }).click();
 
-    await expect(page.getByRole('row').filter({ hasText: description })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: description })).toBeVisible({ timeout: 20000 });
 
     await page.getByPlaceholder('Buscar por descrição...').fill('nome-que-nao-existe-xyz');
     await expect(page.getByRole('row').filter({ hasText: description })).toHaveCount(0);

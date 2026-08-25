@@ -13,7 +13,8 @@ setup('register and authenticate test user', async ({ page }) => {
   await page.goto('/register');
   await page.getByLabel('Nome').fill(testUser.name);
   await page.getByLabel('Email').fill(testUser.email);
-  await page.getByLabel('Senha').fill(testUser.password);
+  await page.getByLabel('Senha', { exact: true }).fill(testUser.password);
+  await page.getByLabel('Confirmar Senha').fill(testUser.password);
   await page.getByRole('button', { name: 'Criar conta' }).click();
 
   await expect(page).toHaveURL('/', { timeout: 45000 });
