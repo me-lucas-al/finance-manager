@@ -10,6 +10,7 @@ const credentialsSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || (process.env.NODE_ENV !== 'production' ? 'dev_auth_secret_must_be_at_least_32_characters_long_1234567890' : undefined),
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
   // Vercel is auto-detected, but self-hosting (Docker, `next start` behind a
