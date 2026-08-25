@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { UserRepository } from '../../users/domain/repositories/user-repository';
 import { hashPassword, verifyPassword } from '../domain/password';
 import { EmailService } from '../../notifications/email/EmailService';
@@ -17,6 +18,10 @@ export interface PasswordResetTokenRepository {
   markAsUsed(id: string): Promise<void>;
 }
 
+export function hashResetToken(rawToken: string): string {
+  return crypto.createHash('sha256').update(rawToken).digest('hex');
+}
+
 export async function requestPasswordResetToken(
   userRepo: UserRepository,
   tokenRepo: PasswordResetTokenRepository,
@@ -32,17 +37,18 @@ export async function requestPasswordResetToken(
     };
   }
 
-  const token = crypto.randomUUID();
+  const rawToken = crypto.randomUUID();
+  const tokenHash = hashResetToken(rawToken);
   const expiresAt = new Date(Date.now() + 3600 * 1000);
 
   await tokenRepo.create({
     id: crypto.randomUUID(),
     userId: user.id,
-    token,
+    token: tokenHash,
     expiresAt,
   });
 
-  const resetUrl = `${appUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+  const resetUrl = `${appUrl.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
 
   if (emailService) {
     await emailService.sendPasswordResetEmail(user.email, resetUrl);
@@ -50,7 +56,7 @@ export async function requestPasswordResetToken(
 
   return {
     success: true,
-    token,
+    token: rawToken,
     message: 'Se este email estiver cadastrado, enviamos um link para redefinição da sua senha. Verifique sua caixa de entrada e spam.',
   };
 }
@@ -61,7 +67,8 @@ export async function resetUserPassword(
   token: string,
   newPassword: string
 ): Promise<{ success: boolean; error?: string }> {
-  const tokenRecord = await tokenRepo.findByToken(token);
+  const tokenHash = hashResetToken(token);
+  const tokenRecord = await tokenRepo.findByToken(tokenHash);
   if (!tokenRecord || tokenRecord.usedAt || new Date(tokenRecord.expiresAt) < new Date()) {
     return { success: false, error: 'Link de redefinição inválido ou expirado.' };
   }

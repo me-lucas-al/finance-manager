@@ -3,6 +3,7 @@ import {
   requestPasswordResetToken,
   resetUserPassword,
   changeUserPassword,
+  hashResetToken,
   PasswordResetTokenRepository,
   PasswordResetTokenRecord,
 } from '../../../../modules/auth/application/password-reset';
@@ -75,7 +76,7 @@ describe('Password Reset and Change Use Cases', () => {
         expect.stringContaining(`http://localhost:3000/reset-password?token=${result.token}`)
       );
 
-      const storedToken = await tokenRepo.findByToken(result.token!);
+      const storedToken = await tokenRepo.findByToken(hashResetToken(result.token!));
       expect(storedToken).not.toBeNull();
       expect(storedToken?.userId).toBeDefined();
     });
@@ -111,7 +112,7 @@ describe('Password Reset and Change Use Cases', () => {
       const isOldPasswordValid = await verifyPassword('old-password-123', user!.passwordHash);
       expect(isOldPasswordValid).toBe(false);
 
-      const usedToken = await tokenRepo.findByToken(token!);
+      const usedToken = await tokenRepo.findByToken(hashResetToken(token!));
       expect(usedToken?.usedAt).not.toBeNull();
     });
 
@@ -135,7 +136,7 @@ describe('Password Reset and Change Use Cases', () => {
       await tokenRepo.create({
         id: 'expired-tok-id',
         userId: user!.id,
-        token: 'expired-token-123',
+        token: hashResetToken('expired-token-123'),
         expiresAt: new Date(Date.now() - 3600 * 1000),
       });
 
