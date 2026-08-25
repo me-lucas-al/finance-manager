@@ -1,10 +1,9 @@
 'use server';
 
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { AuthError } from 'next-auth';
 import { db } from '@/db';
-import { notificationPreferences, passwordResetTokens, userSettings } from '@/db/schema';
+import { notificationPreferences, userSettings } from '@/db/schema';
 import { hashPassword } from '@/modules/auth/domain/password';
 import { DrizzleUserRepository } from '@/modules/users/infrastructure/repositories';
 import { signIn as nextAuthSignIn, signOut as nextAuthSignOut } from '@/auth';

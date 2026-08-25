@@ -9,7 +9,36 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: finance_manager
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/finance_manager' }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'nO0uBk2mBfICrf2WrBMHSEzwdUgcfCSGOM1eHL/yFhY=' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET || 'dev_cron_secret_12345' }}
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 're_ci_dummy_token_1234567890' }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM || 'FinanceManager <onboarding@resend.dev>' }}
+      PUSH_PUBLIC_KEY: ${{ secrets.PUSH_PUBLIC_KEY || 'BN_0V61AoZNr2I9R7EOpfyt2zwsc0-pVKT2HwsNMdRCdRsKEFfUIes4Zqgw6cpxB49Ap5LvZMnDTO6RAc0Ks4QI' }}
+      PUSH_PRIVATE_KEY: ${{ secrets.PUSH_PRIVATE_KEY || 'jWLLmiowkWa2X45vX_QoEQ8sDYJJqQuka10nP43wXDk' }}
+      PUSH_SUBJECT: ${{ secrets.PUSH_SUBJECT || 'mailto:test@example.com' }}
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BN_0V61AoZNr2I9R7EOpfyt2zwsc0-pVKT2HwsNMdRCdRsKEFfUIes4Zqgw6cpxB49Ap5LvZMnDTO6RAc0Ks4QI' }}
+      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY || 'jWLLmiowkWa2X45vX_QoEQ8sDYJJqQuka10nP43wXDk' }}
+      VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT || 'mailto:test@example.com' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,28 +56,22 @@ jobs:
         run: pnpm install
 
       - name: Typecheck
-        run: pnpm run typecheck || pnpm tsc --noEmit
+        run: pnpm run typecheck
 
       - name: Lint
         run: pnpm run lint
 
       - name: Unit Tests
-        run: pnpm run test || echo "No unit tests found or setup"
+        run: pnpm run test
+
+      - name: Push Database Schema
+        run: pnpm run db:push
 
       - name: Build
         run: pnpm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
 
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps || echo "Playwright not fully configured yet"
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run e2e tests
-        run: pnpm run test:e2e || echo "No e2e tests configured"
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          PUSH_PUBLIC_KEY: ${{ secrets.PUSH_PUBLIC_KEY }}
-          PUSH_PRIVATE_KEY: ${{ secrets.PUSH_PRIVATE_KEY }}
-          PUSH_SUBJECT: ${{ secrets.PUSH_SUBJECT }}
+        run: pnpm run test:e2e
