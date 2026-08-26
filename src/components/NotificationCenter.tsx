@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { markAllNotificationsAsRead, markNotificationAsRead, clearAllNotifications } from '@/app/actions/notifications';
 
@@ -45,7 +46,15 @@ export function NotificationCenter({ initialNotifications }: { initialNotificati
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="relative" />}>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          />
+        }
+      >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
           <Badge
@@ -57,14 +66,16 @@ export function NotificationCenter({ initialNotifications }: { initialNotificati
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel className="flex justify-between items-center">
-          <span>Notificações</span>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto p-1 text-xs">
-              <Check className="h-3 w-3 mr-1" /> Marcar todas como lidas
-            </Button>
-          )}
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex justify-between items-center">
+            <span>Notificações</span>
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto p-1 text-xs">
+                <Check className="h-3 w-3 mr-1" /> Marcar todas como lidas
+              </Button>
+            )}
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <ScrollArea className="h-[300px]">
           {notifications.length === 0 ? (
