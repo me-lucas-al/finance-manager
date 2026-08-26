@@ -18,9 +18,9 @@ const STATUS_LABEL: Record<string, string> = {
   OFF_TRACK: 'Fora da meta',
 };
 
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive'> = {
+const STATUS_VARIANT: Record<string, 'default' | 'warning' | 'destructive'> = {
   ON_TRACK: 'default',
-  WARNING: 'secondary',
+  WARNING: 'warning',
   OFF_TRACK: 'destructive',
 };
 
@@ -75,42 +75,42 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.totalIncome)}</div>
+            <div className="font-mono text-2xl font-semibold tabular-nums text-foreground">{formatCurrency(metrics.totalIncome)}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-destructive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.totalExpenses)}</div>
+            <div className="font-mono text-2xl font-semibold tabular-nums text-foreground">{formatCurrency(metrics.totalExpenses)}</div>
             <p className="text-xs text-muted-foreground">
               {metrics.expensePercentage.toFixed(1)}% da receita (Máx: {maxExpensesPercentage}%)
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-positive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Investido</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.totalInvestments)}</div>
+            <div className="font-mono text-2xl font-semibold tabular-nums text-foreground">{formatCurrency(metrics.totalInvestments)}</div>
             <p className="text-xs text-muted-foreground">
               {metrics.investmentPercentage.toFixed(1)}% da receita (Mín: {minInvestmentPercentage}%)
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-foreground/70">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Saldo Atual</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-foreground">{formatCurrency(metrics.balance)}</div>
+            <div className="font-mono text-2xl font-semibold tabular-nums text-foreground">{formatCurrency(metrics.balance)}</div>
           </CardContent>
         </Card>
       </div>

@@ -131,7 +131,7 @@ export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProp
                 <TableCell>{row.date.toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell>{row.description}</TableCell>
                 <TableCell>{row.category}</TableCell>
-                <TableCell className="tabular-nums">{formatCurrency(row.amount)}</TableCell>
+                <TableCell className="font-mono tabular-nums">{formatCurrency(row.amount)}</TableCell>
                 <TableCell className="flex justify-end gap-1 text-right">{row.actions}</TableCell>
               </TableRow>
             ))}

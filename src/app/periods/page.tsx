@@ -151,7 +151,7 @@ export default async function PeriodsPage() {
                 {pastPeriods.slice(0, 3).map((period) => (
                   <div key={period.id} className="flex items-center justify-between p-3 bg-muted rounded border border-border">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 text-positive" />
                       <span className="text-sm font-medium text-foreground">
                         {format(new Date(period.startDate), "MMM yyyy", { locale: ptBR })}
                       </span>
