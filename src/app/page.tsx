@@ -10,6 +10,7 @@ import { calculateMetrics } from '../modules/finance/domain/financial-metrics';
 import { ResolveCurrentPeriodUseCase } from '../modules/periods/application/use-cases/resolve-current-period';
 import { DrizzlePeriodRepository } from '../modules/periods/infrastructure/repositories';
 import { DrizzleSettingRepository } from '../modules/users/infrastructure/repositories';
+import { SupabaseAlertLogRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 import { formatCurrency } from '@/lib/format';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -64,6 +65,13 @@ export default async function DashboardPage() {
   await connection();
   const daysRemaining = daysUntil(period.endDate);
 
+  // The Supabase project (Open Finance data) may not be configured yet in this
+  // environment — the dashboard degrades to an explicit empty state instead of
+  // failing to render entirely.
+  const monthlySummary = await new SupabaseAlertLogRepository()
+    .findLatestByType('monthly_summary')
+    .catch(() => null);
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-2 space-y-2">
@@ -73,6 +81,21 @@ export default async function DashboardPage() {
           <span className="text-sm text-muted-foreground">{daysRemaining} dias restantes no período</span>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumo do mês (IA)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {monthlySummary ? (
+            <p className="text-sm text-foreground whitespace-pre-line">{monthlySummary.message}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Ainda sem resumo gerado — ele aparece aqui depois que a análise diária rodar pela primeira vez.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-primary">
