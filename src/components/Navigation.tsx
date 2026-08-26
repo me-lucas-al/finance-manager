@@ -12,7 +12,7 @@ const navLinks = [
   { href: "/", label: "Dashboard" },
   { href: "/periods", label: "Calendário" },
   { href: "/incomes", label: "Receitas" },
-  { href: "/expenses", label: "Despesas" },
+  { href: "/transactions", label: "Transações" },
   { href: "/investments", label: "Investimentos" },
   { href: "/goals", label: "Metas" },
   { href: "/analytics", label: "Análises" },

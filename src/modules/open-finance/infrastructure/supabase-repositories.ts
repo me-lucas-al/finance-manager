@@ -74,6 +74,12 @@ export class SupabaseTransactionRepository implements TransactionRepository {
     return toTransaction(unwrap<TransactionRow>(result));
   }
 
+  async findById(id: string): Promise<Transaction | null> {
+    const { data, error } = await getSupabaseAdmin().from('transactions').select().eq('id', id).maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toTransaction(data as TransactionRow) : null;
+  }
+
   async findByPluggyId(pluggyTransactionId: string): Promise<Transaction | null> {
     const { data, error } = await getSupabaseAdmin()
       .from('transactions')
