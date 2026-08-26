@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { WebhookEventPayload } from 'pluggy-sdk';
 import { fetchNewTransactions } from '@/lib/pluggy';
-import { ingestPluggyTransaction } from '@/modules/open-finance/application/use-cases/ingest-pluggy-transaction';
-import { askForTransactionReason } from '@/modules/open-finance/application/use-cases/ask-transaction-reason';
+import { IngestPluggyTransactionUseCase } from '@/modules/open-finance/application/use-cases/ingest-pluggy-transaction';
+import { AskForTransactionReasonUseCase } from '@/modules/open-finance/application/use-cases/ask-transaction-reason';
+import {
+  SupabaseAccountRepository,
+  SupabaseTransactionRepository,
+} from '@/modules/open-finance/infrastructure/supabase-repositories';
 
 // Pluggy has no webhook signing mechanism (confirmed against docs.pluggy.ai/docs/webhooks),
 // so authenticity relies on registering an unguessable URL with the Pluggy dashboard —
@@ -46,13 +50,17 @@ export async function POST(req: NextRequest) {
   try {
     if (payload.event === 'transactions/created') {
       const userId = getOwnerUserId();
+      const transactionRepository = new SupabaseTransactionRepository();
+      const ingestUseCase = new IngestPluggyTransactionUseCase(new SupabaseAccountRepository(), transactionRepository);
+      const askUseCase = new AskForTransactionReasonUseCase(transactionRepository);
+
       const newTransactions = await fetchNewTransactions(payload.accountId, payload.transactionsCreatedAtFrom);
       for (const transaction of newTransactions) {
         // CREDIT movements (salary, incoming Pix, refunds...) are not "gastos" —
         // they're skipped entirely, never stored and never asked about.
-        const stored = await ingestPluggyTransaction(userId, payload.itemId, payload.accountId, transaction);
+        const stored = await ingestUseCase.execute(userId, payload.itemId, payload.accountId, transaction);
         if (stored && !stored.telegramQuestionMessageId) {
-          await askForTransactionReason(stored);
+          await askUseCase.execute(stored);
         }
       }
     }

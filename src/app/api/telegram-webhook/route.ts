@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { recordTransactionReason } from '@/modules/open-finance/application/use-cases/record-transaction-reason';
+import { RecordTransactionReasonUseCase } from '@/modules/open-finance/application/use-cases/record-transaction-reason';
+import { SupabaseTransactionRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 
 // Telegram signs webhook requests with the secret_token passed to setWebhook,
 // delivered back as this header (https://core.telegram.org/bots/api#setwebhook).
@@ -39,7 +40,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await recordTransactionReason(message.reply_to_message.message_id, message.text, message.message_id);
+    const useCase = new RecordTransactionReasonUseCase(new SupabaseTransactionRepository());
+    await useCase.execute(message.reply_to_message.message_id, message.text, message.message_id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Error processing Telegram webhook:', error);
