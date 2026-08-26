@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
+import { Logo } from '@/components/Logo';
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4 ledger-rule">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -10,12 +11,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         }}
       />
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-6">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-            F
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">FinanceManager</span>
-        </div>
+        <Logo className="text-foreground" markClassName="h-10 w-10" />
         {children}
       </div>
     </div>

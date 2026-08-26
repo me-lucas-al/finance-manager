@@ -1,6 +1,7 @@
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Navigation } from "@/components/Navigation";
+import { Logo } from "@/components/Logo";
 import { auth } from "@/auth";
 import { getNotifications } from "@/app/actions/notifications";
 
@@ -11,10 +12,10 @@ export async function AppHeader() {
   const notifications = await getNotifications();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-card">
+    <header className="sticky top-0 z-50 w-full border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center justify-between px-4 md:px-8">
         <div className="flex items-center">
-          <div className="font-bold text-xl text-foreground mr-8">FinanceManager</div>
+          <Logo className="mr-8" markClassName="h-8 w-8" />
           <Navigation />
         </div>
         <div className="flex items-center gap-4">

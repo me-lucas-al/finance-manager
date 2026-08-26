@@ -12,6 +12,7 @@ export function LogoutButton() {
     <Button
       variant="ghost"
       size="icon"
+      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
       disabled={isPending}
       onClick={() => startTransition(() => signOut())}
     >

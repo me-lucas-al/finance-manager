@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
@@ -27,13 +28,21 @@ export function Navigation() {
       {/* Mobile Nav */}
       <div className="md:hidden flex items-center">
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" />}>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              />
+            }
+          >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Abrir menu</span>
           </SheetTrigger>
           <SheetContent side="left" className="w-[240px] sm:w-[300px]">
             <div className="flex flex-col space-y-4 py-4">
-              <div className="font-bold text-xl text-foreground mb-4 px-2">FinanceManager</div>
+              <Logo className="mb-4 px-2" markClassName="h-7 w-7" />
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -41,7 +50,7 @@ export function Navigation() {
                   onClick={() => setOpen(false)}
                   className={`px-2 py-1.5 text-sm font-medium rounded-md transition-colors ${
                     pathname === link.href
-                      ? "bg-muted text-primary"
+                      ? "bg-accent text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -59,8 +68,10 @@ export function Navigation() {
           <Link
             key={link.href}
             href={link.href}
-            className={`transition-colors hover:text-foreground ${
-              pathname === link.href ? "text-foreground" : "text-muted-foreground"
+            className={`relative py-1 transition-colors hover:text-sidebar-foreground ${
+              pathname === link.href
+                ? "text-sidebar-foreground after:absolute after:-bottom-[1.15rem] after:left-0 after:h-0.5 after:w-full after:bg-sidebar-primary"
+                : "text-sidebar-foreground/60"
             }`}
           >
             {link.label}
