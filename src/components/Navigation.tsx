@@ -14,6 +14,7 @@ const navLinks = [
   { href: "/incomes", label: "Receitas" },
   { href: "/expenses", label: "Despesas" },
   { href: "/investments", label: "Investimentos" },
+  { href: "/goals", label: "Metas" },
   { href: "/analytics", label: "Análises" },
   { href: "/reports", label: "Relatórios" },
   { href: "/settings", label: "Configurações" },
