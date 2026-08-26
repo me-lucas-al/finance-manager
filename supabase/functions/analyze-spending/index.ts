@@ -8,7 +8,8 @@
 // Deploy manually after reviewing this file:
 //   supabase functions deploy analyze-spending --no-verify-jwt
 // and set its secrets (Project Settings > Edge Functions > analyze-spending):
-//   GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+//   GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ANALYZE_SPENDING_SECRET,
+//   FINANCE_OWNER_USER_ID (same value as the Next.js app's own env var)
 // (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically.)
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -76,33 +77,49 @@ async function sendTelegramMessage(text: string): Promise<void> {
   if (!response.ok) console.error('Failed to send Telegram alert:', await response.text());
 }
 
-Deno.serve(async () => {
+// Deployed with --no-verify-jwt (see module header), so the platform performs
+// no auth of its own — this app-level secret is the only thing standing
+// between this URL and anyone who finds it. Fails closed if unset.
+function isAuthorized(req: Request): boolean {
+  const secret = Deno.env.get('ANALYZE_SPENDING_SECRET');
+  if (!secret) return false;
+  return req.headers.get('x-analyze-spending-secret') === secret;
+}
+
+Deno.serve(async (req) => {
+  if (!isAuthorized(req)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { from, to, monthDate } = currentMonthRange();
+  // Same user_id every other Open Finance access point filters by (see
+  // FINANCE_OWNER_USER_ID in /api/webhook-pluggy) — kept consistent here too.
+  const userId = Deno.env.get('FINANCE_OWNER_USER_ID')!;
 
   const [{ data: transactions, error: transactionsError }, { data: goals, error: goalsError }] = await Promise.all([
     supabase
       .from('transactions')
       .select('amount, category, category_suggested')
+      .eq('user_id', userId)
       .eq('status', 'categorized')
       .gte('occurred_at', from)
       .lt('occurred_at', to),
-    supabase.from('goals').select('category, target_amount').eq('month', monthDate),
+    supabase.from('goals').select('category, target_amount').eq('user_id', userId).eq('month', monthDate),
   ]);
 
   if (transactionsError) throw new Error(transactionsError.message);
   if (goalsError) throw new Error(goalsError.message);
 
+  // Only DEBIT transactions are ever stored (see ingestPluggyTransaction), as a
+  // positive "amount spent" — so every row here is spend, no sign filtering needed.
   const spendByCategory = new Map<string, number>();
   let totalSpent = 0;
   for (const transaction of (transactions ?? []) as Transaction[]) {
     const amount = Math.abs(Number(transaction.amount));
-    if (transaction.amount < 0) {
-      // Only DEBIT-like (negative) movements count as spending.
-      totalSpent += amount;
-      const category = transaction.category ?? transaction.category_suggested ?? 'Sem categoria';
-      spendByCategory.set(category, (spendByCategory.get(category) ?? 0) + amount);
-    }
+    totalSpent += amount;
+    const category = transaction.category ?? transaction.category_suggested ?? 'Sem categoria';
+    spendByCategory.set(category, (spendByCategory.get(category) ?? 0) + amount);
   }
 
   const generalGoal = (goals as Goal[] | null)?.find((goal) => goal.category === null) ?? null;

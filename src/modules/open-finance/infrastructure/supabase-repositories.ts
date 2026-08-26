@@ -71,6 +71,16 @@ export class SupabaseTransactionRepository implements TransactionRepository {
       })
       .select()
       .single();
+
+    // Two concurrent deliveries of the same Pluggy webhook can both pass the
+    // findByPluggyId check before either finishes inserting; the loser hits
+    // this unique violation instead of a real error, so fetch and return the
+    // row the winner created rather than failing the whole webhook.
+    if (result.error?.code === '23505') {
+      const existing = await this.findByPluggyId(data.pluggyTransactionId);
+      if (existing) return existing;
+    }
+
     return toTransaction(unwrap<TransactionRow>(result));
   }
 

@@ -3,9 +3,11 @@ import { recordTransactionReason } from '@/modules/open-finance/application/use-
 
 // Telegram signs webhook requests with the secret_token passed to setWebhook,
 // delivered back as this header (https://core.telegram.org/bots/api#setwebhook).
+// Fails closed until TELEGRAM_WEBHOOK_SECRET is set — this route rewrites
+// transaction category/reason based on the request body.
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (!secret) return true;
+  if (!secret) return false;
   return req.headers.get('x-telegram-bot-api-secret-token') === secret;
 }
 

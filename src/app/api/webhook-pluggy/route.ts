@@ -5,14 +5,16 @@ import { ingestPluggyTransaction } from '@/modules/open-finance/application/use-
 import { askForTransactionReason } from '@/modules/open-finance/application/use-cases/ask-transaction-reason';
 
 // Pluggy has no webhook signing mechanism (confirmed against docs.pluggy.ai/docs/webhooks),
-// so authenticity relies on registering an unguessable URL with the Pluggy dashboard
-// (mirrors the CRON_SECRET pattern already used by /api/cron/closing) — set
-// PLUGGY_WEBHOOK_SECRET and register the webhook URL as .../api/webhook-pluggy?token=<secret>.
-// Financial data itself is never trusted from the payload: it only carries ids/links,
-// and we always re-fetch the authoritative record via our own Pluggy API credentials.
+// so authenticity relies on registering an unguessable URL with the Pluggy dashboard —
+// set PLUGGY_WEBHOOK_SECRET and register the webhook URL as
+// .../api/webhook-pluggy?token=<secret>. Fails closed (rejects everything) until that
+// secret is set, since this route accepts externally-triggered writes and outbound
+// Gemini/Telegram calls. Financial data itself is never trusted from the payload:
+// it only carries ids/links, and we always re-fetch the authoritative record via our
+// own Pluggy API credentials.
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.PLUGGY_WEBHOOK_SECRET;
-  if (!secret) return true;
+  if (!secret) return false;
   return req.nextUrl.searchParams.get('token') === secret;
 }
 
@@ -46,8 +48,10 @@ export async function POST(req: NextRequest) {
       const userId = getOwnerUserId();
       const newTransactions = await fetchNewTransactions(payload.accountId, payload.transactionsCreatedAtFrom);
       for (const transaction of newTransactions) {
+        // CREDIT movements (salary, incoming Pix, refunds...) are not "gastos" —
+        // they're skipped entirely, never stored and never asked about.
         const stored = await ingestPluggyTransaction(userId, payload.itemId, payload.accountId, transaction);
-        if (!stored.categorySuggested) {
+        if (stored && !stored.telegramQuestionMessageId) {
           await askForTransactionReason(stored);
         }
       }

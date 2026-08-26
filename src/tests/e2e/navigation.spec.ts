@@ -14,9 +14,9 @@ test.describe('Navegação', () => {
     await page.goto('/');
 
     const nav = page.getByRole('navigation').first();
-    await nav.getByRole('link', { name: 'Despesas' }).click();
-    await expect(page).toHaveURL('/expenses');
-    await expect(page.getByRole('heading', { name: 'Despesas' })).toBeVisible();
+    await nav.getByRole('link', { name: 'Transações' }).click();
+    await expect(page).toHaveURL('/transactions');
+    await expect(page.getByRole('heading', { name: 'Transações' })).toBeVisible();
 
     await nav.getByRole('link', { name: 'Receitas' }).click();
     await expect(page).toHaveURL('/incomes');

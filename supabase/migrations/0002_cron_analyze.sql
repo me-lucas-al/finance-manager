@@ -5,10 +5,11 @@
 -- 1. Deploy the function: supabase functions deploy analyze-spending --no-verify-jwt
 -- 2. Enable pg_cron and pg_net (Database > Extensions in the dashboard, or the
 --    `create extension` statements below if your plan allows it via SQL).
--- 3. Store the project URL and an API key in Vault so this migration never
---    hardcodes a secret (Project Settings > Vault, or via SQL):
+-- 3. Store the project URL and the function's own ANALYZE_SPENDING_SECRET (the
+--    same value set as a function secret in step 1) in Vault so this migration
+--    never hardcodes a secret (Project Settings > Vault, or via SQL):
 --      select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
---      select vault.create_secret('<anon-or-service-role-key>', 'analyze_spending_api_key');
+--      select vault.create_secret('<same value as the ANALYZE_SPENDING_SECRET function secret>', 'analyze_spending_secret');
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
@@ -23,7 +24,7 @@ select
         url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/analyze-spending',
         headers := jsonb_build_object(
           'Content-Type', 'application/json',
-          'apikey', (select decrypted_secret from vault.decrypted_secrets where name = 'analyze_spending_api_key')
+          'x-analyze-spending-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'analyze_spending_secret')
         ),
         body := '{}'::jsonb,
         timeout_milliseconds := 30000
