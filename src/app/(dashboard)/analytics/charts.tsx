@@ -99,6 +99,32 @@ export function InvestmentsVsTargetChart({ current, target }: { current: number;
   );
 }
 
+export interface CategoryGoalDatum {
+  category: string;
+  actual: number;
+  target: number;
+}
+
+export function CategoryVsGoalChart({ data }: { data: CategoryGoalDatum[] }) {
+  if (data.length === 0) {
+    return <EmptyState message="Defina metas por categoria em /goals para comparar com o gasto real." />;
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+        <XAxis dataKey="category" tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => formatCurrency(value)} width={90} />
+        <Tooltip formatter={formatCurrencyTooltip} />
+        <Legend />
+        <Bar dataKey="actual" name="Gasto" fill="#EF4444" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="target" name="Meta" fill="#22D3EE" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">

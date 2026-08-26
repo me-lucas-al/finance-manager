@@ -7,12 +7,51 @@ import { DrizzlePeriodRepository } from '@/modules/periods/infrastructure/reposi
 import { DrizzleSettingRepository } from '@/modules/users/infrastructure/repositories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  SupabaseTransactionRepository,
+  SupabaseGoalRepository,
+} from '@/modules/open-finance/infrastructure/supabase-repositories';
+import {
   ExpensesByCategoryChart,
   EvolutionChart,
   InvestmentsVsTargetChart,
+  CategoryVsGoalChart,
   type CategoryDatum,
   type EvolutionDatum,
+  type CategoryGoalDatum,
 } from './charts';
+
+// The Supabase project (Open Finance data) may not be configured yet — this
+// chart degrades to its own empty state instead of failing the whole page.
+async function loadCategoryVsGoalData(userId: string): Promise<CategoryGoalDatum[]> {
+  try {
+    const now = new Date();
+    const monthFilter = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const [monthTransactions, goals] = await Promise.all([
+      new SupabaseTransactionRepository().findAllByUserId(userId, { month: monthFilter }),
+      new SupabaseGoalRepository().findAllByUserIdAndMonth(userId, `${monthFilter}-01`),
+    ]);
+
+    const spendByCategory = new Map<string, number>();
+    for (const transaction of monthTransactions) {
+      const category = transaction.category ?? transaction.categorySuggested ?? 'Sem categoria';
+      spendByCategory.set(category, (spendByCategory.get(category) ?? 0) + Math.abs(transaction.amount));
+    }
+
+    const targetByCategory = new Map(
+      goals.filter((goal) => goal.category !== null).map((goal) => [goal.category as string, goal.targetAmount]),
+    );
+
+    const categories = new Set([...spendByCategory.keys(), ...targetByCategory.keys()]);
+    return Array.from(categories).map((category) => ({
+      category,
+      actual: spendByCategory.get(category) ?? 0,
+      target: targetByCategory.get(category) ?? 0,
+    }));
+  } catch {
+    return [];
+  }
+}
 
 const HISTORY_SIZE = 6;
 
@@ -86,6 +125,8 @@ export default async function AnalyticsPage() {
   const minInvestmentPercentage = settings?.minInvestmentPercentage ?? 20;
   const currentInvestmentPercentage = currentTotalIncome > 0 ? (currentTotalInvestments / currentTotalIncome) * 100 : 0;
 
+  const categoryVsGoalData = await loadCategoryVsGoalData(userId);
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
       <div className="flex items-center justify-between space-y-2">
@@ -117,6 +158,15 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <InvestmentsVsTargetChart current={currentInvestmentPercentage} target={minInvestmentPercentage} />
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Gasto vs Meta por Categoria (mês atual)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CategoryVsGoalChart data={categoryVsGoalData} />
           </CardContent>
         </Card>
       </div>
