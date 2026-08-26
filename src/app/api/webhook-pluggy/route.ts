@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { WebhookEventPayload } from 'pluggy-sdk';
 import { fetchNewTransactions } from '@/lib/pluggy';
 import { ingestPluggyTransaction } from '@/modules/open-finance/application/use-cases/ingest-pluggy-transaction';
+import { askForTransactionReason } from '@/modules/open-finance/application/use-cases/ask-transaction-reason';
 
 // Pluggy has no webhook signing mechanism (confirmed against docs.pluggy.ai/docs/webhooks),
 // so authenticity relies on registering an unguessable URL with the Pluggy dashboard
@@ -45,7 +46,10 @@ export async function POST(req: NextRequest) {
       const userId = getOwnerUserId();
       const newTransactions = await fetchNewTransactions(payload.accountId, payload.transactionsCreatedAtFrom);
       for (const transaction of newTransactions) {
-        await ingestPluggyTransaction(userId, payload.itemId, payload.accountId, transaction);
+        const stored = await ingestPluggyTransaction(userId, payload.itemId, payload.accountId, transaction);
+        if (!stored.categorySuggested) {
+          await askForTransactionReason(stored);
+        }
       }
     }
     // Other Pluggy event types (item/*, transactions/updated, transactions/deleted, ...)
