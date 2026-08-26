@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plano_migracao projeto="Sistema pessoal de controle financeiro com IA">
+
+  <contexto>
+    <resumo>
+      Já existe um site de finanças tradicional (entrada manual de gastos, telas de CRUD comuns).
+      O objetivo é transformar esse site num sistema onde:
+      (1) as transações do Itaú, Nubank e Inter chegam sozinhas via Open Finance (Meu Pluggy),
+      (2) a cada gasto novo, uma IA manda uma mensagem no Telegram perguntando o motivo daquela compra,
+      (3) o site vira um painel de análise onde o usuário define objetivos do mês e recebe alertas
+      automáticos sobre como está indo (gastando bem, guardando o previsto, estourando alguma categoria, etc).
+    </resumo>
+    <situacao_atual>
+      O site já existe e tem uma identidade visual definida (cores, tipografia, componentes).
+      Antes de criar qualquer tela nova, ler o código-fonte atual para reaproveitar essa identidade
+      visual e os componentes de UI já existentes, em vez de recriar do zero.
+    </situacao_atual>
+    <objetivo>
+      Reestruturar o site para essa nova finalidade, mantendo a identidade visual atual, mas com um
+      resultado final minimalista, com boa UX/UI e um código fácil de entender e mexer no futuro.
+    </objetivo>
+  </contexto>
+
+  <diretrizes_de_design>
+    <item>Manter a identidade visual já usada no site: paleta de cores, tipografia, logotipo e componentes de UI existentes.</item>
+    <item>Direção visual: minimalista. Evitar excesso de cards, cores e informação simultânea na tela. Priorizar espaço em branco e hierarquia clara (o número mais importante da tela deve ser o mais visível).</item>
+    <item>Boa UX: poucos cliques até a informação principal. Estados vazios (sem dados ainda), de carregamento e de erro devem ser tratados explicitamente, não apenas o "caminho feliz".</item>
+    <item>Mobile-first: o uso principal provavelmente será pelo celular, então o layout deve funcionar bem em telas pequenas antes de tudo.</item>
+    <item>Código fácil de manter: componentizar telas repetidas (ex: cartão de categoria, gráfico de comparação), nomes de variáveis e funções autoexplicativos, comentários apenas onde a lógica não é óbvia (ex: por que um valor está sendo comparado com a meta de um jeito específico).</item>
+    <item>Evitar duplicar lógica de acesso a dados: centralizar as chamadas ao Supabase, à Pluggy, ao Gemini e ao Telegram em módulos/utilitários reutilizáveis (ex: lib/supabase.ts, lib/pluggy.ts, lib/gemini.ts, lib/telegram.ts).</item>
+  </diretrizes_de_design>
+
+  <stack_tecnica>
+    <frontend>Next.js — projeto já existente, hospedado na Vercel</frontend>
+    <banco_de_dados>Supabase (Postgres) — novo projeto, com Edge Functions e pg_cron para os jobs agendados</banco_de_dados>
+    <ia_categorizacao>Gemini API (tier pago, modelo Flash) — categoriza cada gasto e interpreta a resposta do Telegram</ia_categorizacao>
+    <ia_analise>Gemini API (tier pago, modelo Flash ou Pro) — gera o resumo mensal e os alertas</ia_analise>
+    <mensageria>Telegram Bot API — pergunta o motivo de cada gasto e envia os alertas</mensageria>
+    <dados_bancarios>Meu Pluggy — leitura de Itaú, Nubank e Inter via Open Finance, uso pessoal</dados_bancarios>
+  </stack_tecnica>
+
+  <variaveis_de_ambiente>
+    <variavel nome="PLUGGY_CLIENT_ID" origem="dashboard.pluggy.ai" fornecida_pelo_usuario="true"/>
+    <variavel nome="PLUGGY_CLIENT_SECRET" origem="dashboard.pluggy.ai" fornecida_pelo_usuario="true"/>
+    <variavel nome="TELEGRAM_BOT_TOKEN" origem="@BotFather no Telegram" fornecida_pelo_usuario="true"/>
+    <variavel nome="TELEGRAM_CHAT_ID" origem="getUpdates do bot" fornecida_pelo_usuario="true"/>
+    <variavel nome="GEMINI_API_KEY" origem="Google AI Studio, com billing ativo" fornecida_pelo_usuario="true"/>
+    <variavel nome="NEXT_PUBLIC_SUPABASE_URL" origem="projeto Supabase" fornecida_pelo_usuario="true"/>
+    <variavel nome="NEXT_PUBLIC_SUPABASE_ANON_KEY" origem="projeto Supabase" fornecida_pelo_usuario="true"/>
+    <variavel nome="SUPABASE_SERVICE_ROLE_KEY" origem="projeto Supabase" fornecida_pelo_usuario="true" observacao="usar só em código server-side, nunca expor no client"/>
+  </variaveis_de_ambiente>
+
+  <tarefas>
+
+    <tarefa id="1" titulo="Modelagem do banco de dados">
+      <descricao>Criar as tabelas no Supabase que sustentam todo o resto do sistema.</descricao>
+      <detalhes>
+        <item>Tabela transactions: id (uuid, pk), pluggy_transaction_id (text, unique), bank (text: itau/nubank/inter), amount (numeric), description (text), occurred_at (date), category (text, nullable), category_suggested (text, nullable), reason (text, nullable — o motivo dado pelo usuário), status (text: pending_reason / categorized), created_at (timestamp default now()).</item>
+        <item>Tabela goals: id (uuid, pk), month (date, primeiro dia do mês de referência), category (text, nullable — null significa meta geral do mês), target_amount (numeric), created_at (timestamp).</item>
+        <item>Tabela accounts: id (uuid, pk), pluggy_account_id (text), bank (text), account_type (text), last_synced_at (timestamp).</item>
+        <item>Tabela alerts_log: id (uuid, pk), alert_type (text), message (text), sent_at (timestamp) — usada para não repetir o mesmo alerta no mesmo período.</item>
+        <item>Ativar Row Level Security em todas as tabelas, com política restringindo acesso à service role key (é um sistema de usuário único, não precisa de multi-tenant).</item>
+        <item>Entregar como arquivo de migration em supabase/migrations, não aplicar direto sem o usuário revisar.</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>supabase/migrations/0001_init.sql</arquivo>
+      </arquivos_sugeridos>
+      <depende_de/>
+      <criterio_de_pronto>Migration escrita e documentada; usuário revisa e aplica manualmente no editor SQL do Supabase.</criterio_de_pronto>
+    </tarefa>
+
+    <tarefa id="2" titulo="Webhook de novas transações da Pluggy">
+      <descricao>Endpoint que recebe a notificação da Pluggy sempre que uma transação nova aparece em qualquer uma das contas conectadas.</descricao>
+      <detalhes>
+        <item>Criar rota /api/webhook-pluggy no Next.js.</item>
+        <item>Validar que a notificação recebida é legítima (checar client id / assinatura, conforme a documentação da Pluggy).</item>
+        <item>Se o payload do webhook trouxer só um identificador, buscar os detalhes completos da transação via API da Pluggy.</item>
+        <item>Inserir a transação na tabela transactions com status "pending_reason".</item>
+        <item>Ao final, chamar a lógica da tarefa 3 (categorização + pergunta no Telegram) para essa transação.</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>app/api/webhook-pluggy/route.ts</arquivo>
+        <arquivo>lib/pluggy.ts</arquivo>
+      </arquivos_sugeridos>
+      <depende_de>1</depende_de>
+      <criterio_de_pronto>Rota criada e testável localmente com um payload de exemplo; URL de produção só é registrada na Pluggy pelo usuário, manualmente.</criterio_de_pronto>
+    </tarefa>
+
+    <tarefa id="3" titulo="Categorização automática e pergunta no Telegram">
+      <descricao>Ao chegar uma transação nova, sugerir uma categoria via IA e perguntar o motivo ao usuário pelo Telegram.</descricao>
+      <detalhes>
+        <item>Criar lib/gemini.ts com uma função que recebe descrição, valor e banco da transação, e retorna uma categoria sugerida (usar saída estruturada em JSON).</item>
+        <item>Criar lib/telegram.ts com uma função sendMessage.</item>
+        <item>Montar e enviar uma mensagem curta e clara, tipo: valor, descrição, banco de origem, categoria sugerida, e perguntar se o usuário confirma ou quer contar o motivo real.</item>
+        <item>Salvar a categoria sugerida no campo category_suggested da transação.</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>lib/gemini.ts</arquivo>
+        <arquivo>lib/telegram.ts</arquivo>
+      </arquivos_sugeridos>
+      <depende_de>2</depende_de>
+      <criterio_de_pronto>Ao simular uma transação de teste, a mensagem correta chega no chat do Telegram configurado.</criterio_de_pronto>
+    </tarefa>
+
+    <tarefa id="4" titulo="Recebimento da resposta do Telegram">
+      <descricao>Capturar a resposta que o usuário manda no Telegram e associar à transação certa.</descricao>
+      <detalhes>
+        <item>Criar rota /api/telegram-webhook no Next.js.</item>
+        <item>Interpretar a resposta em texto livre com o Gemini, extraindo categoria final e motivo.</item>
+        <item>Associar a resposta à transação pendente correta (usar reply_to_message do Telegram para correlacionar, evitando ambiguidade se houver mais de uma pergunta pendente).</item>
+        <item>Atualizar a transação: preencher category, reason, e mudar status para "categorized".</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>app/api/telegram-webhook/route.ts</arquivo>
+      </arquivos_sugeridos>
+      <depende_de>3</depende_de>
+      <criterio_de_pronto>Responder a uma pergunta de teste no Telegram atualiza corretamente a transação no banco.</criterio_de_pronto>
+    </tarefa>
+
+    <tarefa id="5" titulo="Redesenho do site existente">
+      <descricao>Adaptar as telas do site atual para essa nova finalidade, mantendo a identidade visual, mas simplificando a estrutura.</descricao>
+      <detalhes>
+        <item>Ler o código atual do site antes de tudo, e documentar (em comentário ou README) quais cores, fontes e componentes já existem e serão reaproveitados.</item>
+        <item>Remover ou arquivar telas antigas que não fazem mais sentido nesse novo modelo (ex: formulário de lançamento manual de gasto, se existir).</item>
+        <item>Página inicial: visão geral do mês — saldo, quanto entrou, quanto saiu, fatura do cartão, e um resumo curto gerado pela IA de análise (tarefa 6).</item>
+        <item>Página de transações: lista das transações categorizadas, com filtro por mês e categoria, e opção de editar manualmente categoria/motivo se necessário.</item>
+        <item>Página de metas: onde o usuário define o objetivo do mês (tarefa 7).</item>
+        <item>Página de análises: gráficos comparando categorias e comparando com meses anteriores.</item>
+        <item>Aplicar as diretrizes de design definidas no topo deste plano (minimalismo, mobile-first, estados vazios tratados).</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>app/(dashboard)/page.tsx</arquivo>
+        <arquivo>app/(dashboard)/transacoes/page.tsx</arquivo>
+        <arquivo>app/(dashboard)/metas/page.tsx</arquivo>
+        <arquivo>app/(dashboard)/analises/page.tsx</arquivo>
+      </arquivos_sugeridos>
+      <depende_de>1</depende_de>
+      <criterio_de_pronto>Site navega entre as quatro telas principais, usando dados reais (ou mockados) do Supabase, mantendo a identidade visual atual.</criterio_de_pronto>
+    </tarefa>
+
+    <tarefa id="6" titulo="IA de análise mensal e alertas automáticos">
+      <descricao>Job periódico que compara o gasto real com os objetivos do mês e avisa o usuário quando necessário.</descricao>
+      <detalhes>
+        <item>Criar uma Supabase Edge Function (ex: analyze-spending) que busca as transações categorizadas do mês corrente.</item>
+        <item>Comparar o total gasto (geral e por categoria) com os valores definidos em goals.</item>
+        <item>Gerar um resumo curto com o Gemini: como está indo o mês, o que está fora do esperado, o que está indo bem.</item>
+        <item>Enviar um alerta via Telegram só quando houver algo relevante a dizer (evitar notificação repetitiva todo dia sem necessidade); registrar em alerts_log para não duplicar o mesmo alerta no mesmo período.</item>
+        <item>Agendar a execução via pg_cron (ex: uma vez por dia).</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>supabase/functions/analyze-spending/index.ts</arquivo>
+        <arquivo>supabase/migrations/0002_cron_analyze.sql</arquivo>
+      </arquivos_sugeridos>
+      <depende_de>1</depende_de>
+      <criterio_de_pronto>Rodando a função manualmente, ela gera um resumo coerente e manda o alerta certo no Telegram quando há motivo.</criterio_de_pronto>
+    </tarefa>
+
+    <tarefa id="7" titulo="Definição de metas do mês">
+      <descricao>Tela simples onde o usuário registra o objetivo financeiro do mês corrente.</descricao>
+      <detalhes>
+        <item>Formulário com meta geral do mês (quanto pretende gastar no total) e, opcionalmente, metas por categoria.</item>
+        <item>Ao salvar, gravar na tabela goals.</item>
+        <item>Mostrar as metas já definidas do mês atual e permitir editar.</item>
+      </detalhes>
+      <arquivos_sugeridos>
+        <arquivo>app/(dashboard)/metas/page.tsx</arquivo>
+      </arquivos_sugeridos>
+      <depende_de>1</depende_de>
+      <criterio_de_pronto>Usuário consegue salvar e editar uma meta do mês, e ela é usada de fato pela tarefa 6.</criterio_de_pronto>
+    </tarefa>
+
+  </tarefas>
+
+  <instrucoes_para_a_ia>
+    <instrucao>Antes de criar qualquer arquivo novo, ler a estrutura atual do projeto para reaproveitar componentes, estilos e convenções já existentes.</instrucao>
+    <instrucao>Nunca inventar uma chave, token ou URL — se um valor depende de um passo manual, parar e perguntar ao usuário.</instrucao>
+    <instrucao>Perguntar antes de apagar ou sobrescrever qualquer código atual do site que não esteja diretamente relacionado às mudanças pedidas neste plano.</instrucao>
+    <instrucao>Seguir a ordem das tarefas quando houver dependência entre elas (ver campo depende_de de cada tarefa).</instrucao>
+    <instrucao>No final de cada tarefa, indicar claramente o que ficou pronto e o que ainda depende de uma ação manual do usuário para ser testado de verdade.</instrucao>
+  </instrucoes_para_a_ia>
+
+</plano_migracao>
