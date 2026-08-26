@@ -33,7 +33,7 @@ export function ForgotPasswordForm() {
     <div className="space-y-4">
       {successMessage ? (
         <div className="space-y-4">
-          <div role="status" className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm">
+          <div role="status" className="p-3 bg-positive/10 text-positive rounded-lg text-sm">
             {successMessage}
           </div>
 

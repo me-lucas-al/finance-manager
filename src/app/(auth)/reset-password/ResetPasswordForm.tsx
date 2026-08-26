@@ -63,7 +63,7 @@ export function ResetPasswordForm() {
   if (success) {
     return (
       <div className="space-y-4 text-center">
-        <div role="status" className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm">
+        <div role="status" className="p-3 bg-positive/10 text-positive rounded-lg text-sm">
           Senha redefinida com sucesso! Redirecionando para o login...
         </div>
         <Link

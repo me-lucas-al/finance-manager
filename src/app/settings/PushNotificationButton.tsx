@@ -75,7 +75,7 @@ export function PushNotificationButton() {
 
   if (status === 'granted' || status === 'subscribed') {
     return (
-      <div className="flex items-center gap-2 text-sm text-emerald-500">
+      <div className="flex items-center gap-2 text-sm text-positive">
         <Bell className="h-4 w-4" /> Notificações push ativadas neste dispositivo.
       </div>
     );

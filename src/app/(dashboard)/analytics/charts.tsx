@@ -16,7 +16,7 @@ import {
 import { formatCurrency } from '@/lib/format';
 
 // Fixed categorical order, validated for CVD-safe adjacent separation (see dataviz skill).
-const CATEGORY_COLORS = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#0891b2', '#dc2626'];
+const CATEGORY_COLORS = ['#3B82F6', '#22C55E', '#A78BFA', '#F59E0B', '#22D3EE', '#EF4444'];
 
 function formatCurrencyTooltip(value: unknown) {
   const numeric = Array.isArray(value) ? value[0] : value;
@@ -73,9 +73,9 @@ export function EvolutionChart({ data }: { data: EvolutionDatum[] }) {
         <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => formatCurrency(value)} width={90} />
         <Tooltip formatter={formatCurrencyTooltip} />
         <Legend />
-        <Bar dataKey="income" name="Receitas" fill="#2563eb" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="expenses" name="Despesas" fill="#dc2626" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="investments" name="Investimentos" fill="#059669" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="income" name="Receitas" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="expenses" name="Despesas" fill="#EF4444" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="investments" name="Investimentos" fill="#22C55E" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -92,8 +92,8 @@ export function InvestmentsVsTargetChart({ current, target }: { current: number;
         <YAxis type="category" dataKey="label" tick={{ fontSize: 12 }} width={100} />
         <Tooltip formatter={formatPercentTooltip} />
         <Legend />
-        <Bar dataKey="current" name="Atual" fill="#2563eb" radius={[0, 4, 4, 0]} />
-        <Bar dataKey="target" name="Meta" fill="#0891b2" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="current" name="Atual" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="target" name="Meta" fill="#22D3EE" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

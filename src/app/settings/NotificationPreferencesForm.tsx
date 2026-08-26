@@ -55,7 +55,7 @@ export function NotificationPreferencesForm(props: NotificationPreferencesFormPr
         <Button type="submit" disabled={isPending}>
           {isPending ? 'Salvando...' : 'Salvar preferências'}
         </Button>
-        {saved && <span className="text-sm text-emerald-500">Salvo com sucesso.</span>}
+        {saved && <span className="text-sm text-positive">Salvo com sucesso.</span>}
       </div>
     </form>
   );

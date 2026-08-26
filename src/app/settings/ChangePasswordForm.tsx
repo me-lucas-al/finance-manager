@@ -77,7 +77,7 @@ export function ChangePasswordForm() {
 
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       {success && (
-        <p role="status" className="text-sm text-emerald-600 dark:text-emerald-400">
+        <p role="status" className="text-sm text-positive">
           Senha alterada com sucesso!
         </p>
       )}
