@@ -1,19 +1,11 @@
-import { eq } from 'drizzle-orm';
-import { db } from '@/db';
-import { userSettings } from '@/db/schema';
 import { suggestCategory } from '@/lib/gemini';
 import { formatCurrency } from '@/lib/format';
 import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
 import { SupabaseTransactionRepository } from '../../infrastructure/supabase-repositories';
 import type { Transaction } from '../../domain/repositories/transaction-repository';
+import { getExpenseCategories } from '../shared/expense-categories';
 
 const transactionRepository = new SupabaseTransactionRepository();
-
-async function getExpenseCategories(userId: string): Promise<string[]> {
-  const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
-  const categories = settings?.expenseCategories ?? [];
-  return categories.length > 0 ? categories : ['Outros'];
-}
 
 function buildQuestionMessage(transaction: Transaction, categorySuggested: string): string {
   return [
