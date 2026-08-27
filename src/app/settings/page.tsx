@@ -5,6 +5,7 @@ import { SettingsForm } from './SettingsForm';
 import { NotificationPreferencesForm } from './NotificationPreferencesForm';
 import { PushNotificationButton } from './PushNotificationButton';
 import { ChangePasswordForm } from './ChangePasswordForm';
+import { OpenFinanceConnect } from './OpenFinanceConnect';
 
 export default async function SettingsPage() {
   const [settings, preferences] = await Promise.all([
@@ -73,6 +74,15 @@ export default async function SettingsPage() {
             ) : (
               <p className="text-sm text-muted-foreground">Preferências de notificação não encontradas.</p>
             )}
+          </CardContent>
+        </Card>
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Integração de Bancos (Open Finance)</CardTitle>
+            <CardDescription>Conecte contas bancárias para importação automática de transações via Pluggy.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OpenFinanceConnect />
           </CardContent>
         </Card>
       </div>

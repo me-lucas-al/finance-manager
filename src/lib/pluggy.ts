@@ -53,3 +53,12 @@ export async function fetchNewTransactions(
 ): Promise<PluggyTransaction[]> {
   return getPluggyClient().fetchAllTransactions(accountId, { createdAtFrom });
 }
+
+export async function getPluggyConnectToken(clientUserId?: string, itemId?: string): Promise<string> {
+  const connectToken = await getPluggyClient().createConnectToken(
+    itemId,
+    clientUserId ? { clientUserId } : undefined,
+  );
+  return connectToken.accessToken;
+}
+
