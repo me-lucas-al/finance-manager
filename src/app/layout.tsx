@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   title: "Finance Manager",
   description: "Gerenciador financeiro pessoal",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport = {
