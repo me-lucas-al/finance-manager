@@ -19,7 +19,7 @@ export default async function GoalsPage() {
 
   const goalRepository = new SupabaseGoalRepository();
   const [goals, categories] = await Promise.all([
-    goalRepository.findAllByUserIdAndMonth(userId, month),
+    goalRepository.findAllByUserIdAndMonth(userId, month).catch(() => []),
     getExpenseCategories(userId),
   ]);
 

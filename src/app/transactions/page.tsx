@@ -25,7 +25,7 @@ export default async function TransactionsPage({
 
   const transactionRepository = new SupabaseTransactionRepository();
   const [transactions, categories] = await Promise.all([
-    transactionRepository.findAllByUserId(userId, { month }),
+    transactionRepository.findAllByUserId(userId, { month }).catch(() => []),
     getExpenseCategories(userId),
   ]);
 
