@@ -1,18 +1,47 @@
 import { interpretReasonReply } from '@/lib/gemini';
 import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
-import type { TransactionRepository } from '../../domain/repositories/transaction-repository';
+import type { Transaction, TransactionRepository } from '../../domain/repositories/transaction-repository';
 import { getExpenseCategories } from '../shared/expense-categories';
 
-// Correlates a Telegram reply back to its transaction via the original
-// question's message_id (Update.message.reply_to_message.message_id),
-// interprets it with Gemini, and finalizes category/reason on the transaction.
+function buildConfirmationMessage(category: string, reason: string | null): string {
+  const lines = [
+    `✅ Movimentação categorizada com sucesso!`,
+    `🏷️ Categoria: ${category}`,
+  ];
+  if (reason) {
+    lines.push(`📝 Descrição: ${reason}`);
+  }
+  return lines.join('\n');
+}
+
 export class RecordTransactionReasonUseCase {
   constructor(private transactionRepository: TransactionRepository) {}
 
-  // Returns false when the reply isn't answering a known pending question.
-  async execute(originalQuestionMessageId: number, replyText: string, incomingMessageId: number): Promise<boolean> {
-    const transaction = await this.transactionRepository.findByTelegramQuestionMessageId(originalQuestionMessageId);
-    if (!transaction) return false;
+  async execute(
+    originalQuestionMessageId: number | null | undefined,
+    replyText: string,
+    incomingMessageId?: number,
+    userId?: string,
+  ): Promise<boolean> {
+    let transaction: Transaction | null = null;
+
+    if (originalQuestionMessageId) {
+      transaction = await this.transactionRepository.findByTelegramQuestionMessageId(originalQuestionMessageId);
+    }
+
+    if (!transaction && userId) {
+      transaction = await this.transactionRepository.findLatestPendingByUserId(userId);
+    }
+
+    if (!transaction) {
+      if (incomingMessageId) {
+        await TelegramService.sendMessage(
+          'ℹ️ Nenhuma despesa pendente aguardando resposta encontrada.',
+          incomingMessageId,
+        );
+      }
+      return false;
+    }
 
     const categories = await getExpenseCategories(transaction.userId);
     const { category, reason } = await interpretReasonReply({
@@ -22,7 +51,7 @@ export class RecordTransactionReasonUseCase {
     });
 
     await this.transactionRepository.update(transaction.id, { category, reason, status: 'categorized' });
-    await TelegramService.sendMessage(`✅ Categorizado como "${category}".`, incomingMessageId);
+    await TelegramService.sendMessage(buildConfirmationMessage(category, reason), incomingMessageId);
     return true;
   }
 }

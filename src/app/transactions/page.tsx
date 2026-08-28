@@ -31,10 +31,13 @@ export default async function TransactionsPage({
 
   const rows: EntryTableRow[] = transactions.map((transaction) => {
     const currentCategory = transaction.category ?? transaction.categorySuggested ?? categories[0] ?? 'Outros';
+    const displayDescription = transaction.reason
+      ? `${transaction.reason} (${transaction.description})`
+      : transaction.description;
     return {
       id: transaction.id,
       date: new Date(`${transaction.occurredAt}T00:00:00`),
-      description: transaction.description,
+      description: displayDescription,
       category: transaction.category ?? transaction.categorySuggested ?? 'Sem categoria',
       amount: transaction.amount,
       actions: (

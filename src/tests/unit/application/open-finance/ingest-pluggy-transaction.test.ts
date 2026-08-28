@@ -51,12 +51,16 @@ describe('IngestPluggyTransactionUseCase', () => {
     useCase = new IngestPluggyTransactionUseCase(accountRepository, transactionRepository);
   });
 
-  it('never stores CREDIT movements (incoming money is not spending)', async () => {
-    const result = await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction({ type: 'CREDIT' }));
+  it('stores CREDIT movements (incoming money)', async () => {
+    fetchItemBankNameMock.mockResolvedValue('itau');
+    fetchAccountTypeMock.mockResolvedValue('CHECKING_ACCOUNT');
 
-    expect(result).toBeNull();
-    expect(await transactionRepository.findByPluggyId('txn-1')).toBeNull();
-    expect(fetchItemBankNameMock).not.toHaveBeenCalled();
+    const result = await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction({ type: 'CREDIT', amount: 500, description: 'Pix Recebido' }));
+
+    expect(result).not.toBeNull();
+    expect(result?.amount).toBe(500);
+    expect(result?.description).toBe('Pix Recebido');
+    expect(await transactionRepository.findByPluggyId('txn-1')).not.toBeNull();
   });
 
   it('creates a new account and a positive-amount transaction for a DEBIT movement', async () => {

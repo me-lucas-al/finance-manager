@@ -110,6 +110,19 @@ export class SupabaseTransactionRepository implements TransactionRepository {
     return data ? toTransaction(data as TransactionRow) : null;
   }
 
+  async findLatestPendingByUserId(userId: string): Promise<Transaction | null> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('transactions')
+      .select()
+      .eq('user_id', userId)
+      .eq('status', 'pending_reason')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toTransaction(data as TransactionRow) : null;
+  }
+
   async findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]> {
     let query = getSupabaseAdmin().from('transactions').select().eq('user_id', userId);
     if (filters?.category) query = query.eq('category', filters.category);

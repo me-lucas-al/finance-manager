@@ -5,12 +5,13 @@ import type { Transaction, TransactionRepository } from '../../domain/repositori
 import { getExpenseCategories } from '../shared/expense-categories';
 
 function buildQuestionMessage(transaction: Transaction, categorySuggested: string): string {
+  const bankName = transaction.bank.charAt(0).toUpperCase() + transaction.bank.slice(1);
   return [
-    `💳 Nova transação — ${transaction.bank}`,
-    `${formatCurrency(Math.abs(transaction.amount))} · ${transaction.description}`,
-    `Categoria sugerida: ${categorySuggested}`,
+    `🔔 Nova movimentação — ${bankName}`,
+    `💰 ${formatCurrency(Math.abs(transaction.amount))} · ${transaction.description}`,
+    `🏷️ Categoria sugerida: ${categorySuggested}`,
     '',
-    'Responda esta mensagem confirmando a categoria ou contando o motivo da compra.',
+    'Descreva brevemente respondendo aqui (ex: o motivo do gasto ou a origem da receita) para eu categorizar e salvar a descrição.',
   ].join('\n');
 }
 

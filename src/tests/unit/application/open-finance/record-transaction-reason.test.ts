@@ -48,9 +48,13 @@ describe('RecordTransactionReasonUseCase', () => {
     useCase = new RecordTransactionReasonUseCase(transactionRepository);
   });
 
-  it('returns false when no transaction is waiting for that question', async () => {
-    const result = await useCase.execute(999, 'foi um presente', 111);
+  it('returns false and informs the user when no transaction is waiting for that question', async () => {
+    const result = await useCase.execute(999, 'foi um presente', 111, 'user-1');
     expect(result).toBe(false);
+    expect(sendMessageMock).toHaveBeenCalledWith(
+      expect.stringContaining('Nenhuma despesa pendente'),
+      111,
+    );
   });
 
   it('interprets the reply, finalizes the transaction and sends a confirmation', async () => {
@@ -67,5 +71,23 @@ describe('RecordTransactionReasonUseCase', () => {
     expect(updated?.reason).toBe('Jantar com amigos');
     expect(updated?.status).toBe('categorized');
     expect(sendMessageMock).toHaveBeenCalledWith(expect.stringContaining('Lazer'), 100);
+    expect(sendMessageMock).toHaveBeenCalledWith(expect.stringContaining('Jantar com amigos'), 100);
+  });
+
+  it('correlates by latest pending transaction when no reply_to_message_id is provided', async () => {
+    getExpenseCategoriesMock.mockResolvedValue(['Alimentação', 'Transporte']);
+    interpretReasonReplyMock.mockResolvedValue({ category: 'Transporte', reason: 'Uber para o trabalho' });
+    sendMessageMock.mockResolvedValue(556);
+
+    const created = await transactionRepository.create(
+      newTransaction({ telegramQuestionMessageId: null, description: 'Uber' }),
+    );
+    const result = await useCase.execute(null, 'foi uber para o trabalho', 101, 'user-1');
+
+    expect(result).toBe(true);
+    const updated = await transactionRepository.findById(created.id);
+    expect(updated?.category).toBe('Transporte');
+    expect(updated?.reason).toBe('Uber para o trabalho');
+    expect(updated?.status).toBe('categorized');
   });
 });

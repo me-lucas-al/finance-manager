@@ -56,8 +56,6 @@ export async function POST(req: NextRequest) {
 
       const newTransactions = await fetchNewTransactions(payload.accountId, payload.transactionsCreatedAtFrom);
       for (const transaction of newTransactions) {
-        // CREDIT movements (salary, incoming Pix, refunds...) are not "gastos" —
-        // they're skipped entirely, never stored and never asked about.
         const stored = await ingestUseCase.execute(userId, payload.itemId, payload.accountId, transaction);
         if (stored && !stored.telegramQuestionMessageId) {
           await askUseCase.execute(stored);

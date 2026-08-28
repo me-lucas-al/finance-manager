@@ -27,6 +27,13 @@ export class FakeTransactionRepository implements TransactionRepository {
     return this.items.find((item) => item.telegramQuestionMessageId === messageId) ?? null;
   }
 
+  async findLatestPendingByUserId(userId: string): Promise<Transaction | null> {
+    const matching = this.items
+      .filter((item) => item.userId === userId && item.status === 'pending_reason')
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return matching[0] ?? null;
+  }
+
   async findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]> {
     return this.items.filter((item) => {
       if (item.userId !== userId) return false;

@@ -51,8 +51,6 @@ export class IngestPluggyTransactionUseCase {
     accountId: string,
     transaction: PluggyTransaction,
   ): Promise<Transaction | null> {
-    if (transaction.type !== 'DEBIT') return null;
-
     const existing = await this.transactionRepository.findByPluggyId(transaction.id);
     if (existing) return existing;
 

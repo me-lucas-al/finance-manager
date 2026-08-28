@@ -33,15 +33,20 @@ export async function POST(req: NextRequest) {
   }
 
   const message = update.message;
-  if (!message?.text || !message.reply_to_message) {
-    // Not a reply to one of our questions (e.g. /start, a stray message) —
-    // nothing to correlate, still acknowledge with 2xx per Telegram's contract.
+  if (!message?.text) {
+    return NextResponse.json({ ok: true });
+  }
+
+  const userId = process.env.FINANCE_OWNER_USER_ID;
+  const replyToMessageId = message.reply_to_message?.message_id;
+
+  if (!replyToMessageId && !userId) {
     return NextResponse.json({ ok: true });
   }
 
   try {
     const useCase = new RecordTransactionReasonUseCase(new SupabaseTransactionRepository());
-    await useCase.execute(message.reply_to_message.message_id, message.text, message.message_id);
+    await useCase.execute(replyToMessageId, message.text, message.message_id, userId);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Error processing Telegram webhook:', error);
