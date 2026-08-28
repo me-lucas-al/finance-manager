@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Transaction as PluggyTransaction } from 'pluggy-sdk';
+import { makePluggyTransaction } from './pluggy-transaction-factory';
 
 const fetchItemBankNameMock = vi.fn();
 const fetchAccountTypeMock = vi.fn();
@@ -14,30 +14,6 @@ const { IngestPluggyTransactionUseCase } = await import(
 );
 const { FakeAccountRepository } = await import('./fake-account-repository');
 const { FakeTransactionRepository } = await import('./fake-transaction-repository');
-
-function pluggyTransaction(overrides: Partial<PluggyTransaction> = {}): PluggyTransaction {
-  return {
-    id: 'txn-1',
-    accountId: 'account-1',
-    date: new Date('2026-08-10'),
-    description: 'Supermercado',
-    descriptionRaw: null,
-    type: 'DEBIT',
-    amount: -150.5,
-    amountInAccountCurrency: null,
-    balance: 4849.5,
-    currencyCode: 'BRL',
-    category: null,
-    creditCardMetadata: null,
-    categoryId: null,
-    operationType: null,
-    operationTypeAdditionalInfo: null,
-    providerId: null,
-    createdAt: new Date('2026-08-10'),
-    updatedAt: new Date('2026-08-10'),
-    ...overrides,
-  };
-}
 
 describe('IngestPluggyTransactionUseCase', () => {
   let accountRepository: InstanceType<typeof FakeAccountRepository>;
@@ -55,7 +31,12 @@ describe('IngestPluggyTransactionUseCase', () => {
     fetchItemBankNameMock.mockResolvedValue('itau');
     fetchAccountTypeMock.mockResolvedValue('CHECKING_ACCOUNT');
 
-    const result = await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction({ type: 'CREDIT', amount: 500, description: 'Pix Recebido' }));
+    const result = await useCase.execute(
+      'user-1',
+      'item-1',
+      'account-1',
+      makePluggyTransaction({ type: 'CREDIT', amount: 500, description: 'Pix Recebido' }),
+    );
 
     expect(result).not.toBeNull();
     expect(result?.amount).toBe(500);
@@ -67,7 +48,7 @@ describe('IngestPluggyTransactionUseCase', () => {
     fetchItemBankNameMock.mockResolvedValue('itau');
     fetchAccountTypeMock.mockResolvedValue('CHECKING_ACCOUNT');
 
-    const result = await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction());
+    const result = await useCase.execute('user-1', 'item-1', 'account-1', makePluggyTransaction());
 
     expect(result).not.toBeNull();
     expect(result?.amount).toBe(150.5);
@@ -82,8 +63,8 @@ describe('IngestPluggyTransactionUseCase', () => {
     fetchItemBankNameMock.mockResolvedValue('nubank');
     fetchAccountTypeMock.mockResolvedValue('CHECKING_ACCOUNT');
 
-    const first = await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction());
-    const second = await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction());
+    const first = await useCase.execute('user-1', 'item-1', 'account-1', makePluggyTransaction());
+    const second = await useCase.execute('user-1', 'item-1', 'account-1', makePluggyTransaction());
 
     expect(second?.id).toBe(first?.id);
     expect((await transactionRepository.findAllByUserId('user-1')).length).toBe(1);
@@ -99,7 +80,7 @@ describe('IngestPluggyTransactionUseCase', () => {
       lastSyncedAt: '2026-01-01T00:00:00.000Z',
     });
 
-    await useCase.execute('user-1', 'item-1', 'account-1', pluggyTransaction({ id: 'txn-2' }));
+    await useCase.execute('user-1', 'item-1', 'account-1', makePluggyTransaction({ id: 'txn-2' }));
 
     expect(fetchItemBankNameMock).not.toHaveBeenCalled();
     expect(fetchAccountTypeMock).not.toHaveBeenCalled();
