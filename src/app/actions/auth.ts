@@ -91,6 +91,7 @@ export async function signUp(formData: FormData): Promise<{ error?: string }> {
     return {};
   } catch (error) {
     if (isNextRedirect(error)) throw error;
+    console.error('signUp failed:', error, error instanceof Error ? error.cause : undefined);
     return { error: error instanceof Error ? error.message : 'Erro ao criar conta' };
   }
 }
