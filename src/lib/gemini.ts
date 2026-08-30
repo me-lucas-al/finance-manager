@@ -99,3 +99,86 @@ export async function interpretReasonReply(params: {
   const reason = parsed.reason && parsed.reason.trim().length > 0 ? parsed.reason.trim() : null;
   return { category, reason };
 }
+
+export type GoalsReplyInterpretation = {
+  monthlyGeneralTarget: number | null;
+  monthlyCategoryTargets: { category: string; amount: number }[];
+  savingsGoalUpdates: {
+    title: string;
+    targetAmount: number | null;
+    targetDate: string | null;
+    contributionAmount: number | null;
+  }[];
+};
+
+// Interprets a free-text reply about financial goals (day-16 prompt or
+// /goal): extracts what the user wants to set, but leaves the create-vs-update
+// decision for savings goals to the caller (see RecordGoalsReplyUseCase),
+// which can compare titles against the user's existing goals.
+export async function interpretGoalsReply(params: {
+  replyText: string;
+  categories: string[];
+  existingSavingsGoals: string[];
+}): Promise<GoalsReplyInterpretation> {
+  const { replyText, categories, existingSavingsGoals } = params;
+
+  const response = await getGeminiClient().models.generateContent({
+    model: MODEL,
+    contents: [
+      'O usuário respondeu, no Telegram, sobre seus objetivos financeiros: metas de gasto mensal (teto geral e/ou por categoria) e/ou metas de economia com prazo.',
+      `Resposta do usuário: "${replyText}"`,
+      `Categorias de gasto disponíveis: ${categories.join(', ')}`,
+      existingSavingsGoals.length > 0
+        ? `Metas de economia já em andamento: ${existingSavingsGoals.join(', ')}`
+        : 'Nenhuma meta de economia em andamento ainda.',
+      'Extraia:',
+      '- monthlyGeneralTarget: teto geral de gasto mensal, se mencionado (null se não mencionado).',
+      '- monthlyCategoryTargets: lista de {category, amount} para metas de gasto por categoria mencionadas (category deve ser uma das categorias disponíveis).',
+      '- savingsGoalUpdates: lista de atualizações de metas de economia mencionadas. Para cada uma, informe "title" (reutilize o título de uma meta já em andamento se a resposta claramente se referir a ela, mesmo com nome parecido; senão crie um título novo e curto), "targetAmount" (valor total do objetivo, null se não mencionado), "targetDate" (data limite em formato ISO YYYY-MM-DD, null se não mencionado) e "contributionAmount" (valor a somar ao total já guardado, null se não houve aporte mencionado).',
+      'Se a resposta não mencionar um desses tópicos, deixe o campo/array correspondente vazio ou null.',
+    ].join('\n'),
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          monthlyGeneralTarget: { type: Type.NUMBER, nullable: true },
+          monthlyCategoryTargets: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                category: { type: Type.STRING, format: 'enum', enum: categories },
+                amount: { type: Type.NUMBER },
+              },
+              required: ['category', 'amount'],
+            },
+          },
+          savingsGoalUpdates: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                targetAmount: { type: Type.NUMBER, nullable: true },
+                targetDate: { type: Type.STRING, nullable: true },
+                contributionAmount: { type: Type.NUMBER, nullable: true },
+              },
+              required: ['title', 'targetAmount', 'targetDate', 'contributionAmount'],
+            },
+          },
+        },
+        required: ['monthlyGeneralTarget', 'monthlyCategoryTargets', 'savingsGoalUpdates'],
+      },
+    },
+  });
+
+  const parsed = JSON.parse(response.text ?? '{}') as Partial<GoalsReplyInterpretation>;
+  return {
+    monthlyGeneralTarget: parsed.monthlyGeneralTarget ?? null,
+    monthlyCategoryTargets: (parsed.monthlyCategoryTargets ?? []).filter((target) =>
+      categories.includes(target.category),
+    ),
+    savingsGoalUpdates: parsed.savingsGoalUpdates ?? [],
+  };
+}

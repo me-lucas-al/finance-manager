@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/closing",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/ask-goals",
+      "schedule": "0 12 16 * *"
+    },
+    {
+      "path": "/api/cron/weekly-goals-summary",
+      "schedule": "0 12 * * 1"
     }
   ]
 }

@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AskFinancialGoalsUseCase } from '@/modules/open-finance/application/use-cases/ask-financial-goals';
+import { RecordGoalsReplyUseCase } from '@/modules/open-finance/application/use-cases/record-goals-reply';
 import { RecordTransactionReasonUseCase } from '@/modules/open-finance/application/use-cases/record-transaction-reason';
-import { SupabaseTransactionRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { RouteTelegramMessageUseCase } from '@/modules/open-finance/application/use-cases/route-telegram-message';
+import {
+  SupabaseGoalPromptRepository,
+  SupabaseGoalRepository,
+  SupabaseSavingsGoalRepository,
+  SupabaseTransactionRepository,
+} from '@/modules/open-finance/infrastructure/supabase-repositories';
 
 // Telegram signs webhook requests with the secret_token passed to setWebhook,
 // delivered back as this header (https://core.telegram.org/bots/api#setwebhook).
 // Fails closed until TELEGRAM_WEBHOOK_SECRET is set — this route rewrites
-// transaction category/reason based on the request body.
+// transaction category/reason and financial goals based on the request body.
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
   if (!secret) return false;
@@ -38,15 +46,37 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = process.env.FINANCE_OWNER_USER_ID;
-  const replyToMessageId = message.reply_to_message?.message_id;
-
-  if (!replyToMessageId && !userId) {
+  if (!userId) {
     return NextResponse.json({ ok: true });
   }
 
   try {
-    const useCase = new RecordTransactionReasonUseCase(new SupabaseTransactionRepository());
-    await useCase.execute(replyToMessageId, message.text, message.message_id, userId);
+    const goalPromptRepository = new SupabaseGoalPromptRepository();
+    const transactionRepository = new SupabaseTransactionRepository();
+    const useCase = new RouteTelegramMessageUseCase(
+      new AskFinancialGoalsUseCase(
+        new SupabaseGoalRepository(),
+        new SupabaseSavingsGoalRepository(),
+        goalPromptRepository,
+      ),
+      new RecordGoalsReplyUseCase(
+        new SupabaseGoalRepository(),
+        new SupabaseSavingsGoalRepository(),
+        goalPromptRepository,
+      ),
+      new RecordTransactionReasonUseCase(transactionRepository),
+      goalPromptRepository,
+      transactionRepository,
+    );
+
+    await useCase.execute(
+      {
+        messageId: message.message_id,
+        text: message.text,
+        replyToMessageId: message.reply_to_message?.message_id,
+      },
+      userId,
+    );
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Error processing Telegram webhook:', error);
