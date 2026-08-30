@@ -66,11 +66,22 @@ export function OpenFinanceConnect() {
           <PluggyConnect
             connectToken={connectToken}
             includeSandbox={process.env.NODE_ENV !== 'production'}
-            onSuccess={(itemData) => {
-              console.log('Connected!', itemData);
-              setSuccessMsg('Conta conectada com sucesso! As transações devem começar a aparecer em breve.');
+            onSuccess={async (itemData) => {
               setIsOpen(false);
               setConnectToken('');
+              try {
+                const res = await fetch('/api/pluggy-item-connected', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ itemId: itemData.item.id }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error ?? 'Falha ao registrar a conexão.');
+                setSuccessMsg('Conta conectada com sucesso! As transações devem começar a aparecer em breve.');
+              } catch (err) {
+                console.error('Failed to record item connection', err);
+                setErrorMsg('Conta conectada no Pluggy, mas houve um erro ao registrá-la no app.');
+              }
             }}
             onError={(error) => {
               console.error('Connection failed', error);

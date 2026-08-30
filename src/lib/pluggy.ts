@@ -47,6 +47,27 @@ export async function fetchTransactionDetails(transactionId: string): Promise<Pl
   return getPluggyClient().fetchTransaction(transactionId);
 }
 
+export type PluggyItemConnectionInfo = {
+  bank: string;
+  status: string;
+  accounts: { id: string; accountType: string }[];
+};
+
+// Called right after PluggyConnect's onSuccess so a connection is recorded even
+// before any transaction webhook ever fires — without this, the only way to
+// tell whether a bank is actually connected/syncing was to wait for a
+// transaction to show up, which made a stalled or errored connection
+// indistinguishable from "just hasn't synced yet".
+export async function fetchItemConnectionInfo(itemId: string): Promise<PluggyItemConnectionInfo> {
+  const client = getPluggyClient();
+  const [item, accountsPage] = await Promise.all([client.fetchItem(itemId), client.fetchAccounts(itemId)]);
+  return {
+    bank: normalizeBankName(item.connector.name),
+    status: item.status,
+    accounts: accountsPage.results.map((account) => ({ id: account.id, accountType: account.subtype })),
+  };
+}
+
 export async function fetchNewTransactions(
   accountId: string,
   createdAtFrom: string,

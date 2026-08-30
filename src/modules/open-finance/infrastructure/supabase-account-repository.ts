@@ -9,6 +9,7 @@ type AccountRow = {
   pluggy_item_id: string;
   bank: string;
   account_type: string;
+  item_status: string | null;
   last_synced_at: string | null;
   created_at: string;
 };
@@ -21,6 +22,7 @@ function toAccount(row: AccountRow): Account {
     pluggyItemId: row.pluggy_item_id,
     bank: row.bank,
     accountType: row.account_type,
+    itemStatus: row.item_status,
     lastSyncedAt: row.last_synced_at,
     createdAt: row.created_at,
   };
@@ -56,6 +58,7 @@ export class SupabaseAccountRepository implements AccountRepository {
           pluggy_item_id: data.pluggyItemId,
           bank: data.bank,
           account_type: data.accountType,
+          item_status: data.itemStatus,
           last_synced_at: data.lastSyncedAt,
         },
         { onConflict: 'pluggy_account_id' },

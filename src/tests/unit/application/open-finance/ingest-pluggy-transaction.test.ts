@@ -77,6 +77,7 @@ describe('IngestPluggyTransactionUseCase', () => {
       pluggyItemId: 'item-1',
       bank: 'inter',
       accountType: 'CHECKING_ACCOUNT',
+      itemStatus: null,
       lastSyncedAt: '2026-01-01T00:00:00.000Z',
     });
 

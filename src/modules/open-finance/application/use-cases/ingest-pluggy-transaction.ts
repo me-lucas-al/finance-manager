@@ -20,6 +20,7 @@ export class IngestPluggyTransactionUseCase {
         pluggyItemId: existing.pluggyItemId,
         bank: existing.bank,
         accountType: existing.accountType,
+        itemStatus: existing.itemStatus,
         lastSyncedAt: new Date().toISOString(),
       });
     }
@@ -31,6 +32,7 @@ export class IngestPluggyTransactionUseCase {
       pluggyItemId: itemId,
       bank,
       accountType,
+      itemStatus: null,
       lastSyncedAt: new Date().toISOString(),
     });
   }
