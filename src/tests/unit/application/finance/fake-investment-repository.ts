@@ -1,4 +1,4 @@
-import { Investment, InvestmentRepository } from '../../../../modules/finance/domain/repositories/investment-repository';
+import { Investment, InvestmentPage, InvestmentQuery, InvestmentRepository } from '../../../../modules/finance/domain/repositories/investment-repository';
 
 export class FakeInvestmentRepository implements InvestmentRepository {
   private items: Investment[] = [];
@@ -14,6 +14,10 @@ export class FakeInvestmentRepository implements InvestmentRepository {
   }
   async findAllByUserId(userId: string): Promise<Investment[]> {
     return this.items.filter(i => i.userId === userId);
+  }
+  async findPageByUserId(userId: string, query: InvestmentQuery): Promise<InvestmentPage> {
+    const matching = this.items.filter(i => i.userId === userId);
+    return { rows: matching.slice(query.offset, query.offset + query.limit), total: matching.length };
   }
   async update(id: string, data: Partial<Investment>): Promise<Investment> {
     const index = this.items.findIndex(i => i.id === id);

@@ -39,8 +39,16 @@ export class FakeTransactionRepository implements TransactionRepository {
       if (item.userId !== userId) return false;
       if (filters?.category && item.category !== filters.category) return false;
       if (filters?.month && !item.occurredAt.startsWith(filters.month)) return false;
+      if (filters?.search && !item.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
       return true;
     });
+  }
+
+  async countByUserId(
+    userId: string,
+    filters?: Pick<TransactionFilters, 'month' | 'category' | 'search'>
+  ): Promise<number> {
+    return (await this.findAllByUserId(userId, filters)).length;
   }
 
   async update(id: string, data: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>): Promise<Transaction> {

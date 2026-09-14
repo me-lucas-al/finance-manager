@@ -1,4 +1,4 @@
-import { Income, IncomeRepository } from '../../../../modules/finance/domain/repositories/income-repository';
+import { Income, IncomePage, IncomeQuery, IncomeRepository } from '../../../../modules/finance/domain/repositories/income-repository';
 
 export class FakeIncomeRepository implements IncomeRepository {
   private items: Income[] = [];
@@ -14,6 +14,10 @@ export class FakeIncomeRepository implements IncomeRepository {
   }
   async findAllByUserId(userId: string): Promise<Income[]> {
     return this.items.filter(i => i.userId === userId);
+  }
+  async findPageByUserId(userId: string, query: IncomeQuery): Promise<IncomePage> {
+    const matching = this.items.filter(i => i.userId === userId);
+    return { rows: matching.slice(query.offset, query.offset + query.limit), total: matching.length };
   }
   async update(id: string, data: Partial<Income>): Promise<Income> {
     const index = this.items.findIndex(i => i.id === id);

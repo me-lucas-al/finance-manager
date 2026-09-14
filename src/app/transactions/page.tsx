@@ -1,16 +1,18 @@
 import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { EntryTable, type EntryTableRow } from '@/components/entries/EntryTable';
-import { SupabaseTransactionRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { PAGE_SIZE, type EntrySortField } from '@/components/entries/constants';
 import { getExpenseCategories } from '@/modules/open-finance/application/shared/expense-categories';
+import { getTransactionsPage } from '@/app/actions/transactions';
 import { EditTransactionDialog } from './components';
 
 export default async function TransactionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; q?: string; category?: string; sort?: string; dir?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -20,14 +22,29 @@ export default async function TransactionsPage({
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const { month: rawMonth } = await searchParams;
+  const { month: rawMonth, q, category, sort: rawSort, dir: rawDir, page: rawPage } = await searchParams;
   const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
+  const search = q ?? '';
+  const sort: EntrySortField = rawSort === 'description' || rawSort === 'amount' ? rawSort : 'date';
+  const dir: 'asc' | 'desc' = rawDir === 'asc' ? 'asc' : 'desc';
+  const page = Math.max(1, Number.parseInt(rawPage ?? '1', 10) || 1);
 
-  const transactionRepository = new SupabaseTransactionRepository();
-  const [transactions, categories] = await Promise.all([
-    transactionRepository.findAllByUserId(userId, { month }).catch(() => []),
+  const [{ rows: transactions, total }, categories] = await Promise.all([
+    getTransactionsPage({ month, search, category, sort, dir, page }),
     getExpenseCategories(userId),
   ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  if (page > totalPages) {
+    const params = new URLSearchParams();
+    params.set('month', month);
+    if (search) params.set('q', search);
+    if (category) params.set('category', category);
+    if (rawSort) params.set('sort', rawSort);
+    if (rawDir) params.set('dir', rawDir);
+    params.set('page', String(totalPages));
+    redirect(`/transactions?${params.toString()}`);
+  }
 
   const rows: EntryTableRow[] = transactions.map((transaction) => {
     const currentCategory = transaction.category ?? transaction.categorySuggested ?? categories[0] ?? 'Outros';
@@ -72,6 +89,13 @@ export default async function TransactionsPage({
             rows={rows}
             categoryLabel="Categoria"
             emptyMessage="Nenhuma transação neste mês. Elas chegam automaticamente assim que o Itaú, Nubank ou Inter forem conectados via Open Finance."
+            categoryOptions={categories}
+            search={search}
+            category={category ?? ''}
+            sort={sort}
+            dir={dir}
+            page={page}
+            totalPages={totalPages}
           />
         </CardContent>
       </Card>

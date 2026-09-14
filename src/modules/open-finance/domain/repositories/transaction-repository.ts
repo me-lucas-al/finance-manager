@@ -19,9 +19,16 @@ export type Transaction = {
 
 export type NewTransaction = Omit<Transaction, 'id' | 'createdAt'>;
 
+export type TransactionSortField = 'date' | 'description' | 'amount';
+
 export type TransactionFilters = {
   month?: string;
   category?: string;
+  search?: string;
+  sort?: TransactionSortField;
+  dir?: 'asc' | 'desc';
+  limit?: number;
+  offset?: number;
 };
 
 export interface TransactionRepository {
@@ -31,5 +38,6 @@ export interface TransactionRepository {
   findByTelegramQuestionMessageId(messageId: number): Promise<Transaction | null>;
   findLatestPendingByUserId(userId: string): Promise<Transaction | null>;
   findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]>;
+  countByUserId(userId: string, filters?: Pick<TransactionFilters, 'month' | 'category' | 'search'>): Promise<number>;
   update(id: string, data: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>): Promise<Transaction>;
 }

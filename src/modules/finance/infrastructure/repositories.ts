@@ -1,9 +1,9 @@
-import { IncomeRepository, NewIncome } from '../domain/repositories/income-repository';
+import { IncomeRepository, IncomeQuery, IncomePage, NewIncome } from '../domain/repositories/income-repository';
 import { ExpenseRepository, NewExpense } from '../domain/repositories/expense-repository';
-import { InvestmentRepository, NewInvestment } from '../domain/repositories/investment-repository';
+import { InvestmentRepository, InvestmentQuery, InvestmentPage, NewInvestment } from '../domain/repositories/investment-repository';
 import { db } from '../../../db';
 import { incomes, expenses, investments } from '../../../db/schema';
-import { eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike } from 'drizzle-orm';
 
 export class DrizzleIncomeRepository implements IncomeRepository {
   async create(data: Omit<NewIncome, 'id'>) {
@@ -16,6 +16,23 @@ export class DrizzleIncomeRepository implements IncomeRepository {
   }
   async findAllByUserId(userId: string) {
     return await db.select().from(incomes).where(eq(incomes.userId, userId)).orderBy(incomes.receivedAt);
+  }
+  async findPageByUserId(userId: string, query: IncomeQuery): Promise<IncomePage> {
+    const conditions = [eq(incomes.userId, userId)];
+    if (query.category) conditions.push(eq(incomes.category, query.category));
+    if (query.search) conditions.push(ilike(incomes.description, `%${query.search}%`));
+    const where = and(...conditions);
+
+    const sortColumn = query.sort === 'description' ? incomes.description
+      : query.sort === 'amount' ? incomes.amount
+      : incomes.receivedAt;
+    const orderFn = query.dir === 'asc' ? asc : desc;
+
+    const [rows, totalResult] = await Promise.all([
+      db.select().from(incomes).where(where).orderBy(orderFn(sortColumn)).limit(query.limit).offset(query.offset),
+      db.select({ value: count() }).from(incomes).where(where),
+    ]);
+    return { rows, total: Number(totalResult[0]?.value ?? 0) };
   }
   async update(id: string, data: Partial<NewIncome>) {
     const [result] = await db.update(incomes).set(data).where(eq(incomes.id, id)).returning();
@@ -58,6 +75,23 @@ export class DrizzleInvestmentRepository implements InvestmentRepository {
   }
   async findAllByUserId(userId: string) {
     return await db.select().from(investments).where(eq(investments.userId, userId)).orderBy(investments.date);
+  }
+  async findPageByUserId(userId: string, query: InvestmentQuery): Promise<InvestmentPage> {
+    const conditions = [eq(investments.userId, userId)];
+    if (query.type) conditions.push(eq(investments.type, query.type));
+    if (query.search) conditions.push(ilike(investments.description, `%${query.search}%`));
+    const where = and(...conditions);
+
+    const sortColumn = query.sort === 'description' ? investments.description
+      : query.sort === 'amount' ? investments.amount
+      : investments.date;
+    const orderFn = query.dir === 'asc' ? asc : desc;
+
+    const [rows, totalResult] = await Promise.all([
+      db.select().from(investments).where(where).orderBy(orderFn(sortColumn)).limit(query.limit).offset(query.offset),
+      db.select({ value: count() }).from(investments).where(where),
+    ]);
+    return { rows, total: Number(totalResult[0]?.value ?? 0) };
   }
   async update(id: string, data: Partial<NewInvestment>) {
     const [result] = await db.update(investments).set(data).where(eq(investments.id, id)).returning();

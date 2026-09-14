@@ -1,11 +1,14 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/format';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import type { EntrySortField } from '@/components/entries/constants';
 
 export interface EntryRow {
   id: string;
@@ -17,65 +20,67 @@ export interface EntryRow {
 
 export type EntryTableRow = EntryRow & { actions: ReactNode };
 
-type SortField = 'date' | 'description' | 'amount';
-
-const PAGE_SIZE = 10;
+type SortField = EntrySortField;
 
 interface EntryTableProps {
   rows: EntryTableRow[];
   categoryLabel: string;
   emptyMessage: string;
+  categoryOptions: string[];
+  search: string;
+  category: string;
+  sort: SortField;
+  dir: 'asc' | 'desc';
+  page: number;
+  totalPages: number;
 }
 
-export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProps) {
-  const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortField, setSortField] = useState<SortField>('date');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [page, setPage] = useState(1);
+export function EntryTable({
+  rows,
+  categoryLabel,
+  emptyMessage,
+  categoryOptions,
+  search,
+  category,
+  sort,
+  dir,
+  page,
+  totalPages,
+}: EntryTableProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const categories = useMemo(
-    () => Array.from(new Set(rows.map((r) => r.category))).sort((a, b) => a.localeCompare(b)),
-    [rows]
-  );
+  const [prevSearch, setPrevSearch] = useState(search);
+  const [draft, setDraft] = useState(search);
+  if (search !== prevSearch) {
+    setPrevSearch(search);
+    setDraft(search);
+  }
+  const debouncedDraft = useDebouncedValue(draft, 400);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      const matchesSearch = term === '' || row.description.toLowerCase().includes(term);
-      const matchesCategory = categoryFilter === 'all' || row.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    });
-  }, [rows, search, categoryFilter]);
+  useEffect(() => {
+    if (debouncedDraft !== search) updateParams({ q: debouncedDraft || null, page: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedDraft]);
 
-  const sorted = useMemo(() => {
-    const copy = [...filtered];
-    copy.sort((a, b) => {
-      let comparison = 0;
-      if (sortField === 'date') comparison = a.date.getTime() - b.date.getTime();
-      else if (sortField === 'description') comparison = a.description.localeCompare(b.description);
-      else comparison = a.amount - b.amount;
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-    return copy;
-  }, [filtered, sortField, sortDirection]);
-
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paginated = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  function updateParams(changes: Record<string, string | null>) {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of Object.entries(changes)) {
+      if (value === null) params.delete(key);
+      else params.set(key, value);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   function toggleSort(field: SortField) {
-    if (sortField === field) {
-      setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
+    const nextDir = sort === field && dir === 'asc' ? 'desc' : sort === field ? 'asc' : 'desc';
+    updateParams({ sort: field, dir: nextDir, page: null });
   }
 
   function sortIndicator(field: SortField) {
-    if (sortField !== field) return null;
-    return sortDirection === 'asc' ? ' ▲' : ' ▼';
+    if (sort !== field) return null;
+    return dir === 'asc' ? ' ▲' : ' ▼';
   }
 
   return (
@@ -83,26 +88,20 @@ export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProp
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           placeholder="Buscar por descrição..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
         />
         <Select
-          value={categoryFilter}
-          onValueChange={(value) => {
-            setCategoryFilter(value as string);
-            setPage(1);
-          }}
+          value={category || 'all'}
+          onValueChange={(value) => updateParams({ category: value === 'all' ? null : (value as string), page: null })}
         >
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder={categoryLabel} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as {categoryLabel.toLowerCase()}s</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>{category}</SelectItem>
+            {categoryOptions.map((option) => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -126,7 +125,7 @@ export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginated.map((row) => (
+            {rows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>{row.date.toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell>{row.description}</TableCell>
@@ -135,7 +134,7 @@ export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProp
                 <TableCell className="flex justify-end gap-1 text-right">{row.actions}</TableCell>
               </TableRow>
             ))}
-            {paginated.length === 0 && (
+            {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center">{emptyMessage}</TableCell>
               </TableRow>
@@ -146,12 +145,22 @@ export function EntryTable({ rows, categoryLabel, emptyMessage }: EntryTableProp
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Página {currentPage} de {totalPages}</span>
+          <span>Página {page} de {totalPages}</span>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => updateParams({ page: String(page - 1) })}
+            >
               Anterior
             </Button>
-            <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => updateParams({ page: String(page + 1) })}
+            >
               Próxima
             </Button>
           </div>
