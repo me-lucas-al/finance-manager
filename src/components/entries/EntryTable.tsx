@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -18,12 +18,10 @@ export interface EntryRow {
   amount: number;
 }
 
-export type EntryTableRow = EntryRow & { actions: ReactNode };
-
 type SortField = EntrySortField;
 
 interface EntryTableProps {
-  rows: EntryTableRow[];
+  rows: EntryRow[];
   categoryLabel: string;
   emptyMessage: string;
   categoryOptions: string[];
@@ -121,7 +119,6 @@ export function EntryTable({
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort('amount')}>
                 Valor{sortIndicator('amount')}
               </TableHead>
-              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,12 +128,11 @@ export function EntryTable({
                 <TableCell>{row.description}</TableCell>
                 <TableCell>{row.category}</TableCell>
                 <TableCell className="font-mono tabular-nums">{formatCurrency(row.amount)}</TableCell>
-                <TableCell className="flex justify-end gap-1 text-right">{row.actions}</TableCell>
               </TableRow>
             ))}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">{emptyMessage}</TableCell>
+                <TableCell colSpan={4} className="text-center">{emptyMessage}</TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -1,8 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { InvestmentForm, EditInvestmentButton, DeleteInvestmentButton } from './components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EntryTable, type EntryRow, type EntryTableRow } from '@/components/entries/EntryTable';
+import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
 import { PAGE_SIZE, type EntrySortField } from '@/components/entries/constants';
 import { getUserSettings } from '@/app/actions/users';
 import { getInvestmentsPage } from '@/app/actions/finance';
@@ -48,52 +47,31 @@ export default async function InvestmentsPage({
     amount: Number(investment.amount),
   }));
 
-  const tableRows: EntryTableRow[] = rows.map((row) => ({
-    ...row,
-    actions: (
-      <>
-        <EditInvestmentButton row={row} types={types} />
-        <DeleteInvestmentButton id={row.id} />
-      </>
-    ),
-  }));
-
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 min-h-screen bg-background">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Investimentos</h2>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Novo Investimento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <InvestmentForm types={types} />
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Histórico de Investimentos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EntryTable
-              rows={tableRows}
-              categoryLabel="Tipo"
-              emptyMessage="Nenhum investimento registrado."
-              categoryOptions={types}
-              search={search}
-              category={category ?? ''}
-              sort={sort}
-              dir={dir}
-              page={page}
-              totalPages={totalPages}
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico de Investimentos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EntryTable
+            rows={rows}
+            categoryLabel="Tipo"
+            emptyMessage="Nenhum investimento registrado."
+            categoryOptions={types}
+            search={search}
+            category={category ?? ''}
+            sort={sort}
+            dir={dir}
+            page={page}
+            totalPages={totalPages}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -3,11 +3,10 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { EntryTable, type EntryTableRow } from '@/components/entries/EntryTable';
+import { EntryTable, type EntryRow } from '@/components/entries/EntryTable';
 import { PAGE_SIZE, type EntrySortField } from '@/components/entries/constants';
 import { getExpenseCategories } from '@/modules/open-finance/application/shared/expense-categories';
 import { getTransactionsPage } from '@/app/actions/transactions';
-import { EditTransactionDialog } from './components';
 
 export default async function TransactionsPage({
   searchParams,
@@ -46,8 +45,7 @@ export default async function TransactionsPage({
     redirect(`/transactions?${params.toString()}`);
   }
 
-  const rows: EntryTableRow[] = transactions.map((transaction) => {
-    const currentCategory = transaction.category ?? transaction.categorySuggested ?? categories[0] ?? 'Outros';
+  const rows: EntryRow[] = transactions.map((transaction) => {
     const displayDescription = transaction.reason
       ? `${transaction.reason} (${transaction.description})`
       : transaction.description;
@@ -57,14 +55,6 @@ export default async function TransactionsPage({
       description: displayDescription,
       category: transaction.category ?? transaction.categorySuggested ?? 'Sem categoria',
       amount: transaction.amount,
-      actions: (
-        <EditTransactionDialog
-          transactionId={transaction.id}
-          categories={categories}
-          defaultCategory={currentCategory}
-          defaultReason={transaction.reason ?? ''}
-        />
-      ),
     };
   });
 
