@@ -53,10 +53,10 @@ export type PluggyItemConnectionInfo = {
   accounts: { id: string; accountType: string }[];
 };
 
-// Called right after PluggyConnect's onSuccess so a connection is recorded even
-// before any transaction webhook ever fires — without this, the only way to
-// tell whether a bank is actually connected/syncing was to wait for a
-// transaction to show up, which made a stalled or errored connection
+// Called right after a Meu Pluggy item is registered so a connection is
+// recorded even before any transaction webhook ever fires — without this, the
+// only way to tell whether a bank is actually connected/syncing was to wait
+// for a transaction to show up, which made a stalled or errored connection
 // indistinguishable from "just hasn't synced yet".
 export async function fetchItemConnectionInfo(itemId: string): Promise<PluggyItemConnectionInfo> {
   const client = getPluggyClient();
@@ -73,13 +73,5 @@ export async function fetchNewTransactions(
   createdAtFrom: string,
 ): Promise<PluggyTransaction[]> {
   return getPluggyClient().fetchAllTransactions(accountId, { createdAtFrom });
-}
-
-export async function getPluggyConnectToken(clientUserId?: string, itemId?: string): Promise<string> {
-  const connectToken = await getPluggyClient().createConnectToken(
-    itemId,
-    clientUserId ? { clientUserId } : undefined,
-  );
-  return connectToken.accessToken;
 }
 
