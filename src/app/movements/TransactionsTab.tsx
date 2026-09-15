@@ -8,10 +8,10 @@ import { PAGE_SIZE, type EntrySortField } from '@/components/entries/constants';
 import { getExpenseCategories } from '@/modules/open-finance/application/shared/expense-categories';
 import { getTransactionsPage } from '@/app/actions/transactions';
 
-export default async function TransactionsPage({
+export async function TransactionsTab({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; q?: string; category?: string; sort?: string; dir?: string; page?: string }>;
+  searchParams: { month?: string; q?: string; category?: string; sort?: string; dir?: string; page?: string };
 }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -21,7 +21,7 @@ export default async function TransactionsPage({
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const { month: rawMonth, q, category, sort: rawSort, dir: rawDir, page: rawPage } = await searchParams;
+  const { month: rawMonth, q, category, sort: rawSort, dir: rawDir, page: rawPage } = searchParams;
   const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
   const search = q ?? '';
   const sort: EntrySortField = rawSort === 'description' || rawSort === 'amount' ? rawSort : 'date';
@@ -36,13 +36,14 @@ export default async function TransactionsPage({
 
   if (page > totalPages) {
     const params = new URLSearchParams();
+    params.set('tab', 'transactions');
     params.set('month', month);
     if (search) params.set('q', search);
     if (category) params.set('category', category);
     if (rawSort) params.set('sort', rawSort);
     if (rawDir) params.set('dir', rawDir);
     params.set('page', String(totalPages));
-    redirect(`/transactions?${params.toString()}`);
+    redirect(`/movements?${params.toString()}`);
   }
 
   const rows: EntryRow[] = transactions.map((transaction) => {
@@ -59,16 +60,14 @@ export default async function TransactionsPage({
   });
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 min-h-screen bg-background">
-      <div className="flex flex-wrap items-center justify-between gap-2 space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Transações</h2>
-        <form className="flex items-center gap-2">
-          <Input type="month" name="month" defaultValue={month} className="w-auto" />
-          <Button type="submit" variant="outline" size="sm">
-            Filtrar
-          </Button>
-        </form>
-      </div>
+    <div className="space-y-4">
+      <form className="flex items-center gap-2">
+        <input type="hidden" name="tab" value="transactions" />
+        <Input type="month" name="month" defaultValue={month} className="w-auto" />
+        <Button type="submit" variant="outline" size="sm">
+          Filtrar
+        </Button>
+      </form>
 
       <Card>
         <CardHeader>

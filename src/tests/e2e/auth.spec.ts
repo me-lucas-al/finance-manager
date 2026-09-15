@@ -16,7 +16,7 @@ test.describe('Autenticação e Login', () => {
   });
 
   test('redireciona rotas protegidas para /login quando não autenticado', async ({ page }) => {
-    const protectedRoutes = ['/expenses', '/incomes', '/investments', '/periods', '/settings', '/reports'];
+    const protectedRoutes = ['/movements', '/connections', '/periods', '/settings', '/reports'];
     for (const route of protectedRoutes) {
       await page.goto(route);
       await expect(page).toHaveURL('/login');

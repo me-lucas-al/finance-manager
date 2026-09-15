@@ -6,17 +6,17 @@ import { PAGE_SIZE, type EntrySortField } from '@/components/entries/constants';
 import { getUserSettings } from '@/app/actions/users';
 import { getInvestmentsPage } from '@/app/actions/finance';
 
-export default async function InvestmentsPage({
+export async function InvestmentsTab({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string; sort?: string; dir?: string; page?: string }>;
+  searchParams: { q?: string; category?: string; sort?: string; dir?: string; page?: string };
 }) {
   const session = await auth();
   if (!session?.user?.id) {
     return <div>Acesso negado</div>;
   }
 
-  const { q, category, sort: rawSort, dir: rawDir, page: rawPage } = await searchParams;
+  const { q, category, sort: rawSort, dir: rawDir, page: rawPage } = searchParams;
   const search = q ?? '';
   const sort: EntrySortField = rawSort === 'description' || rawSort === 'amount' ? rawSort : 'date';
   const dir: 'asc' | 'desc' = rawDir === 'asc' ? 'asc' : 'desc';
@@ -31,12 +31,13 @@ export default async function InvestmentsPage({
 
   if (page > totalPages) {
     const params = new URLSearchParams();
+    params.set('tab', 'investments');
     if (search) params.set('q', search);
     if (category) params.set('category', category);
     if (rawSort) params.set('sort', rawSort);
     if (rawDir) params.set('dir', rawDir);
     params.set('page', String(totalPages));
-    redirect(`/investments?${params.toString()}`);
+    redirect(`/movements?${params.toString()}`);
   }
 
   const rows: EntryRow[] = userInvestments.map((investment) => ({
@@ -48,30 +49,24 @@ export default async function InvestmentsPage({
   }));
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 min-h-screen bg-background">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Investimentos</h2>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Investimentos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EntryTable
-            rows={rows}
-            categoryLabel="Tipo"
-            emptyMessage="Nenhum investimento registrado."
-            categoryOptions={types}
-            search={search}
-            category={category ?? ''}
-            sort={sort}
-            dir={dir}
-            page={page}
-            totalPages={totalPages}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Histórico de Investimentos</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <EntryTable
+          rows={rows}
+          categoryLabel="Tipo"
+          emptyMessage="Nenhum investimento registrado."
+          categoryOptions={types}
+          search={search}
+          category={category ?? ''}
+          sort={sort}
+          dir={dir}
+          page={page}
+          totalPages={totalPages}
+        />
+      </CardContent>
+    </Card>
   );
 }
