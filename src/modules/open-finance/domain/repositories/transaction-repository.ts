@@ -23,6 +23,8 @@ export type TransactionSortField = 'date' | 'description' | 'amount';
 
 export type TransactionFilters = {
   month?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
   category?: string;
   search?: string;
   sort?: TransactionSortField;

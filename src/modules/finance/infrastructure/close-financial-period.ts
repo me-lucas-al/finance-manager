@@ -4,7 +4,6 @@ import {
   financialPeriods,
   periodSnapshots,
   incomes,
-  expenses,
   investments,
   userSettings,
   notifications,
@@ -15,6 +14,7 @@ import { getFinancialPeriod } from '@/modules/periods/domain/financial-period';
 import { NotificationFactory } from '@/modules/notifications/domain/NotificationFactory';
 import { NotificationPayload } from '@/modules/notifications/domain/NotificationTypes';
 import { PushService } from '@/modules/notifications/push/PushService';
+import { getExpenseBreakdown } from '@/modules/open-finance/application/shared/expense-totals';
 
 async function notifyUser(payload: NotificationPayload, pushEnabled: boolean) {
   await db.insert(notifications).values({
@@ -48,19 +48,19 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
   const maxExpenses = settings?.maxExpensesPercentage ?? 80;
   const minInvestments = settings?.minInvestmentPercentage ?? 20;
 
-  const [periodIncomes, periodExpenses, periodInvestments] = await Promise.all([
+  const [periodIncomes, periodInvestments, expenseBreakdown] = await Promise.all([
     db.select().from(incomes).where(and(eq(incomes.periodId, periodId), eq(incomes.userId, userId))),
-    db.select().from(expenses).where(and(eq(expenses.periodId, periodId), eq(expenses.userId, userId))),
     db.select().from(investments).where(and(eq(investments.periodId, periodId), eq(investments.userId, userId))),
+    getExpenseBreakdown(userId, period.startDate, period.endDate).catch(() => ({ total: 0, byCategory: {} })),
   ]);
 
   const totalIncomes = periodIncomes.reduce((acc, curr) => acc + Number(curr.amount), 0);
-  const totalExpenses = periodExpenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
+  const totalExpenses = expenseBreakdown.total;
   const totalInvestments = periodInvestments.reduce((acc, curr) => acc + Number(curr.amount), 0);
 
   const metrics = calculateMetrics(
     periodIncomes.map(i => Number(i.amount)),
-    periodExpenses.map(e => Number(e.amount)),
+    [totalExpenses],
     periodInvestments.map(i => Number(i.amount)),
     maxExpenses,
     minInvestments

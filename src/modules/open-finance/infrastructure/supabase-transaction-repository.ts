@@ -36,7 +36,7 @@ const SORT_COLUMN: Record<NonNullable<TransactionFilters['sort']>, string> = {
 function applyFilters(
   query: TransactionsQuery,
   userId: string,
-  filters?: Pick<TransactionFilters, 'month' | 'category' | 'search'>
+  filters?: Pick<TransactionFilters, 'month' | 'dateFrom' | 'dateTo' | 'category' | 'search'>
 ): TransactionsQuery {
   let result = query.eq('user_id', userId);
   if (filters?.category) result = result.eq('category', filters.category);
@@ -47,6 +47,8 @@ function applyFilters(
     const nextMonth = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`;
     result = result.gte('occurred_at', from).lt('occurred_at', nextMonth);
   }
+  if (filters?.dateFrom) result = result.gte('occurred_at', filters.dateFrom.toISOString().slice(0, 10));
+  if (filters?.dateTo) result = result.lte('occurred_at', filters.dateTo.toISOString().slice(0, 10));
   return result;
 }
 
