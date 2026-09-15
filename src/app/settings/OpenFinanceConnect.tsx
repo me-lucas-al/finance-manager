@@ -1,56 +1,42 @@
 'use client';
 
+import { PluggyConnect } from 'react-pluggy-connect';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Loader2, Landmark, CheckCircle, AlertCircle } from 'lucide-react';
 
 export function OpenFinanceConnect() {
-  const [itemId, setItemId] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [connectToken, setConnectToken] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const registerPluggyItemConnection = async () => {
-    const trimmedItemId = itemId.trim();
-    if (!trimmedItemId) return;
-
-    setIsSubmitting(true);
+  const handleConnect = async () => {
+    setIsLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
-
+    
     try {
-      const res = await fetch('/api/pluggy-item-connected', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId: trimmedItemId }),
-      });
+      const res = await fetch('/api/connect-token', { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Falha ao registrar a conexão.');
-      setSuccessMsg('Conta conectada com sucesso! As transações devem começar a aparecer em breve.');
-      setItemId('');
+      if (data.accessToken) {
+        setConnectToken(data.accessToken);
+        setIsOpen(true);
+      } else {
+        console.error('Failed to get token', data);
+        setErrorMsg('Erro ao gerar token de conexão.');
+      }
     } catch (err) {
-      console.error('Failed to record item connection', err);
-      setErrorMsg(err instanceof Error ? err.message : 'Erro ao registrar a conexão.');
+      console.error(err);
+      setErrorMsg('Erro de conexão ao tentar gerar token.');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="flex flex-col space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Conecte seu banco em{' '}
-        <a href="https://meupluggy.ai" target="_blank" rel="noreferrer" className="underline">
-          meupluggy.ai
-        </a>{' '}
-        e vincule a conexão à sua aplicação no{' '}
-        <a href="https://dashboard.pluggy.ai" target="_blank" rel="noreferrer" className="underline">
-          Pluggy Dashboard
-        </a>
-        . Depois cole abaixo o Item ID gerado para começar a importar as transações automaticamente.
-      </p>
-
       {errorMsg && (
         <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
           <AlertCircle className="h-4 w-4" />
@@ -64,22 +50,52 @@ export function OpenFinanceConnect() {
         </div>
       )}
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Input
-          value={itemId}
-          onChange={(event) => setItemId(event.target.value)}
-          placeholder="Item ID do Pluggy"
-          disabled={isSubmitting}
-        />
-        <Button
-          onClick={registerPluggyItemConnection}
-          disabled={isSubmitting || !itemId.trim()}
+      <div>
+        <Button 
+          onClick={handleConnect} 
+          disabled={isLoading || isOpen}
           variant="outline"
         >
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Landmark className="mr-2 h-4 w-4" />}
-          {isSubmitting ? 'Registrando...' : 'Registrar Conexão'}
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Landmark className="mr-2 h-4 w-4" />}
+          {isLoading ? 'Conectando...' : 'Conectar Novo Banco'}
         </Button>
       </div>
+
+      {isOpen && connectToken && (
+        <div className="mt-4 border rounded overflow-hidden" style={{ height: '600px' }}>
+          <PluggyConnect
+            connectToken={connectToken}
+            includeSandbox={process.env.NODE_ENV !== 'production'}
+            onSuccess={async (itemData) => {
+              setIsOpen(false);
+              setConnectToken('');
+              try {
+                const res = await fetch('/api/pluggy-item-connected', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ itemId: itemData.item.id }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error ?? 'Falha ao registrar a conexão.');
+                setSuccessMsg('Conta conectada com sucesso! As transações devem começar a aparecer em breve.');
+              } catch (err) {
+                console.error('Failed to record item connection', err);
+                setErrorMsg('Conta conectada no Pluggy, mas houve um erro ao registrá-la no app.');
+              }
+            }}
+            onError={(error) => {
+              console.error('Connection failed', error);
+              setErrorMsg('Falha ao conectar a conta no Pluggy.');
+              setIsOpen(false);
+              setConnectToken('');
+            }}
+            onClose={() => {
+              setIsOpen(false);
+              setConnectToken('');
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
