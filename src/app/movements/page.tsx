@@ -1,42 +1,24 @@
-import { MovementsTabs, type MovementsTab } from './MovementsTabs';
-import { TransactionsTab } from './TransactionsTab';
-import { IncomesTab } from './IncomesTab';
-import { InvestmentsTab } from './InvestmentsTab';
+import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
+import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
 
-type MovementsSearchParams = {
-  tab?: string;
-  month?: string;
-  q?: string;
-  category?: string;
-  sort?: string;
-  dir?: string;
-  page?: string;
-};
-
-function resolveTab(raw?: string): MovementsTab {
-  if (raw === 'incomes' || raw === 'investments') return raw;
-  return 'transactions';
-}
-
-export default async function MovementsPage({
-  searchParams,
-}: {
-  searchParams: Promise<MovementsSearchParams>;
-}) {
-  const params = await searchParams;
-  const tab = resolveTab(params.tab);
-
+export default async function MovementsPage() {
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 min-h-screen bg-background">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Movimentações</h2>
-      </div>
+    <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
+      <div className="max-w-[1440px] mx-auto p-4 sm:p-6 md:p-8 space-y-6">
+        {/* Header */}
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-white">Fluxo de Caixa</h1>
+          <p className="text-sm text-zinc-400">
+            Despesas, receitas e movimentações das suas contas.
+          </p>
+        </div>
 
-      <MovementsTabs tab={tab}>
-        {tab === 'transactions' && <TransactionsTab searchParams={params} />}
-        {tab === 'incomes' && <IncomesTab searchParams={params} />}
-        {tab === 'investments' && <InvestmentsTab searchParams={params} />}
-      </MovementsTabs>
+        {/* Top 2 Cards: Despesas & Despesas Futuras */}
+        <ExpenseBreakdownCards />
+
+        {/* Bottom Transactions Card */}
+        <TransactionsExplorer />
+      </div>
     </div>
   );
 }

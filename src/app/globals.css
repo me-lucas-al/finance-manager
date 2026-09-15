@@ -7,9 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
-  --font-heading: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --color-positive: var(--positive);
   --color-positive-foreground: var(--positive-foreground);
   --color-warning: var(--warning);
@@ -53,49 +52,44 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/*
- * "Ledger" identity: ink-black pages, lifted-navy surfaces, and a single
- * precise blue as the only acting color. Green/red/amber are reserved for
- * financial meaning (gain/loss/attention), never decoration.
- */
 :root {
-  --background: #0A0E1A;
-  --foreground: #F1F4FA;
-  --card: #121A2C;
-  --card-foreground: #F1F4FA;
-  --popover: #121A2C;
-  --popover-foreground: #F1F4FA;
-  --primary: #2563EB;
-  --primary-foreground: #F8FAFC;
-  --secondary: #1B2338;
-  --secondary-foreground: #F1F4FA;
-  --muted: #1B2338;
-  --muted-foreground: #97A3B8;
-  --accent: #1E2A47;
-  --accent-foreground: #DCE6FB;
-  --destructive: #EF4444;
-  --destructive-foreground: #2A0A0A;
-  --positive: #22C55E;
-  --positive-foreground: #06210F;
-  --warning: #F59E0B;
-  --warning-foreground: #271900;
-  --border: rgba(241, 244, 250, 0.09);
-  --input: rgba(241, 244, 250, 0.16);
-  --ring: #2563EB;
-  --chart-1: #3B82F6;
-  --chart-2: #22C55E;
-  --chart-3: #EF4444;
-  --chart-4: #F59E0B;
-  --chart-5: #A78BFA;
-  --radius: 0.75rem;
-  --sidebar: #060910;
-  --sidebar-foreground: #F1F4FA;
-  --sidebar-primary: #4C86F7;
-  --sidebar-primary-foreground: #060910;
-  --sidebar-accent: #141B2E;
-  --sidebar-accent-foreground: #F1F4FA;
-  --sidebar-border: rgba(241, 244, 250, 0.09);
-  --sidebar-ring: #4C86F7;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #111216;
+  --card-foreground: #fafafa;
+  --popover: #111216;
+  --popover-foreground: #fafafa;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #181920;
+  --secondary-foreground: #fafafa;
+  --muted: #181920;
+  --muted-foreground: #8a8f98;
+  --accent: #1d2230;
+  --accent-foreground: #e2e8f0;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --positive: #22c55e;
+  --positive-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #22c55e;
+  --chart-3: #1d4ed8;
+  --chart-4: #f59e0b;
+  --chart-5: #6366f1;
+  --radius: 0.875rem;
+  --sidebar: #09090b;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #181920;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #2563eb;
 }
 
 @layer base {
@@ -105,20 +99,4 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
-  }
-  h1, h2, h3 {
-    @apply font-heading;
-  }
-}
-
-@utility ledger-rule {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--foreground) 6%, transparent) 0,
-    color-mix(in oklab, var(--foreground) 6%, transparent) 1px,
-    transparent 1px,
-    transparent 2.5rem
-  );
 }

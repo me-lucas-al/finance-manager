@@ -1,60 +1,53 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
-import "./globals.css";
-import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { AppHeader } from "@/components/AppHeader";
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
+import { AppHeader } from '@/components/AppHeader';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { PrivacyProvider } from '@/components/PrivacyProvider';
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-});
-
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const inter = Inter({
+  variable: '--font-sans',
+  subsets: ['latin'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Finance Manager",
-  description: "Gerenciador financeiro pessoal",
-  manifest: "/manifest.json",
+  title: 'meu.pluggy',
+  description: 'Visão geral dos seus dados financeiros.',
+  manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
     ],
-    apple: "/apple-icon.png",
+    apple: '/apple-icon.png',
   },
 };
 
 export const viewport = {
-  themeColor: "#0A0E1A",
+  themeColor: '#09090b',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="pt-BR"
-      className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col bg-[#09090b] text-[#fafafa] font-sans selection:bg-blue-600 selection:text-white">
         <ServiceWorkerRegister />
-        <Suspense fallback={null}>
-          <AppHeader />
-        </Suspense>
-        <main className="flex-1">
-          {children}
-        </main>
+        <TooltipProvider>
+          <PrivacyProvider>
+            <Suspense fallback={null}>
+              <AppHeader />
+            </Suspense>
+            <main className="flex-1">
+              {children}
+            </main>
+          </PrivacyProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

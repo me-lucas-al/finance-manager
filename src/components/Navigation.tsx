@@ -1,30 +1,32 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/Logo";
-import { Menu } from "lucide-react";
-import { useState } from "react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
+import { Menu } from 'lucide-react';
+import { useState } from 'react';
 
 const navLinks = [
-  { href: "/", label: "Dashboard" },
-  { href: "/periods", label: "Calendário" },
-  { href: "/movements", label: "Movimentações" },
-  { href: "/connections", label: "Conexões" },
-  { href: "/goals", label: "Metas" },
-  { href: "/reports", label: "Relatórios" },
-  { href: "/settings", label: "Configurações" },
+  { href: '/', label: 'Overview' },
+  { href: '/movements', label: 'Fluxo' },
+  { href: '/ativos', label: 'Ativos' },
+  { href: '/connections', label: 'Conexões' },
 ];
 
 export function Navigation() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
     <>
-      {/* Mobile Nav */}
+      {/* Mobile Nav Button */}
       <div className="md:hidden flex items-center">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger
@@ -32,50 +34,58 @@ export function Navigation() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                className="text-zinc-400 hover:bg-zinc-800 hover:text-white h-9 w-9"
               />
             }
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Abrir menu</span>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[240px] sm:w-[300px]">
+          <SheetContent side="left" className="w-[260px] bg-[#09090b] border-zinc-800 text-zinc-200">
             <div className="flex flex-col space-y-4 py-4">
-              <Logo className="mb-4 px-2" markClassName="h-7 w-7" />
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className={`px-2 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    pathname === link.href
-                      ? "bg-accent text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              <Logo className="mb-4 px-2" />
+              <div className="flex flex-col space-y-1">
+                {navLinks.map((link) => {
+                  const active = isActive(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        active
+                          ? 'bg-zinc-800 text-white font-semibold'
+                          : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Desktop Nav */}
-      <nav className="hidden md:flex items-center space-x-5 text-sm font-medium">
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`relative py-1 transition-colors hover:text-sidebar-foreground ${
-              pathname === link.href
-                ? "text-sidebar-foreground after:absolute after:-bottom-[1.15rem] after:left-0 after:h-0.5 after:w-full after:bg-sidebar-primary"
-                : "text-sidebar-foreground/60"
-            }`}
-          >
-            {link.label}
-          </Link>
-        ))}
+      {/* Desktop Nav - Clean Pill Tabs */}
+      <nav className="hidden md:flex items-center space-x-1.5 text-sm font-medium">
+        {navLinks.map((link) => {
+          const active = isActive(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-150 ${
+                active
+                  ? 'bg-zinc-800 text-white font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </nav>
     </>
   );
