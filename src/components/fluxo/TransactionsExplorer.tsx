@@ -19,22 +19,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { usePrivacy } from '@/components/PrivacyProvider';
+import type { LiveTransactionItem } from '@/lib/pluggy-service';
 
-interface Transaction {
-  id: string;
-  dateStr: string; // e.g. "25 Sexta-Feira"
-  type: 'expense' | 'income';
-  description: string;
-  account: string;
-  category: string;
-  amount: number;
-  bank?: 'itau' | 'nubank' | 'inter' | 'gold';
+interface TransactionsExplorerProps {
+  initialTransactions?: LiveTransactionItem[];
+  totalIncome?: number;
+  totalExpenses?: number;
+  netBalance?: number;
 }
 
-const mockTransactions: Transaction[] = [
+const defaultMockTransactions: LiveTransactionItem[] = [
   {
     id: 'tx-1',
     dateStr: '25 Sexta-Feira',
+    rawDate: new Date('2026-09-25T00:00:00'),
     type: 'expense',
     description: 'Lucas Almeida de Souza',
     account: 'gold',
@@ -45,6 +43,7 @@ const mockTransactions: Transaction[] = [
   {
     id: 'tx-2',
     dateStr: '15 Terça-Feira',
+    rawDate: new Date('2026-09-15T00:00:00'),
     type: 'expense',
     description: 'SHOPEE *SiSioficia02/02',
     account: 'Itaú Click Múltiplo MC Plat',
@@ -55,6 +54,7 @@ const mockTransactions: Transaction[] = [
   {
     id: 'tx-3',
     dateStr: '13 Domingo',
+    rawDate: new Date('2026-09-13T00:00:00'),
     type: 'expense',
     description: 'Pix enviado André Alves de Freitas',
     account: 'itau',
@@ -65,6 +65,7 @@ const mockTransactions: Transaction[] = [
   {
     id: 'tx-4',
     dateStr: '11 Sexta-Feira',
+    rawDate: new Date('2026-09-11T00:00:00'),
     type: 'expense',
     description: 'Pix enviado ANA LETICIA FIGUEREDO DE SA',
     account: 'itau',
@@ -75,6 +76,7 @@ const mockTransactions: Transaction[] = [
   {
     id: 'tx-5',
     dateStr: '11 Sexta-Feira',
+    rawDate: new Date('2026-09-11T00:00:00'),
     type: 'expense',
     description: 'Pix enviado Isabelly de Oliveira',
     account: 'itau',
@@ -85,6 +87,7 @@ const mockTransactions: Transaction[] = [
   {
     id: 'tx-6',
     dateStr: '10 Quinta-Feira',
+    rawDate: new Date('2026-09-10T00:00:00'),
     type: 'expense',
     description: 'Pix enviado Isabelly de Oliveira',
     account: 'itau',
@@ -94,7 +97,12 @@ const mockTransactions: Transaction[] = [
   },
 ];
 
-export function TransactionsExplorer() {
+export function TransactionsExplorer({
+  initialTransactions = [],
+  totalIncome = 1132.01,
+  totalExpenses = 2162.03,
+  netBalance = -1030.02,
+}: TransactionsExplorerProps) {
   const { isPrivate } = usePrivacy();
   const [search, setSearch] = useState('');
   const [selectedAccount, setSelectedAccount] = useState('all');
@@ -103,10 +111,13 @@ export function TransactionsExplorer() {
 
   const months = [
     'Setembro De 2026',
-    'Outubro De 2026',
-    'Novembro De 2026',
-    'Dezembro De 2026',
+    'Agosto De 2026',
+    'Julho De 2026',
+    'Junho De 2026',
   ];
+
+  const transactionsList =
+    initialTransactions.length > 0 ? initialTransactions : defaultMockTransactions;
 
   const formatAmount = (val: number, isPositive = false) => {
     if (isPrivate) return 'R$ •••••';
@@ -120,7 +131,7 @@ export function TransactionsExplorer() {
   };
 
   const filteredTransactions = useMemo(() => {
-    return mockTransactions.filter((tx) => {
+    return transactionsList.filter((tx) => {
       if (filterType === 'income' && tx.type !== 'income') return false;
       if (filterType === 'expense' && tx.type !== 'expense') return false;
       if (selectedAccount !== 'all') {
@@ -138,11 +149,18 @@ export function TransactionsExplorer() {
       }
       return true;
     });
-  }, [search, selectedAccount, filterType]);
+  }, [transactionsList, search, selectedAccount, filterType]);
+
+  // Compute calculated balance for filtered transactions
+  const calculatedBalance = useMemo(() => {
+    return filteredTransactions.reduce((acc, tx) => {
+      return tx.type === 'income' ? acc + Math.abs(tx.amount) : acc - Math.abs(tx.amount);
+    }, 0);
+  }, [filteredTransactions]);
 
   // Group by date
   const grouped = useMemo(() => {
-    const map = new Map<string, Transaction[]>();
+    const map = new Map<string, LiveTransactionItem[]>();
     for (const tx of filteredTransactions) {
       const list = map.get(tx.dateStr) || [];
       list.push(tx);
@@ -181,12 +199,12 @@ export function TransactionsExplorer() {
           <div className="flex items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5 text-emerald-400">
               <ArrowDownLeft className="h-4 w-4" />
-              <span>{isPrivate ? 'R$ •••••' : 'R$ 1132,01'}</span>
+              <span>{formatAmount(totalIncome)}</span>
             </div>
             {/* Expense in DARK BLUE (replaced from red) */}
             <div className="flex items-center gap-1.5 text-blue-500">
               <ArrowUpRight className="h-4 w-4" />
-              <span>{isPrivate ? 'R$ •••••' : 'R$ 2162,03'}</span>
+              <span>{formatAmount(totalExpenses)}</span>
             </div>
           </div>
         </div>
@@ -332,9 +350,9 @@ export function TransactionsExplorer() {
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-zinc-800/60 pt-4 text-xs">
-          <span className="text-zinc-500">41 transações</span>
+          <span className="text-zinc-500">{filteredTransactions.length} transações</span>
           <span className="text-zinc-400 font-semibold">
-            Saldo: {isPrivate ? 'R$ •••••' : 'R$ -1030,02'}
+            Saldo: {formatAmount(calculatedBalance)}
           </span>
         </div>
       </CardContent>

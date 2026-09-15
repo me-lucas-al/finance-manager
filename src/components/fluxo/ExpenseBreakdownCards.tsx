@@ -4,8 +4,21 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { CreditCard, Clock, Info } from 'lucide-react';
 import { usePrivacy } from '@/components/PrivacyProvider';
+import type { LiveExpenseCategory } from '@/lib/pluggy-service';
 
-export function ExpenseBreakdownCards() {
+interface ExpenseBreakdownCardsProps {
+  totalExpenses?: number;
+  totalPending?: number;
+  categorizedExpenses?: LiveExpenseCategory[];
+  pendingExpenses?: LiveExpenseCategory[];
+}
+
+export function ExpenseBreakdownCards({
+  totalExpenses = 12211.06,
+  totalPending = 1960.0,
+  categorizedExpenses = [],
+  pendingExpenses = [],
+}: ExpenseBreakdownCardsProps) {
   const { isPrivate } = usePrivacy();
 
   const formatAmount = (val: number) => {
@@ -13,25 +26,31 @@ export function ExpenseBreakdownCards() {
     return `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const categorizedExpenses = [
-    { name: 'Transfers', amount: 1877.22, percentage: 100, color: 'bg-blue-600' }, // dark blue per instruction
-    { name: 'Eating out', amount: 1505.43, percentage: 80, color: 'bg-indigo-500' },
-    { name: 'Groceries', amount: 1260.07, percentage: 67, color: 'bg-sky-500' },
-    { name: 'School', amount: 940.9, percentage: 50, color: 'bg-purple-500' },
-    { name: 'Shopping', amount: 885.76, percentage: 47, color: 'bg-cyan-500' },
-    { name: 'Gas stations', amount: 808.29, percentage: 43, color: 'bg-amber-400' },
-    { name: 'Clothing', amount: 801.89, percentage: 42, color: 'bg-emerald-500' },
-    { name: 'Taxi and ride-hailing', amount: 730.11, percentage: 39, color: 'bg-teal-500' },
-  ];
+  const displayCategorized =
+    categorizedExpenses.length > 0
+      ? categorizedExpenses
+      : [
+          { name: 'Transfers', amount: 1877.22, percentage: 100, color: 'bg-blue-600' },
+          { name: 'Eating out', amount: 1505.43, percentage: 80, color: 'bg-indigo-500' },
+          { name: 'Groceries', amount: 1260.07, percentage: 67, color: 'bg-sky-500' },
+          { name: 'School', amount: 940.9, percentage: 50, color: 'bg-purple-500' },
+          { name: 'Shopping', amount: 885.76, percentage: 47, color: 'bg-cyan-500' },
+          { name: 'Gas stations', amount: 808.29, percentage: 43, color: 'bg-amber-400' },
+          { name: 'Clothing', amount: 801.89, percentage: 42, color: 'bg-emerald-500' },
+          { name: 'Taxi and ride-hailing', amount: 730.11, percentage: 39, color: 'bg-teal-500' },
+        ];
 
-  const pendingExpenses = [
-    { name: 'Transfers', amount: 541.51, percentage: 100, color: 'bg-violet-400' },
-    { name: 'Shopping', amount: 325.8, percentage: 60, color: 'bg-blue-600' }, // dark blue per instruction
-    { name: 'Eating out', amount: 316.98, percentage: 58, color: 'bg-sky-400' },
-    { name: 'Groceries', amount: 269.39, percentage: 50, color: 'bg-cyan-400' },
-    { name: 'Cinema, theater and concerts', amount: 114.75, percentage: 21, color: 'bg-yellow-400' },
-    { name: 'Services', amount: 96.43, percentage: 18, color: 'bg-pink-400' },
-  ];
+  const displayPending =
+    pendingExpenses.length > 0
+      ? pendingExpenses
+      : [
+          { name: 'Transfers', amount: 541.51, percentage: 100, color: 'bg-violet-400' },
+          { name: 'Shopping', amount: 325.8, percentage: 60, color: 'bg-blue-600' },
+          { name: 'Eating out', amount: 316.98, percentage: 58, color: 'bg-sky-400' },
+          { name: 'Groceries', amount: 269.39, percentage: 50, color: 'bg-cyan-400' },
+          { name: 'Cinema, theater and concerts', amount: 114.75, percentage: 21, color: 'bg-yellow-400' },
+          { name: 'Services', amount: 96.43, percentage: 18, color: 'bg-pink-400' },
+        ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -45,7 +64,7 @@ export function ExpenseBreakdownCards() {
 
           <div className="mt-2">
             <span className="text-3xl font-bold tracking-tight text-blue-500">
-              {formatAmount(12211.06)}
+              {formatAmount(totalExpenses)}
             </span>
           </div>
 
@@ -60,7 +79,7 @@ export function ExpenseBreakdownCards() {
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-4">
-          {categorizedExpenses.map((cat) => (
+          {displayCategorized.map((cat) => (
             <div key={cat.name} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-200 font-medium">{cat.name}</span>
@@ -87,7 +106,7 @@ export function ExpenseBreakdownCards() {
 
           <div className="mt-2">
             <span className="text-3xl font-bold tracking-tight text-amber-400">
-              {formatAmount(1960.0)}
+              {formatAmount(totalPending)}
             </span>
           </div>
 
@@ -102,7 +121,7 @@ export function ExpenseBreakdownCards() {
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-4">
-          {pendingExpenses.map((cat) => (
+          {displayPending.map((cat) => (
             <div key={cat.name} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-200 font-medium">{cat.name}</span>

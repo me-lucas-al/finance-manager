@@ -4,18 +4,14 @@ import React, { useState } from 'react';
 import { Briefcase, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePrivacy } from '@/components/PrivacyProvider';
+import type { LiveAssetItem } from '@/lib/pluggy-service';
 
-interface AssetItem {
-  id: string;
-  name: string;
-  bank: 'itau' | 'inter' | 'nubank';
-  bankName: string;
-  type: string;
-  amount: number;
-  percentage: number;
+interface AtivosListProps {
+  initialTotal?: number;
+  initialAssets?: LiveAssetItem[];
 }
 
-const mockAssets: AssetItem[] = [
+const defaultAssets: LiveAssetItem[] = [
   {
     id: 'asset-1',
     name: 'CDB – ITAU UNIBANCO S.A.',
@@ -99,11 +95,15 @@ const mockAssets: AssetItem[] = [
   },
 ];
 
-export function AtivosList() {
+export function AtivosList({
+  initialTotal = 190.75,
+  initialAssets = [],
+}: AtivosListProps) {
   const { isPrivate } = usePrivacy();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const totalAmount = 190.75;
+  const assetsList = initialAssets.length > 0 ? initialAssets : defaultAssets;
+  const totalAmount = initialTotal;
 
   const formatAmount = (val: number) => {
     if (isPrivate) return 'R$ •••••';
@@ -123,7 +123,7 @@ export function AtivosList() {
               <Briefcase className="h-5 w-5" />
             </div>
             <span className="font-semibold text-white text-base">
-              Carteira (14 ativos)
+              Carteira ({assetsList.length} ativos)
             </span>
           </div>
 
@@ -149,7 +149,7 @@ export function AtivosList() {
 
         {/* Section Content: Asset Items */}
         <CardContent className="p-0 divide-y divide-zinc-800/50">
-          {mockAssets.map((asset) => {
+          {assetsList.map((asset) => {
             const isExpanded = expandedId === asset.id;
             return (
               <div key={asset.id} className="transition-colors hover:bg-zinc-800/30">

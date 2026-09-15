@@ -1,7 +1,10 @@
+import { getLiveMovementsData } from '@/lib/pluggy-service';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
 import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
 
 export default async function MovementsPage() {
+  const data = await getLiveMovementsData();
+
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
       <div className="max-w-[1440px] mx-auto p-4 sm:p-6 md:p-8 space-y-6">
@@ -13,11 +16,21 @@ export default async function MovementsPage() {
           </p>
         </div>
 
-        {/* Top 2 Cards: Despesas & Despesas Futuras */}
-        <ExpenseBreakdownCards />
+        {/* Top 2 Cards: Despesas & Despesas Futuras with Live Data */}
+        <ExpenseBreakdownCards
+          totalExpenses={data.totalExpenses}
+          totalPending={data.totalPending}
+          categorizedExpenses={data.categorizedExpenses}
+          pendingExpenses={data.pendingExpenses}
+        />
 
-        {/* Bottom Transactions Card */}
-        <TransactionsExplorer />
+        {/* Bottom Transactions Card with Live Data */}
+        <TransactionsExplorer
+          initialTransactions={data.transactions}
+          totalIncome={data.totalIncome}
+          totalExpenses={data.totalExpenses}
+          netBalance={data.netBalance}
+        />
       </div>
     </div>
   );

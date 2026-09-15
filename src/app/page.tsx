@@ -1,23 +1,9 @@
-import { auth } from '@/auth';
+import { getLiveOverviewData } from '@/lib/pluggy-service';
 import { OverviewCards } from '@/components/overview/OverviewCards';
 import { BalanceEvolutionCard } from '@/components/overview/BalanceEvolutionCard';
-import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
-import { groupAccountsByItem } from '@/components/connections/group-accounts';
 
 export default async function DashboardPage() {
-  const session = await auth();
-  const userId = session?.user?.id;
-
-  let connectedAccounts: any[] = [];
-  if (userId) {
-    try {
-      connectedAccounts = await new SupabaseAccountRepository().findAllByUserId(userId);
-    } catch {
-      connectedAccounts = [];
-    }
-  }
-
-  const bankConnections = groupAccountsByItem(connectedAccounts);
+  const data = await getLiveOverviewData();
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
@@ -30,11 +16,28 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {/* Top 3 Cards Row */}
-        <OverviewCards />
+        {/* Top 3 Cards Row with Live Data from Pluggy */}
+        <OverviewCards
+          bankData={{
+            total: data.bankTotal,
+            accounts: data.bankAccounts,
+          }}
+          creditCardData={{
+            total: data.cardTotal,
+            limit: data.cardLimit,
+            usedPercentage: data.cardUsedPercentage,
+            cards: data.cards,
+          }}
+          investmentsData={{
+            total: data.investmentTotal,
+            subtitle: `${data.activeInvestmentCount} ativos, ${data.inactiveInvestmentCount} inativos`,
+            categoryName: 'Renda Fixa',
+            percentage: 100,
+          }}
+        />
 
         {/* Bottom Wide Card: Evolução do Saldo */}
-        <BalanceEvolutionCard balance={2229.81} />
+        <BalanceEvolutionCard balance={data.evolutionBalance} />
       </div>
     </div>
   );

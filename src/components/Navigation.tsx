@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Menu } from 'lucide-react';
@@ -13,6 +13,9 @@ const navLinks = [
   { href: '/movements', label: 'Fluxo' },
   { href: '/ativos', label: 'Ativos' },
   { href: '/connections', label: 'Conexões' },
+  { href: '/goals', label: 'Metas' },
+  { href: '/reports', label: 'Relatórios' },
+  { href: '/periods', label: 'Calendário' },
 ];
 
 export function Navigation() {
@@ -27,7 +30,7 @@ export function Navigation() {
   return (
     <>
       {/* Mobile Nav Button */}
-      <div className="md:hidden flex items-center">
+      <div className="lg:hidden flex items-center">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger
             render={
@@ -42,6 +45,7 @@ export function Navigation() {
             <span className="sr-only">Abrir menu</span>
           </SheetTrigger>
           <SheetContent side="left" className="w-[260px] bg-[#09090b] border-zinc-800 text-zinc-200">
+            <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
             <div className="flex flex-col space-y-4 py-4">
               <Logo className="mb-4 px-2" />
               <div className="flex flex-col space-y-1">
@@ -69,7 +73,7 @@ export function Navigation() {
       </div>
 
       {/* Desktop Nav - Clean Pill Tabs */}
-      <nav className="hidden md:flex items-center space-x-1.5 text-sm font-medium">
+      <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
         {navLinks.map((link) => {
           const active = isActive(link.href);
           return (

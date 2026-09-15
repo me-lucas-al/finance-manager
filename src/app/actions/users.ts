@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { updateTag } from 'next/cache';
-import { auth } from '@/auth';
+import { requireUserId } from './require-session';
 import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
 import type { NewSetting } from '../../modules/users/domain/repositories/setting-repository';
@@ -28,8 +28,7 @@ const updateSettingsSchema = z.object({
 });
 
 export async function updateUserSettings(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Unauthorized');
+  const userId = await requireUserId();
 
   const rawData = Object.fromEntries(formData.entries());
   const parsedData = updateSettingsSchema.parse(rawData);
@@ -44,7 +43,7 @@ export async function updateUserSettings(formData: FormData) {
   if (parsedData.investmentTypes) dataToUpdate.investmentTypes = parsedData.investmentTypes;
 
   const repo = new DrizzleSettingRepository();
-  const existing = await repo.findByUserId(session.user.id);
+  const existing = await repo.findByUserId(userId);
 
   if (!existing) {
     throw new Error('Settings not found');
@@ -53,7 +52,7 @@ export async function updateUserSettings(formData: FormData) {
   const useCase = new UpdateSettingUseCase(repo);
   await useCase.execute(existing.id, dataToUpdate);
 
-  updateTag(`settings-${session.user.id}`);
+  updateTag(`settings-${userId}`);
 }
 
 async function fetchUserSettingsCached(userId: string) {
@@ -66,7 +65,6 @@ async function fetchUserSettingsCached(userId: string) {
 }
 
 export async function getUserSettings() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-  return fetchUserSettingsCached(session.user.id);
+  const userId = await requireUserId();
+  return fetchUserSettingsCached(userId);
 }

@@ -1,6 +1,9 @@
+import { getLiveInvestmentsData } from '@/lib/pluggy-service';
 import { AtivosList } from '@/components/ativos/AtivosList';
 
 export default async function AtivosPage() {
+  const data = await getLiveInvestmentsData();
+
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
       <div className="max-w-[1440px] mx-auto p-4 sm:p-6 md:p-8 space-y-6">
@@ -12,8 +15,8 @@ export default async function AtivosPage() {
           </p>
         </div>
 
-        {/* Ativos List and Summary */}
-        <AtivosList />
+        {/* Ativos List and Summary with Live Pluggy Data */}
+        <AtivosList initialTotal={data.total} initialAssets={data.assets} />
       </div>
     </div>
   );

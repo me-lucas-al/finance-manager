@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'meu.pluggy',
+  title: 'Finance Manager',
   description: 'Visão geral dos seus dados financeiros.',
   manifest: '/manifest.json',
   icons: {

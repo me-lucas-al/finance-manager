@@ -3,7 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Filter, Eye, EyeOff, Sun, ChevronDown, Check, User, Settings, LogOut } from 'lucide-react';
+import { Filter, Eye, EyeOff, Sun, ChevronDown, Check, User, Settings, LogOut, Target, BarChart3, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -139,6 +139,18 @@ export function HeaderControls({ user }: HeaderControlsProps) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-zinc-800" />
+          <DropdownMenuItem render={<Link href="/goals" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
+            <Target className="h-3.5 w-3.5 text-zinc-400" />
+            Metas
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/reports" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
+            <BarChart3 className="h-3.5 w-3.5 text-zinc-400" />
+            Relatórios
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/periods" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
+            <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+            Calendário
+          </DropdownMenuItem>
           <DropdownMenuItem render={<Link href="/settings" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
             <Settings className="h-3.5 w-3.5 text-zinc-400" />
             Configurações
