@@ -1,16 +1,21 @@
+import Link from 'next/link';
 import { connection } from 'next/server';
 import { auth } from '@/auth';
 import { db } from '../db';
-import { expenses, incomes, investments } from '../db/schema';
+import { incomes, investments } from '../db/schema';
 import { and, eq } from 'drizzle-orm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Landmark, ArrowRight } from 'lucide-react';
 import { calculateMetrics } from '../modules/finance/domain/financial-metrics';
 import { ResolveCurrentPeriodUseCase } from '../modules/periods/application/use-cases/resolve-current-period';
 import { DrizzlePeriodRepository } from '../modules/periods/infrastructure/repositories';
 import { DrizzleSettingRepository } from '../modules/users/infrastructure/repositories';
-import { SupabaseAlertLogRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { SupabaseAlertLogRepository, SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { getExpenseBreakdown } from '@/modules/open-finance/application/shared/expense-totals';
+import { groupAccountsByItem } from '@/components/connections/group-accounts';
+import { CompactBankCard } from '@/components/connections/CompactBankCard';
 import { formatCurrency } from '@/lib/format';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -41,8 +46,8 @@ export default async function DashboardPage() {
   const resolveCurrentPeriod = new ResolveCurrentPeriodUseCase(new DrizzlePeriodRepository(), settingRepo);
   const period = await resolveCurrentPeriod.execute(userId);
 
-  const [userExpenses, userIncomes, userInvestments, settings] = await Promise.all([
-    db.select().from(expenses).where(and(eq(expenses.userId, userId), eq(expenses.periodId, period.id))),
+  const [expenseBreakdown, userIncomes, userInvestments, settings] = await Promise.all([
+    getExpenseBreakdown(userId, period.startDate, period.endDate).catch(() => ({ total: 0, byCategory: {} })),
     db.select().from(incomes).where(and(eq(incomes.userId, userId), eq(incomes.periodId, period.id))),
     db.select().from(investments).where(and(eq(investments.userId, userId), eq(investments.periodId, period.id))),
     settingRepo.findByUserId(userId),
@@ -53,7 +58,7 @@ export default async function DashboardPage() {
 
   const metrics = calculateMetrics(
     userIncomes.map(i => Number(i.amount)),
-    userExpenses.map(e => Number(e.amount)),
+    [expenseBreakdown.total],
     userInvestments.map(i => Number(i.amount)),
     maxExpensesPercentage,
     minInvestmentPercentage
@@ -72,6 +77,9 @@ export default async function DashboardPage() {
     .findLatestByType('monthly_summary')
     .catch(() => null);
 
+  const connectedAccounts = await new SupabaseAccountRepository().findAllByUserId(userId).catch(() => []);
+  const bankConnections = groupAccountsByItem(connectedAccounts);
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
       <div className="flex flex-wrap items-center justify-between gap-2 space-y-2">
@@ -80,6 +88,33 @@ export default async function DashboardPage() {
           <Badge variant={STATUS_VARIANT[metrics.status]}>{STATUS_LABEL[metrics.status]}</Badge>
           <span className="text-sm text-muted-foreground">{daysRemaining} dias restantes no período</span>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Landmark className="size-3.5 text-primary" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Bancos Conectados</p>
+          {bankConnections.length > 0 && (
+            <Badge variant="outline" className="border-transparent bg-positive/10 text-positive">
+              {bankConnections.length} ativa{bankConnections.length === 1 ? '' : 's'}
+            </Badge>
+          )}
+        </div>
+        {bankConnections.length === 0 ? (
+          <Link
+            href="/connections"
+            className="flex items-center justify-between rounded-lg border border-dashed bg-card px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50"
+          >
+            Nenhum banco conectado ainda — conectar agora
+            <ArrowRight className="size-4" />
+          </Link>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {bankConnections.map((connection) => (
+              <CompactBankCard key={connection.pluggyItemId} connection={connection} />
+            ))}
+          </div>
+        )}
       </div>
 
       <Card>
