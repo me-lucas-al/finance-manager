@@ -48,6 +48,15 @@ export class SupabaseAccountRepository implements AccountRepository {
     return (data as AccountRow[]).map(toAccount);
   }
 
+  async findAllByUserId(userId: string): Promise<Account[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from('accounts')
+      .select()
+      .eq('user_id', userId);
+    if (error) throw new Error(error.message);
+    return (data as AccountRow[]).map(toAccount);
+  }
+
   async upsert(data: NewAccount): Promise<Account> {
     const result = await getSupabaseAdmin()
       .from('accounts')

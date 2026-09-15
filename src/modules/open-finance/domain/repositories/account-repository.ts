@@ -17,5 +17,6 @@ export type NewAccount = Omit<Account, 'id' | 'createdAt'>;
 export interface AccountRepository {
   findByPluggyAccountId(pluggyAccountId: string): Promise<Account | null>;
   findAllByPluggyItemId(pluggyItemId: string): Promise<Account[]>;
+  findAllByUserId(userId: string): Promise<Account[]>;
   upsert(data: NewAccount): Promise<Account>;
 }

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getUserSettings } from '@/app/actions/users';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
@@ -5,7 +7,6 @@ import { SettingsForm } from './SettingsForm';
 import { NotificationPreferencesForm } from './NotificationPreferencesForm';
 import { PushNotificationButton } from './PushNotificationButton';
 import { ChangePasswordForm } from './ChangePasswordForm';
-import { OpenFinanceConnect } from './OpenFinanceConnect';
 
 export default async function SettingsPage() {
   const [settings, preferences] = await Promise.all([
@@ -82,7 +83,10 @@ export default async function SettingsPage() {
             <CardDescription>Conecte contas bancárias para importação automática de transações via Pluggy.</CardDescription>
           </CardHeader>
           <CardContent>
-            <OpenFinanceConnect />
+            <Link href="/connections" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+              Gerenciar bancos conectados
+              <ArrowRight className="size-4" />
+            </Link>
           </CardContent>
         </Card>
       </div>

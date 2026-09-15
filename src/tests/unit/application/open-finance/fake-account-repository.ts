@@ -16,6 +16,10 @@ export class FakeAccountRepository implements AccountRepository {
     return this.items.filter((item) => item.pluggyItemId === pluggyItemId);
   }
 
+  async findAllByUserId(userId: string): Promise<Account[]> {
+    return this.items.filter((item) => item.userId === userId);
+  }
+
   async upsert(data: NewAccount): Promise<Account> {
     const index = this.items.findIndex((item) => item.pluggyAccountId === data.pluggyAccountId);
     if (index !== -1) {

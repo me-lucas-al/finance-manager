@@ -3,7 +3,7 @@
 import { PluggyConnect } from 'react-pluggy-connect';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Landmark, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, CheckCircle, AlertCircle } from 'lucide-react';
 
 export function OpenFinanceConnect() {
   const [connectToken, setConnectToken] = useState('');
@@ -16,7 +16,7 @@ export function OpenFinanceConnect() {
     setIsLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
-    
+
     try {
       const res = await fetch('/api/connect-token', { method: 'POST' });
       const data = await res.json();
@@ -44,19 +44,19 @@ export function OpenFinanceConnect() {
         </div>
       )}
       {successMsg && (
-        <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-3 rounded-md">
+        <div className="flex items-center gap-2 text-sm text-positive bg-positive/10 p-3 rounded-md">
           <CheckCircle className="h-4 w-4" />
           {successMsg}
         </div>
       )}
 
       <div>
-        <Button 
-          onClick={handleConnect} 
+        <Button
+          onClick={handleConnect}
           disabled={isLoading || isOpen}
-          variant="outline"
+          className="rounded-full"
         >
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Landmark className="mr-2 h-4 w-4" />}
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
           {isLoading ? 'Conectando...' : 'Conectar Novo Banco'}
         </Button>
       </div>
