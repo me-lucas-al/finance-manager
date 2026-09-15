@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { updateTag } from 'next/cache';
+import { updateTag, revalidatePath } from 'next/cache';
 import { requireUserId } from './require-session';
 import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
@@ -79,4 +79,7 @@ export async function updateUserProfile(name: string) {
   if (error) {
     throw new Error(error.message);
   }
+
+  revalidatePath('/settings');
+  revalidatePath('/', 'layout');
 }
