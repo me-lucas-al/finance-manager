@@ -1,8 +1,7 @@
 import { IncomeRepository, IncomeQuery, IncomePage } from '../domain/repositories/income-repository';
-import { ExpenseRepository, NewExpense } from '../domain/repositories/expense-repository';
 import { InvestmentRepository, InvestmentQuery, InvestmentPage } from '../domain/repositories/investment-repository';
 import { db } from '../../../db';
-import { incomes, expenses, investments } from '../../../db/schema';
+import { incomes, investments } from '../../../db/schema';
 import { and, asc, count, desc, eq, ilike } from 'drizzle-orm';
 
 export class DrizzleIncomeRepository implements IncomeRepository {
@@ -22,27 +21,6 @@ export class DrizzleIncomeRepository implements IncomeRepository {
       db.select({ value: count() }).from(incomes).where(where),
     ]);
     return { rows, total: Number(totalResult[0]?.value ?? 0) };
-  }
-}
-
-export class DrizzleExpenseRepository implements ExpenseRepository {
-  async create(data: Omit<NewExpense, 'id'>) {
-    const [result] = await db.insert(expenses).values({ ...data, id: crypto.randomUUID() }).returning();
-    return result;
-  }
-  async findById(id: string) {
-    const [result] = await db.select().from(expenses).where(eq(expenses.id, id));
-    return result ?? null;
-  }
-  async findAllByUserId(userId: string) {
-    return await db.select().from(expenses).where(eq(expenses.userId, userId)).orderBy(expenses.date);
-  }
-  async update(id: string, data: Partial<NewExpense>) {
-    const [result] = await db.update(expenses).set(data).where(eq(expenses.id, id)).returning();
-    return result;
-  }
-  async delete(id: string) {
-    await db.delete(expenses).where(eq(expenses.id, id));
   }
 }
 
