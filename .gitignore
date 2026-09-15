@@ -45,3 +45,5 @@ test-results/
 playwright/.auth/
 
 supabase/.temp
+
+.serena
