@@ -3,8 +3,12 @@
 import { z } from 'zod';
 import { refresh } from 'next/cache';
 import { requireUserId } from './require-session';
-import { SupabaseGoalRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import {
+  SupabaseGoalRepository,
+  SupabaseSavingsGoalRepository,
+} from '@/modules/open-finance/infrastructure/supabase-repositories';
 import { UpsertGoalUseCase } from '@/modules/open-finance/application/use-cases/manage-goal';
+import { UpdateGoalsFromMessageUseCase } from '@/modules/open-finance/application/use-cases/update-goals-from-message';
 import { getExpenseCategories } from '@/modules/open-finance/application/shared/expense-categories';
 
 const amountSchema = z.coerce.number().positive();
@@ -35,4 +39,16 @@ export async function saveMonthlyGoals(month: string, formData: FormData) {
   }
 
   refresh();
+}
+
+// Website equivalent of the Telegram bot's /goal free-text replies: same
+// Gemini interpretation and upsert logic (see UpdateGoalsFromMessageUseCase),
+// just triggered from a normal chat box instead of a Telegram command.
+export async function sendGoalsChatMessage(message: string): Promise<string> {
+  const userId = await requireUserId();
+  const useCase = new UpdateGoalsFromMessageUseCase(new SupabaseGoalRepository(), new SupabaseSavingsGoalRepository());
+
+  const confirmation = await useCase.execute(userId, message);
+  refresh();
+  return confirmation;
 }
