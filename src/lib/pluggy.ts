@@ -4,7 +4,7 @@ let client: PluggyClient | null = null;
 
 // Lazy client: PluggyClient exchanges clientId/clientSecret for a short-lived API
 // key internally on first request, so this only needs to be constructed once.
-function getPluggyClient(): PluggyClient {
+export function getPluggyClient(): PluggyClient {
   if (client) return client;
 
   const clientId = process.env.PLUGGY_CLIENT_ID;

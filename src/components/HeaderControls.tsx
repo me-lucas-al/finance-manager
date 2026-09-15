@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Filter, Eye, EyeOff, Sun, ChevronDown, Check, User, Settings, LogOut, Target, BarChart3, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronDown, User, Settings, LogOut, Target, BarChart3, Calendar, Landmark } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { usePrivacy } from '@/components/PrivacyProvider';
 import { signOut } from '@/app/actions/auth';
 
 interface HeaderControlsProps {
@@ -26,142 +23,72 @@ interface HeaderControlsProps {
 }
 
 export function HeaderControls({ user }: HeaderControlsProps) {
-  const { isPrivate, togglePrivacy } = usePrivacy();
-  const [selectedConnection, setSelectedConnection] = React.useState('Todas conexões');
-  const [language, setLanguage] = React.useState<'US EN' | 'PT BR'>('US EN');
-
-  const connectionOptions = [
-    'Todas conexões',
-    'Itaú',
-    'Nubank',
-    'Inter',
-  ];
+  const displayName = user?.name || 'Lucas Almeida';
+  const displayEmail = user?.email || 'lucasalsouza2006@gmail.com';
+  const initials = displayName
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
-    <div className="flex items-center gap-2 md:gap-4">
-      {/* Conexões Filter Dropdown */}
+    <div className="flex items-center gap-3">
+      {/* User Profile Avatar with Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger render={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/60 border border-transparent hover:border-zinc-700/40 rounded-lg px-2.5"
+          <button
+            type="button"
+            aria-label="Abrir menu de perfil do usuário"
+            className="flex items-center gap-2 p-1 rounded-full hover:bg-zinc-800/60 transition outline-none cursor-pointer group"
           >
-            <Filter className="h-3.5 w-3.5 text-zinc-400" />
-            <span className="hidden sm:inline">{selectedConnection}</span>
-            <ChevronDown className="h-3 w-3 text-zinc-500" />
-          </Button>
-        } />
-        <DropdownMenuContent align="end" className="w-48 bg-[#121318] border-zinc-800 text-zinc-200">
-          <DropdownMenuLabel className="text-xs text-zinc-400">Filtrar por conexão</DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-zinc-800" />
-          {connectionOptions.map((opt) => (
-            <DropdownMenuItem
-              key={opt}
-              onClick={() => setSelectedConnection(opt)}
-              className="flex items-center justify-between text-xs cursor-pointer hover:bg-zinc-800 hover:text-white"
-            >
-              {opt}
-              {selectedConnection === opt && <Check className="h-3.5 w-3.5 text-blue-500" />}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Language Switcher */}
-      <DropdownMenu>
-        <DropdownMenuTrigger render={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800/60 px-2 rounded-lg"
-          >
-            {language}
-          </Button>
-        } />
-        <DropdownMenuContent align="end" className="w-32 bg-[#121318] border-zinc-800 text-zinc-200">
-          <DropdownMenuItem
-            onClick={() => setLanguage('US EN')}
-            className="text-xs cursor-pointer hover:bg-zinc-800 hover:text-white"
-          >
-            US EN
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setLanguage('PT BR')}
-            className="text-xs cursor-pointer hover:bg-zinc-800 hover:text-white"
-          >
-            PT BR
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Privacy Mode Toggle */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={togglePrivacy}
-        title={isPrivate ? 'Mostrar valores' : 'Ocultar valores'}
-        className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800/60 rounded-lg"
-      >
-        {isPrivate ? <EyeOff className="h-4 w-4 text-blue-400" /> : <Eye className="h-4 w-4" />}
-        <span className="sr-only">Modo Privacidade</span>
-      </Button>
-
-      {/* Theme Toggle (dark by default per reference) */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800/60 rounded-lg"
-        title="Alternar tema"
-      >
-        <Sun className="h-4 w-4" />
-        <span className="sr-only">Tema</span>
-      </Button>
-
-      {/* User Avatar with Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger render={
-          <button className="flex items-center gap-1.5 p-0.5 rounded-full hover:ring-2 hover:ring-zinc-700 transition outline-none">
-            <Avatar className="h-8 w-8 border border-zinc-700/60">
-              <AvatarImage src={user?.image || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'} alt={user?.name || 'User'} />
-              <AvatarFallback className="bg-zinc-800 text-zinc-200 text-xs font-semibold">
-                {user?.name ? user.name.slice(0, 2).toUpperCase() : 'US'}
+            <Avatar className="h-8 w-8 border border-zinc-700/80 group-hover:border-blue-500/60 transition">
+              <AvatarImage src={user?.image || ''} alt={displayName} />
+              <AvatarFallback className="bg-blue-950/80 text-blue-300 border border-blue-800/50 text-xs font-semibold">
+                {initials}
               </AvatarFallback>
             </Avatar>
-            <ChevronDown className="h-3 w-3 text-zinc-400 hidden sm:block" />
+            <span className="text-xs font-medium text-zinc-300 group-hover:text-white hidden sm:inline">
+              {displayName}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-zinc-400 group-hover:text-zinc-200" />
           </button>
         } />
-        <DropdownMenuContent align="end" className="w-56 bg-[#121318] border-zinc-800 text-zinc-200 shadow-xl">
-          <DropdownMenuLabel className="font-normal">
+        <DropdownMenuContent align="end" className="w-60 bg-[#121318] border-zinc-800 text-zinc-200 shadow-2xl p-1.5">
+          <DropdownMenuLabel className="font-normal px-3 py-2">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none text-white">{user?.name || 'Usuário'}</p>
-              <p className="text-xs leading-none text-zinc-400">{user?.email || 'usuario@pluggy.ai'}</p>
+              <p className="text-sm font-semibold leading-none text-white">{displayName}</p>
+              <p className="text-xs leading-none text-zinc-400 truncate">{displayEmail}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-zinc-800" />
-          <DropdownMenuItem render={<Link href="/goals" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
-            <Target className="h-3.5 w-3.5 text-zinc-400" />
-            Metas
+          <DropdownMenuItem render={<Link href="/settings" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
+            <User className="h-4 w-4 text-blue-400" />
+            <span>Meu Perfil & Configurações</span>
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/reports" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
-            <BarChart3 className="h-3.5 w-3.5 text-zinc-400" />
-            Relatórios
+          <DropdownMenuItem render={<Link href="/connections" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
+            <Landmark className="h-4 w-4 text-zinc-400" />
+            <span>Conexões Bancárias</span>
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/periods" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
-            <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-            Calendário
+          <DropdownMenuItem render={<Link href="/goals" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
+            <Target className="h-4 w-4 text-zinc-400" />
+            <span>Metas</span>
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/settings" className="flex items-center gap-2 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2" />}>
-            <Settings className="h-3.5 w-3.5 text-zinc-400" />
-            Configurações
+          <DropdownMenuItem render={<Link href="/reports" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
+            <BarChart3 className="h-4 w-4 text-zinc-400" />
+            <span>Relatórios</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/periods" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
+            <Calendar className="h-4 w-4 text-zinc-400" />
+            <span>Calendário Financeiro</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-zinc-800" />
           <DropdownMenuItem
             onClick={() => signOut()}
-            className="flex items-center gap-2 text-xs text-red-400 cursor-pointer hover:bg-zinc-800 hover:text-red-300 py-2"
+            className="flex items-center gap-2.5 text-xs text-blue-400 cursor-pointer hover:bg-zinc-800 hover:text-blue-300 py-2 px-3 rounded-md transition"
           >
-            <LogOut className="h-3.5 w-3.5 text-red-400" />
-            Sair da conta
+            <LogOut className="h-4 w-4 text-blue-400" />
+            <span>Sair da conta</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

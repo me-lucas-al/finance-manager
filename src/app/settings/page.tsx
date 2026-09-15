@@ -1,30 +1,67 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getUserSettings } from '@/app/actions/users';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
+import { getEffectiveUserId } from '@/app/actions/require-session';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { SettingsForm } from './SettingsForm';
 import { NotificationPreferencesForm } from './NotificationPreferencesForm';
 import { PushNotificationButton } from './PushNotificationButton';
 import { ChangePasswordForm } from './ChangePasswordForm';
+import { ProfileForm } from './ProfileForm';
 
 export default async function SettingsPage() {
-  const [settings, preferences] = await Promise.all([
+  const [settings, preferences, userId] = await Promise.all([
     getUserSettings(),
     getNotificationPreferences(),
+    getEffectiveUserId(),
   ]);
 
+  const { data: dbUser } = await getSupabaseAdmin()
+    .from('users')
+    .select('id, name, email, created_at')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const userName = dbUser?.name || 'Lucas Almeida de Souza';
+  const userEmail = dbUser?.email || 'lucasalsouza2006@gmail.com';
+  const userCreatedAt = dbUser?.created_at;
+
   if (!settings) {
-    return <div className="p-8">Configurações não encontradas.</div>;
+    return <div className="p-8 text-zinc-400">Configurações não encontradas.</div>;
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8 bg-background min-h-screen">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Configurações</h2>
-      </div>
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Meu Perfil & Configurações</h1>
+            <p className="text-xs text-zinc-400 mt-1">Gerencie suas informações pessoais, preferências e conexões</p>
+          </div>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* User Profile Card */}
+          <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl md:col-span-2 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-blue-500" />
+                <CardTitle className="text-lg font-semibold text-white">Perfil do Titular</CardTitle>
+              </div>
+              <CardDescription className="text-xs text-zinc-400">
+                Seus dados cadastrais vinculados à conta do Finance Manager.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileForm
+                initialName={userName}
+                email={userEmail}
+                createdAt={userCreatedAt}
+              />
+            </CardContent>
+          </Card>
         <Card>
           <CardHeader>
             <CardTitle>Regras Financeiras</CardTitle>
@@ -91,5 +128,6 @@ export default async function SettingsPage() {
         </Card>
       </div>
     </div>
-  );
+  </div>
+);
 }

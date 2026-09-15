@@ -68,3 +68,15 @@ export async function getUserSettings() {
   const userId = await requireUserId();
   return fetchUserSettingsCached(userId);
 }
+
+export async function updateUserProfile(name: string) {
+  const userId = await requireUserId();
+  const { getSupabaseAdmin } = await import('@/lib/supabase');
+  const { error } = await getSupabaseAdmin()
+    .from('users')
+    .update({ name, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+  if (error) {
+    throw new Error(error.message);
+  }
+}

@@ -28,80 +28,11 @@ interface TransactionsExplorerProps {
   netBalance?: number;
 }
 
-const defaultMockTransactions: LiveTransactionItem[] = [
-  {
-    id: 'tx-1',
-    dateStr: '25 Sexta-Feira',
-    rawDate: new Date('2026-09-25T00:00:00'),
-    type: 'expense',
-    description: 'Lucas Almeida de Souza',
-    account: 'gold',
-    category: 'Transfers',
-    amount: 26.74,
-    bank: 'gold',
-  },
-  {
-    id: 'tx-2',
-    dateStr: '15 Terça-Feira',
-    rawDate: new Date('2026-09-15T00:00:00'),
-    type: 'expense',
-    description: 'SHOPEE *SiSioficia02/02',
-    account: 'Itaú Click Múltiplo MC Plat',
-    category: 'Shopping',
-    amount: 44.65,
-    bank: 'itau',
-  },
-  {
-    id: 'tx-3',
-    dateStr: '13 Domingo',
-    rawDate: new Date('2026-09-13T00:00:00'),
-    type: 'expense',
-    description: 'Pix enviado André Alves de Freitas',
-    account: 'itau',
-    category: 'Transfers',
-    amount: -40.0,
-    bank: 'itau',
-  },
-  {
-    id: 'tx-4',
-    dateStr: '11 Sexta-Feira',
-    rawDate: new Date('2026-09-11T00:00:00'),
-    type: 'expense',
-    description: 'Pix enviado ANA LETICIA FIGUEREDO DE SA',
-    account: 'itau',
-    category: 'Transfer – PIX',
-    amount: -20.02,
-    bank: 'itau',
-  },
-  {
-    id: 'tx-5',
-    dateStr: '11 Sexta-Feira',
-    rawDate: new Date('2026-09-11T00:00:00'),
-    type: 'expense',
-    description: 'Pix enviado Isabelly de Oliveira',
-    account: 'itau',
-    category: 'Transfer – PIX',
-    amount: -21.21,
-    bank: 'itau',
-  },
-  {
-    id: 'tx-6',
-    dateStr: '10 Quinta-Feira',
-    rawDate: new Date('2026-09-10T00:00:00'),
-    type: 'expense',
-    description: 'Pix enviado Isabelly de Oliveira',
-    account: 'itau',
-    category: 'Transfer – PIX',
-    amount: -21.01,
-    bank: 'itau',
-  },
-];
-
 export function TransactionsExplorer({
   initialTransactions = [],
-  totalIncome = 1132.01,
-  totalExpenses = 2162.03,
-  netBalance = -1030.02,
+  totalIncome = 0,
+  totalExpenses = 0,
+  netBalance = 0,
 }: TransactionsExplorerProps) {
   const { isPrivate } = usePrivacy();
   const [search, setSearch] = useState('');
@@ -116,8 +47,7 @@ export function TransactionsExplorer({
     'Junho De 2026',
   ];
 
-  const transactionsList =
-    initialTransactions.length > 0 ? initialTransactions : defaultMockTransactions;
+  const transactionsList = initialTransactions;
 
   const formatAmount = (val: number, isPositive = false) => {
     if (isPrivate) return 'R$ •••••';
@@ -179,6 +109,7 @@ export function TransactionsExplorer({
             <button
               onClick={() => setMonthIndex((prev) => Math.max(0, prev - 1))}
               disabled={monthIndex === 0}
+              aria-label="Mês anterior"
               className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white disabled:opacity-40 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -189,6 +120,7 @@ export function TransactionsExplorer({
             <button
               onClick={() => setMonthIndex((prev) => Math.min(months.length - 1, prev + 1))}
               disabled={monthIndex === months.length - 1}
+              aria-label="Próximo mês"
               className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white disabled:opacity-40 transition-colors"
             >
               <ChevronRight className="h-4 w-4" />

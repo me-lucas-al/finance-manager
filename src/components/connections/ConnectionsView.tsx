@@ -113,8 +113,16 @@ export function ConnectionsView() {
 
               {/* Bottom Action: Ver detalhes > */}
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelectedConn(conn)}
-                className="border-t border-zinc-800/60 px-6 py-3.5 flex items-center justify-between text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer group rounded-b-2xl"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedConn(conn);
+                  }
+                }}
+                className="border-t border-zinc-800/60 px-6 py-3.5 flex items-center justify-between text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer group rounded-b-2xl outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
               >
                 <span className="font-medium group-hover:text-white">Ver detalhes</span>
                 <ChevronRight className="h-4 w-4 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />

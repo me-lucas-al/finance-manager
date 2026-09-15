@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getPluggyConnectToken } from '@/lib/pluggy';
-import { auth } from '@/auth';
+import { getEffectiveUserId } from '@/app/actions/require-session';
 
 export async function POST() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const accessToken = await getPluggyConnectToken(session.user.id);
+    const userId = await getEffectiveUserId();
+    const accessToken = await getPluggyConnectToken(userId);
     return NextResponse.json({ accessToken });
   } catch (error) {
     console.error('Error generating connect token:', error);

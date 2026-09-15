@@ -31,57 +31,13 @@ interface OverviewCardsProps {
   };
   investmentsData?: {
     total: number;
+    count: number;
     subtitle: string;
     categoryName: string;
     percentage: number;
+    institutions?: Array<{ name: string; count: number; amount: number }>;
   };
 }
-
-const defaultBankAccounts = [
-  {
-    id: 'itau-1',
-    bank: 'itau' as const,
-    name: 'Itaú',
-    countText: '1 conta · 99.7%',
-    amount: 112.49,
-  },
-  {
-    id: 'nu-1',
-    bank: 'nubank' as const,
-    name: 'Nubank',
-    countText: '1 conta · 0.3%',
-    amount: 0.3,
-    locked: true,
-  },
-  {
-    id: 'inter-1',
-    bank: 'inter' as const,
-    name: 'Inter',
-    countText: '1 conta · 0.0%',
-    amount: 0,
-  },
-];
-
-const defaultCards = [
-  {
-    id: 'card-1',
-    name: 'GOLD',
-    digits: 'xxxx 5981',
-    amount: 0,
-  },
-  {
-    id: 'card-2',
-    name: 'gold',
-    digits: 'xxxx 5786',
-    amount: 695.38,
-  },
-  {
-    id: 'card-3',
-    name: 'Itaú Click Múltiplo MC Plat',
-    digits: 'xxxx 3151',
-    amount: 1421.64,
-  },
-];
 
 export function OverviewCards({
   bankData,
@@ -92,15 +48,15 @@ export function OverviewCards({
   const [investView, setInvestView] = useState<'classes' | 'instituicoes'>('classes');
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
 
-  const bankAccounts = bankData?.accounts || defaultBankAccounts;
-  const bankTotal = bankData?.total ?? 112.79;
+  const bankAccounts = bankData?.accounts || [];
+  const bankTotal = bankData?.total ?? 0;
 
-  const cardList = creditCardData?.cards || defaultCards;
-  const cardTotal = creditCardData?.total ?? 2117.02;
-  const cardLimit = creditCardData?.limit ?? 6100;
-  const cardUsedPct = creditCardData?.usedPercentage ?? 35;
+  const cardList = creditCardData?.cards || [];
+  const cardTotal = creditCardData?.total ?? 0;
+  const cardLimit = creditCardData?.limit ?? 0;
+  const cardUsedPct = creditCardData?.usedPercentage ?? 0;
 
-  const investTotal = investmentsData?.total ?? 190.75;
+  const investTotal = investmentsData?.total ?? 0;
 
   const formatAmount = (val: number, isCurrency = true) => {
     if (isPrivate) return 'R$ •••••';
@@ -133,8 +89,17 @@ export function OverviewCards({
             return (
               <div key={acc.id} className="border-t border-zinc-800/50 pt-3 first:border-0 first:pt-0">
                 <div
-                  className="flex items-center justify-between cursor-pointer group"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  className="flex items-center justify-between cursor-pointer group outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded-lg p-1 -m-1"
                   onClick={() => setExpandedAccount(isExpanded ? null : acc.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setExpandedAccount(isExpanded ? null : acc.id);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     {/* Bank Badge */}
@@ -286,8 +251,8 @@ export function OverviewCards({
 
           <p className="text-xs text-zinc-500 mt-1">
             {investView === 'classes'
-              ? '1 classes · 14 ativos (2 ativos, 12 inativos)'
-              : '3 instituições · 14 ativos'}
+              ? `1 classes · ${investmentsData?.count ?? 0} ativos (${investmentsData?.subtitle ?? '0 ativos, 0 inativos'})`
+              : `${investmentsData?.institutions?.length ?? 0} instituições · ${investmentsData?.count ?? 0} ativos`}
           </p>
         </CardHeader>
 
@@ -295,7 +260,7 @@ export function OverviewCards({
           {investView === 'classes' ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-zinc-300">
-                <span className="font-medium">Renda Fixa (14)</span>
+                <span className="font-medium">Renda Fixa ({investmentsData?.count ?? 0})</span>
                 <span className="font-medium">100.0% {formatAmount(investTotal)}</span>
               </div>
               {/* Progress Bar - DARK BLUE per requirement */}
@@ -308,18 +273,16 @@ export function OverviewCards({
             </div>
           ) : (
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between text-xs text-zinc-300">
-                <span>Itaú (2 ativos)</span>
-                <span>{formatAmount(190.75)}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs text-zinc-400">
-                <span>Inter (1 ativo)</span>
-                <span>{formatAmount(0)}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs text-zinc-400">
-                <span>Nubank (11 ativos)</span>
-                <span>{formatAmount(0)}</span>
-              </div>
+              {investmentsData?.institutions && investmentsData.institutions.length > 0 ? (
+                investmentsData.institutions.map((inst) => (
+                  <div key={inst.name} className="flex items-center justify-between text-xs text-zinc-300">
+                    <span>{inst.name} ({inst.count} {inst.count === 1 ? 'ativo' : 'ativos'})</span>
+                    <span>{formatAmount(inst.amount)}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-zinc-500">Nenhum investimento encontrado.</p>
+              )}
             </div>
           )}
         </CardContent>

@@ -18,7 +18,7 @@ export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('pluggy_privacy_mode');
+    const saved = localStorage.getItem('finance_manager_privacy_mode');
     if (saved !== null) {
       setIsPrivate(saved === 'true');
     }
@@ -27,7 +27,7 @@ export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   const togglePrivacy = () => {
     setIsPrivate((prev) => {
       const next = !prev;
-      localStorage.setItem('pluggy_privacy_mode', String(next));
+      localStorage.setItem('finance_manager_privacy_mode', String(next));
       return next;
     });
   };

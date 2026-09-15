@@ -1,7 +1,15 @@
-import { PluggyClient, type Account as PluggyAccount, type Investment as PluggyInvestment, type Transaction as PluggyTransaction, type Item as PluggyItem } from 'pluggy-sdk';
+import {
+  type Account as PluggyAccount,
+  type Investment as PluggyInvestment,
+  type Transaction as PluggyTransaction,
+  type Item as PluggyItem,
+} from 'pluggy-sdk';
 import { connection } from 'next/server';
+import { getPluggyClient } from '@/lib/pluggy';
+import { getEffectiveUserId } from '@/app/actions/require-session';
+import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 
-interface RawPluggyData {
+export interface RawPluggyData {
   allItems: PluggyItem[];
   allAccounts: (PluggyAccount & { itemId: string })[];
   allInvestments: (PluggyInvestment & { itemId: string })[];
@@ -20,15 +28,6 @@ let cache: {
 } | null = null;
 
 const CACHE_TTL_MS = 25000; // 25 seconds
-
-function getClient(): PluggyClient {
-  const clientId = process.env.PLUGGY_CLIENT_ID;
-  const clientSecret = process.env.PLUGGY_CLIENT_SECRET;
-  if (!clientId || !clientSecret) {
-    throw new Error('Missing PLUGGY_CLIENT_ID or PLUGGY_CLIENT_SECRET');
-  }
-  return new PluggyClient({ clientId, clientSecret });
-}
 
 export interface LiveOverviewData {
   bankTotal: number;
@@ -55,6 +54,7 @@ export interface LiveOverviewData {
   inactiveInvestmentCount: number;
   evolutionBalance: number;
   evolutionData: Array<{ date: string; value: number }>;
+  investmentInstitutions: Array<{ name: string; count: number; amount: number }>;
 }
 
 export interface LiveTransactionItem {
@@ -102,13 +102,13 @@ const KNOWN_ITEM_IDS = [
   '92e9bd81-9ff2-4ea2-96e0-6a8cde80d0d0', // Inter
 ];
 
-async function fetchRawPluggyData(): Promise<RawPluggyData> {
+export async function fetchRawPluggyData(): Promise<RawPluggyData> {
   await connection();
   if (cache && Date.now() - cache.timestamp < CACHE_TTL_MS) {
     return cache.data;
   }
 
-  const client = getClient();
+  const client = getPluggyClient();
   const allAccounts: (PluggyAccount & { itemId: string })[] = [];
   const allInvestments: (PluggyInvestment & { itemId: string })[] = [];
   const allTransactions: (PluggyTransaction & {
@@ -119,7 +119,20 @@ async function fetchRawPluggyData(): Promise<RawPluggyData> {
   })[] = [];
   const allItems: PluggyItem[] = [];
 
-  for (const itemId of KNOWN_ITEM_IDS) {
+  let itemIds = KNOWN_ITEM_IDS;
+  try {
+    const userId = await getEffectiveUserId();
+    const repo = new SupabaseAccountRepository();
+    const dbAccounts = await repo.findAllByUserId(userId);
+    const dbItemIds = Array.from(new Set(dbAccounts.map((a) => a.pluggyItemId).filter(Boolean)));
+    if (dbItemIds.length > 0) {
+      itemIds = dbItemIds;
+    }
+  } catch {
+    // fallback to KNOWN_ITEM_IDS
+  }
+
+  for (const itemId of itemIds) {
     try {
       const [item, accs, invs] = await Promise.all([
         client.fetchItem(itemId).catch(() => null),
@@ -143,7 +156,7 @@ async function fetchRawPluggyData(): Promise<RawPluggyData> {
             });
           }
         } catch {
-          // ignore transaction error on single account
+          // ignore transaction fetch error for single account
         }
       }
 
@@ -161,7 +174,7 @@ async function fetchRawPluggyData(): Promise<RawPluggyData> {
 }
 
 export async function getLiveOverviewData(): Promise<LiveOverviewData> {
-  const { allAccounts, allInvestments } = await fetchRawPluggyData();
+  const { allAccounts, allInvestments, allTransactions } = await fetchRawPluggyData();
 
   // 1. Bank Accounts (Checking)
   const checking = allAccounts.filter(
@@ -176,8 +189,8 @@ export async function getLiveOverviewData(): Promise<LiveOverviewData> {
     a.name.toLowerCase().includes('inter')
   );
 
-  const itauBal = itauChecking ? Number(itauChecking.balance) : 112.49;
-  const nuBal = nuChecking ? Number(nuChecking.balance) : 0.3;
+  const itauBal = itauChecking ? Number(itauChecking.balance) : 0;
+  const nuBal = nuChecking ? Number(nuChecking.balance) : 0;
   const interBal = interChecking ? Number(interChecking.balance) : 0;
   const bankTotal = itauBal + nuBal + interBal;
 
@@ -217,12 +230,14 @@ export async function getLiveOverviewData(): Promise<LiveOverviewData> {
     amount: Number(c.balance) || 0,
   }));
 
-  // Ensure ordered: lowest to highest amount
   cardList.sort((a, b) => a.amount - b.amount);
 
   const cardTotal = cardList.reduce((sum: number, c) => sum + c.amount, 0);
-  const cardLimit = 6100;
-  const cardUsedPercentage = cardLimit > 0 ? Math.round((cardTotal / cardLimit) * 100) : 35;
+  const cardLimit = cards.reduce(
+    (sum: number, c: PluggyAccount) => sum + (Number(c.creditData?.creditLimit) || 0),
+    0
+  );
+  const cardUsedPercentage = cardLimit > 0 ? Math.round((cardTotal / cardLimit) * 100) : 0;
 
   // 3. Investments
   const investmentTotal = allInvestments.reduce(
@@ -235,6 +250,56 @@ export async function getLiveOverviewData(): Promise<LiveOverviewData> {
   ).length;
   const inactiveInvestmentCount = investmentCount - activeInvestmentCount;
 
+  // Investment Institutions dynamic breakdown
+  const instMap: Record<string, { count: number; amount: number }> = {
+    Itaú: { count: 0, amount: 0 },
+    Inter: { count: 0, amount: 0 },
+    Nubank: { count: 0, amount: 0 },
+  };
+
+  for (const inv of allInvestments) {
+    const bal = Number(inv.balance) || 0;
+    const nameLower = inv.name.toLowerCase();
+    if (nameLower.includes('itau')) {
+      instMap['Itaú'].count += 1;
+      instMap['Itaú'].amount += bal;
+    } else if (nameLower.includes('inter')) {
+      instMap['Inter'].count += 1;
+      instMap['Inter'].amount += bal;
+    } else {
+      instMap['Nubank'].count += 1;
+      instMap['Nubank'].amount += bal;
+    }
+  }
+
+  const investmentInstitutions = Object.entries(instMap).map(([name, data]) => ({
+    name,
+    count: data.count,
+    amount: Math.round(data.amount * 100) / 100,
+  }));
+
+  // 4. Balance Evolution dynamic computation from allTransactions
+  const monthlyBalances = new Map<string, number>();
+  for (const tx of allTransactions) {
+    const txDateStr = tx.date instanceof Date ? tx.date.toISOString() : String(tx.date);
+    const ym = txDateStr.slice(0, 7);
+    const amt = tx.type === 'CREDIT' ? Math.abs(Number(tx.amount)) : -Math.abs(Number(tx.amount));
+    monthlyBalances.set(ym, (monthlyBalances.get(ym) || 0) + amt);
+  }
+
+  const sortedMonths = Array.from(monthlyBalances.keys()).sort();
+  const timelineMonths = sortedMonths.slice(-9);
+
+  let currentVal = bankTotal;
+  const evolutionReversed: Array<{ date: string; value: number }> = [];
+  const revMonths = [...timelineMonths].reverse();
+  for (const m of revMonths) {
+    evolutionReversed.push({ date: m, value: Math.max(0, Math.round(currentVal * 100) / 100) });
+    const net = monthlyBalances.get(m) || 0;
+    currentVal = Math.max(0, currentVal - net);
+  }
+  const evolutionData = evolutionReversed.reverse();
+
   return {
     bankTotal,
     bankAccounts,
@@ -246,18 +311,9 @@ export async function getLiveOverviewData(): Promise<LiveOverviewData> {
     investmentCount,
     activeInvestmentCount,
     inactiveInvestmentCount,
-    evolutionBalance: 2229.81,
-    evolutionData: [
-      { date: '2025-08', value: 1650 },
-      { date: '2025-10', value: 1720 },
-      { date: '2025-12', value: 1800 },
-      { date: '2026-02', value: 1780 },
-      { date: '2026-04', value: 1740 },
-      { date: '2026-06', value: 1810 },
-      { date: '2026-08', value: 1950 },
-      { date: '2026-10', value: 2180 },
-      { date: '2026-11', value: 2229.81 },
-    ],
+    evolutionBalance: bankTotal,
+    evolutionData,
+    investmentInstitutions,
   };
 }
 
@@ -326,11 +382,11 @@ export async function getLiveMovementsData(selectedMonth = '2026-09'): Promise<L
       totalExpenses += val;
       categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + val;
     } else {
-      totalIncome += tx.amount;
+      totalIncome += Math.abs(tx.amount);
     }
   }
 
-  // Color map for categories (Transfers is dark blue per user requirement!)
+  // Color map for categories (Transfers is dark blue per user requirement)
   const colorMap: Record<string, string> = {
     Transfers: 'bg-blue-600',
     'Eating out': 'bg-indigo-500',
@@ -352,35 +408,43 @@ export async function getLiveMovementsData(selectedMonth = '2026-09'): Promise<L
       color: colorMap[name] || 'bg-blue-600',
     }));
 
-  const pendingExpenses: LiveExpenseCategory[] = [
-    { name: 'Transfers', amount: 541.51, percentage: 100, color: 'bg-violet-400' },
-    { name: 'Shopping', amount: 325.8, percentage: 60, color: 'bg-blue-600' },
-    { name: 'Eating out', amount: 316.98, percentage: 58, color: 'bg-sky-400' },
-    { name: 'Groceries', amount: 269.39, percentage: 50, color: 'bg-cyan-400' },
-    { name: 'Cinema, theater and concerts', amount: 114.75, percentage: 21, color: 'bg-yellow-400' },
-    { name: 'Services', amount: 96.43, percentage: 18, color: 'bg-pink-400' },
-  ];
+  // Dynamic Pending Expenses from Credit Card Transactions
+  const creditCardTxs = allTransactions.filter(
+    (t) =>
+      (t.accountSubtype === 'CREDIT_CARD' ||
+        (t.accountName || '').toLowerCase().includes('gold') ||
+        (t.accountName || '').toLowerCase().includes('click')) &&
+      (t.type === 'DEBIT' || Number(t.amount) < 0)
+  );
+
+  const pendingTotals: Record<string, number> = {};
+  let totalPending = 0;
+  for (const tx of creditCardTxs.slice(0, 50)) {
+    const val = Math.abs(Number(tx.amount));
+    totalPending += val;
+    const cat = tx.category || 'Outros';
+    pendingTotals[cat] = (pendingTotals[cat] || 0) + val;
+  }
+
+  const maxPending = Math.max(...Object.values(pendingTotals), 1);
+  const pendingExpenses: LiveExpenseCategory[] = Object.entries(pendingTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, amt]) => ({
+      name,
+      amount: Math.round(amt * 100) / 100,
+      percentage: Math.round((amt / maxPending) * 100),
+      color: colorMap[name] || 'bg-blue-600',
+    }));
 
   return {
-    totalExpenses: totalExpenses > 0 ? totalExpenses : 12211.06,
-    totalPending: 1960.0,
-    totalIncome: totalIncome > 0 ? totalIncome : 1132.01,
+    totalExpenses: Math.round(totalExpenses * 100) / 100,
+    totalPending: Math.round(totalPending * 100) / 100,
+    totalIncome: Math.round(totalIncome * 100) / 100,
     netBalance: totalIncome - totalExpenses,
-    categorizedExpenses:
-      categorizedExpenses.length > 0
-        ? categorizedExpenses
-        : [
-            { name: 'Transfers', amount: 1877.22, percentage: 100, color: 'bg-blue-600' },
-            { name: 'Eating out', amount: 1505.43, percentage: 80, color: 'bg-indigo-500' },
-            { name: 'Groceries', amount: 1260.07, percentage: 67, color: 'bg-sky-500' },
-            { name: 'School', amount: 940.9, percentage: 50, color: 'bg-purple-500' },
-            { name: 'Shopping', amount: 885.76, percentage: 47, color: 'bg-cyan-500' },
-            { name: 'Gas stations', amount: 808.29, percentage: 43, color: 'bg-amber-400' },
-            { name: 'Clothing', amount: 801.89, percentage: 42, color: 'bg-emerald-500' },
-            { name: 'Taxi and ride-hailing', amount: 730.11, percentage: 39, color: 'bg-teal-500' },
-          ],
+    categorizedExpenses,
     pendingExpenses,
-    transactions: monthTransactions.length > 0 ? monthTransactions : mapped.slice(0, 30),
+    transactions: monthTransactions,
   };
 }
 
@@ -408,24 +472,23 @@ export async function getLiveInvestmentsData(): Promise<{
     }
 
     const bal = Number(inv.balance) || 0;
-    const percentage = total > 0 ? (bal / total) * 100 : 0;
+    const pct = total > 0 ? Math.round((bal / total) * 100) : 0;
 
     return {
       id: inv.id,
       name: inv.name,
       bank,
       bankName,
-      type: inv.subtype || inv.type || 'CDB',
+      type: inv.type === 'FIXED_INCOME' ? 'Renda Fixa' : inv.subtype || 'Investimento',
       amount: bal,
-      percentage,
+      percentage: pct,
     };
   });
 
-  // Sort: highest balance first
   assets.sort((a, b) => b.amount - a.amount);
 
   return {
-    total: total > 0 ? total : 190.75,
+    total,
     assets,
   };
 }

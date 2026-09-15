@@ -13,22 +13,15 @@ import { usePrivacy } from '@/components/PrivacyProvider';
 
 interface BalanceEvolutionChartProps {
   initialBalance?: number;
+  data?: Array<{ date: string; value: number }>;
 }
 
-const mockData = [
-  { date: '2025-08', value: 1650 },
-  { date: '2025-10', value: 1720 },
-  { date: '2025-12', value: 1800 },
-  { date: '2026-02', value: 1780 },
-  { date: '2026-04', value: 1740 },
-  { date: '2026-06', value: 1810 },
-  { date: '2026-08', value: 1950 },
-  { date: '2026-10', value: 2180 },
-  { date: '2026-11', value: 2229.81 },
-];
-
-export function BalanceEvolutionChart({ initialBalance = 2229.81 }: BalanceEvolutionChartProps) {
+export function BalanceEvolutionChart({
+  initialBalance = 0,
+  data,
+}: BalanceEvolutionChartProps) {
   const { isPrivate } = usePrivacy();
+  const chartData = data ?? [];
 
   const formattedBalance = isPrivate ? 'R$ •••••' : `R$ ${initialBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
@@ -40,9 +33,14 @@ export function BalanceEvolutionChart({ initialBalance = 2229.81 }: BalanceEvolu
         </span>
       </div>
 
+      {chartData.length === 0 ? (
+        <div className="h-[220px] w-full mt-6 flex items-center justify-center text-xs text-zinc-500">
+          Sem histórico suficiente para exibir a evolução do saldo.
+        </div>
+      ) : (
       <div className="h-[220px] w-full mt-6">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={mockData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <defs>
               <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#1d4ed8" stopOpacity={0.45} />
@@ -55,7 +53,6 @@ export function BalanceEvolutionChart({ initialBalance = 2229.81 }: BalanceEvolu
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#71717a', fontSize: 11 }}
-              ticks={['2025-08', '2026-04', '2026-11']}
               padding={{ left: 10, right: 10 }}
             />
             <YAxis hide domain={['dataMin - 300', 'dataMax + 200']} />
@@ -83,7 +80,7 @@ export function BalanceEvolutionChart({ initialBalance = 2229.81 }: BalanceEvolu
               fill="url(#balanceGradient)"
               dot={(props: { cx?: number; cy?: number; index?: number }) => {
                 // Highlight final point
-                if (props.index === mockData.length - 1 && props.cx && props.cy) {
+                if (props.index === chartData.length - 1 && props.cx && props.cy) {
                   return (
                     <circle
                       key="final-dot"
@@ -102,6 +99,7 @@ export function BalanceEvolutionChart({ initialBalance = 2229.81 }: BalanceEvolu
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      )}
     </div>
   );
 }

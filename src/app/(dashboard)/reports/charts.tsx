@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   ResponsiveContainer,
   PieChart,
@@ -15,8 +16,8 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/lib/format';
 
-// Fixed categorical order, validated for CVD-safe adjacent separation (see dataviz skill).
-const CATEGORY_COLORS = ['#3B82F6', '#22C55E', '#A78BFA', '#F59E0B', '#22D3EE', '#EF4444'];
+// CVD-safe and dark-blue theme compliant colors (no red)
+const CATEGORY_COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#818cf8', '#38bdf8', '#4f46e5', '#93c5fd'];
 
 function formatCurrencyTooltip(value: unknown) {
   const numeric = Array.isArray(value) ? value[0] : value;
@@ -39,15 +40,34 @@ export function ExpensesByCategoryChart({ data }: { data: CategoryDatum[] }) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
+    <ResponsiveContainer width="100%" height={260}>
       <PieChart>
-        <Pie data={data} dataKey="total" nameKey="category" innerRadius={50} outerRadius={80} paddingAngle={2}>
+        <Pie
+          data={data}
+          dataKey="total"
+          nameKey="category"
+          innerRadius={50}
+          outerRadius={80}
+          paddingAngle={3}
+        >
           {data.map((entry, index) => (
-            <Cell key={entry.category} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+            <Cell
+              key={entry.category}
+              fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]}
+              stroke="#111216"
+              strokeWidth={2}
+            />
           ))}
         </Pie>
-        <Tooltip formatter={formatCurrencyTooltip} />
-        <Legend verticalAlign="bottom" height={36} />
+        <Tooltip
+          formatter={formatCurrencyTooltip}
+          contentStyle={{ backgroundColor: '#181920', borderColor: '#27272a', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+        />
+        <Legend
+          verticalAlign="bottom"
+          height={36}
+          formatter={(value) => <span style={{ color: '#d4d4d8', fontSize: '11px', fontFamily: 'inherit' }}>{value}</span>}
+        />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -66,34 +86,50 @@ export function EvolutionChart({ data }: { data: EvolutionDatum[] }) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-        <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => formatCurrency(value)} width={90} />
-        <Tooltip formatter={formatCurrencyTooltip} />
-        <Legend />
-        <Bar dataKey="income" name="Receitas" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="expenses" name="Despesas" fill="#EF4444" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="investments" name="Investimentos" fill="#22C55E" radius={[4, 4, 0, 0]} />
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
+        <XAxis dataKey="label" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'inherit' }} axisLine={false} tickLine={false} />
+        <YAxis
+          tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'inherit' }}
+          tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+          width={65}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip
+          formatter={formatCurrencyTooltip}
+          contentStyle={{ backgroundColor: '#181920', borderColor: '#27272a', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+        />
+        <Legend
+          formatter={(value) => <span style={{ color: '#d4d4d8', fontSize: '11px', fontFamily: 'inherit' }}>{value}</span>}
+        />
+        <Bar dataKey="income" name="Receitas" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="expenses" name="Despesas" fill="#2563eb" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="investments" name="Investimentos" fill="#38bdf8" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
 export function InvestmentsVsTargetChart({ current, target }: { current: number; target: number }) {
-  const data = [{ label: 'Investimentos', current: Math.round(current * 10) / 10, target: Math.round(target * 10) / 10 }];
+  const data = [{ label: 'Taxa de Poupança', current: Math.round(current * 10) / 10, target: Math.round(target * 10) / 10 }];
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} layout="vertical" margin={{ left: 24 }}>
-        <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
-        <XAxis type="number" unit="%" tick={{ fontSize: 12 }} />
-        <YAxis type="category" dataKey="label" tick={{ fontSize: 12 }} width={100} />
-        <Tooltip formatter={formatPercentTooltip} />
-        <Legend />
-        <Bar dataKey="current" name="Atual" fill="#3B82F6" radius={[0, 4, 4, 0]} />
-        <Bar dataKey="target" name="Meta" fill="#22D3EE" radius={[0, 4, 4, 0]} />
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#27272a" />
+        <XAxis type="number" unit="%" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'inherit' }} axisLine={false} tickLine={false} />
+        <YAxis type="category" dataKey="label" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'inherit' }} width={110} axisLine={false} tickLine={false} />
+        <Tooltip
+          formatter={formatPercentTooltip}
+          contentStyle={{ backgroundColor: '#181920', borderColor: '#27272a', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+        />
+        <Legend
+          formatter={(value) => <span style={{ color: '#d4d4d8', fontSize: '11px', fontFamily: 'inherit' }}>{value}</span>}
+        />
+        <Bar dataKey="current" name="Realizado" fill="#2563eb" radius={[0, 4, 4, 0]} />
+        <Bar dataKey="target" name="Meta Sugerida" fill="#38bdf8" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -107,19 +143,30 @@ export interface CategoryGoalDatum {
 
 export function CategoryVsGoalChart({ data }: { data: CategoryGoalDatum[] }) {
   if (data.length === 0) {
-    return <EmptyState message="Defina metas por categoria em /goals para comparar com o gasto real." />;
+    return <EmptyState message="Sem dados de categorias para o período selecionado." />;
   }
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-        <XAxis dataKey="category" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => formatCurrency(value)} width={90} />
-        <Tooltip formatter={formatCurrencyTooltip} />
-        <Legend />
-        <Bar dataKey="actual" name="Gasto" fill="#EF4444" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="target" name="Meta" fill="#22D3EE" radius={[4, 4, 0, 0]} />
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
+        <XAxis dataKey="category" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'inherit' }} axisLine={false} tickLine={false} />
+        <YAxis
+          tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'inherit' }}
+          tickFormatter={(value) => `R$ ${(value / 1000).toFixed(1)}k`}
+          width={65}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Tooltip
+          formatter={formatCurrencyTooltip}
+          contentStyle={{ backgroundColor: '#181920', borderColor: '#27272a', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+        />
+        <Legend
+          formatter={(value) => <span style={{ color: '#d4d4d8', fontSize: '11px', fontFamily: 'inherit' }}>{value}</span>}
+        />
+        <Bar dataKey="actual" name="Gasto Real" fill="#2563eb" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="target" name="Teto Estimado" fill="#38bdf8" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -127,7 +174,7 @@ export function CategoryVsGoalChart({ data }: { data: CategoryGoalDatum[] }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
+    <div className="flex h-[240px] items-center justify-center text-xs text-zinc-500 font-sans">
       {message}
     </div>
   );

@@ -14,8 +14,8 @@ interface ExpenseBreakdownCardsProps {
 }
 
 export function ExpenseBreakdownCards({
-  totalExpenses = 12211.06,
-  totalPending = 1960.0,
+  totalExpenses = 0,
+  totalPending = 0,
   categorizedExpenses = [],
   pendingExpenses = [],
 }: ExpenseBreakdownCardsProps) {
@@ -26,31 +26,8 @@ export function ExpenseBreakdownCards({
     return `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const displayCategorized =
-    categorizedExpenses.length > 0
-      ? categorizedExpenses
-      : [
-          { name: 'Transfers', amount: 1877.22, percentage: 100, color: 'bg-blue-600' },
-          { name: 'Eating out', amount: 1505.43, percentage: 80, color: 'bg-indigo-500' },
-          { name: 'Groceries', amount: 1260.07, percentage: 67, color: 'bg-sky-500' },
-          { name: 'School', amount: 940.9, percentage: 50, color: 'bg-purple-500' },
-          { name: 'Shopping', amount: 885.76, percentage: 47, color: 'bg-cyan-500' },
-          { name: 'Gas stations', amount: 808.29, percentage: 43, color: 'bg-amber-400' },
-          { name: 'Clothing', amount: 801.89, percentage: 42, color: 'bg-emerald-500' },
-          { name: 'Taxi and ride-hailing', amount: 730.11, percentage: 39, color: 'bg-teal-500' },
-        ];
-
-  const displayPending =
-    pendingExpenses.length > 0
-      ? pendingExpenses
-      : [
-          { name: 'Transfers', amount: 541.51, percentage: 100, color: 'bg-violet-400' },
-          { name: 'Shopping', amount: 325.8, percentage: 60, color: 'bg-blue-600' },
-          { name: 'Eating out', amount: 316.98, percentage: 58, color: 'bg-sky-400' },
-          { name: 'Groceries', amount: 269.39, percentage: 50, color: 'bg-cyan-400' },
-          { name: 'Cinema, theater and concerts', amount: 114.75, percentage: 21, color: 'bg-yellow-400' },
-          { name: 'Services', amount: 96.43, percentage: 18, color: 'bg-pink-400' },
-        ];
+  const displayCategorized = categorizedExpenses;
+  const displayPending = pendingExpenses;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -79,20 +56,24 @@ export function ExpenseBreakdownCards({
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-4">
-          {displayCategorized.map((cat) => (
-            <div key={cat.name} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-200 font-medium">{cat.name}</span>
-                <span className="text-zinc-300 font-medium">{formatAmount(cat.amount)}</span>
+          {displayCategorized.length === 0 ? (
+            <p className="text-xs text-zinc-500">Nenhuma despesa categorizada neste período.</p>
+          ) : (
+            displayCategorized.map((cat) => (
+              <div key={cat.name} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-200 font-medium">{cat.name}</span>
+                  <span className="text-zinc-300 font-medium">{formatAmount(cat.amount)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${cat.color}`}
+                    style={{ width: `${cat.percentage}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${cat.color}`}
-                  style={{ width: `${cat.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </CardContent>
       </Card>
 
@@ -121,20 +102,24 @@ export function ExpenseBreakdownCards({
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-4">
-          {displayPending.map((cat) => (
-            <div key={cat.name} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-200 font-medium">{cat.name}</span>
-                <span className="text-zinc-300 font-medium">{formatAmount(cat.amount)}</span>
+          {displayPending.length === 0 ? (
+            <p className="text-xs text-zinc-500">Nenhuma despesa futura pendente.</p>
+          ) : (
+            displayPending.map((cat) => (
+              <div key={cat.name} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-200 font-medium">{cat.name}</span>
+                  <span className="text-zinc-300 font-medium">{formatAmount(cat.amount)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${cat.color}`}
+                    style={{ width: `${cat.percentage}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${cat.color}`}
-                  style={{ width: `${cat.percentage}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

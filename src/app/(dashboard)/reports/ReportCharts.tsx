@@ -1,3 +1,6 @@
+'use client';
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ExpensesByCategoryChart,
@@ -23,39 +26,51 @@ export function ReportCharts({
   categoryVsGoalData: CategoryGoalDatum[];
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Despesas por Categoria</CardTitle>
+    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+      {/* Despesas por Categoria */}
+      <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm">
+        <CardHeader className="pb-2 pt-5 px-6">
+          <CardTitle className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Despesas por Categoria
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-4">
           <ExpensesByCategoryChart data={categoryData} />
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Evolução (Receitas vs Despesas vs Investimentos)</CardTitle>
+      {/* Evolução Histórica */}
+      <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm lg:col-span-2">
+        <CardHeader className="pb-2 pt-5 px-6">
+          <CardTitle className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Evolução (Receitas vs Despesas vs Investimentos)
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-4">
           <EvolutionChart data={evolutionData} />
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Investimentos vs Meta</CardTitle>
+      {/* Investimentos vs Meta */}
+      <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm">
+        <CardHeader className="pb-2 pt-5 px-6">
+          <CardTitle className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Poupança vs Meta
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-4">
           <InvestmentsVsTargetChart current={currentInvestmentPercentage} target={minInvestmentPercentage} />
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Gasto vs Meta por Categoria (mês atual)</CardTitle>
+      {/* Gasto vs Meta por Categoria */}
+      <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm lg:col-span-4">
+        <CardHeader className="pb-2 pt-5 px-6">
+          <CardTitle className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            Gasto vs Meta por Categoria
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-4">
           <CategoryVsGoalChart data={categoryVsGoalData} />
         </CardContent>
       </Card>

@@ -30,14 +30,19 @@ export default async function DashboardPage() {
           }}
           investmentsData={{
             total: data.investmentTotal,
+            count: data.investmentCount,
             subtitle: `${data.activeInvestmentCount} ativos, ${data.inactiveInvestmentCount} inativos`,
             categoryName: 'Renda Fixa',
             percentage: 100,
+            institutions: data.investmentInstitutions,
           }}
         />
 
         {/* Bottom Wide Card: Evolução do Saldo */}
-        <BalanceEvolutionCard balance={data.evolutionBalance} />
+        <BalanceEvolutionCard
+          balance={data.evolutionBalance}
+          data={data.evolutionData}
+        />
       </div>
     </div>
   );

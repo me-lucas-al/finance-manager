@@ -11,98 +11,14 @@ interface AtivosListProps {
   initialAssets?: LiveAssetItem[];
 }
 
-const defaultAssets: LiveAssetItem[] = [
-  {
-    id: 'asset-1',
-    name: 'CDB – ITAU UNIBANCO S.A.',
-    bank: 'itau',
-    bankName: 'Itaú',
-    type: 'CDB',
-    amount: 146.01,
-    percentage: 76.5,
-  },
-  {
-    id: 'asset-2',
-    name: 'CDB – ITAU UNIBANCO S.A.',
-    bank: 'itau',
-    bankName: 'Itaú',
-    type: 'CDB',
-    amount: 44.74,
-    percentage: 23.5,
-  },
-  {
-    id: 'asset-3',
-    name: 'CDB – BANCO INTER S.A',
-    bank: 'inter',
-    bankName: 'Inter',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-  {
-    id: 'asset-4',
-    name: 'CDB – NU FINANCEIRA S.A. – SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO',
-    bank: 'nubank',
-    bankName: 'Nubank',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-  {
-    id: 'asset-5',
-    name: 'CDB – NU FINANCEIRA S.A. – SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO',
-    bank: 'nubank',
-    bankName: 'Nubank',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-  {
-    id: 'asset-6',
-    name: 'CDB – NU FINANCEIRA S.A. – SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO',
-    bank: 'nubank',
-    bankName: 'Nubank',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-  {
-    id: 'asset-7',
-    name: 'CDB – NU FINANCEIRA S.A. – SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO',
-    bank: 'nubank',
-    bankName: 'Nubank',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-  {
-    id: 'asset-8',
-    name: 'CDB – NU FINANCEIRA S.A. – SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO',
-    bank: 'nubank',
-    bankName: 'Nubank',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-  {
-    id: 'asset-9',
-    name: 'CDB – NU FINANCEIRA S.A. – SOCIEDADE DE CREDITO, FINANCIAMENTO E INVESTIMENTO',
-    bank: 'nubank',
-    bankName: 'Nubank',
-    type: 'CDB',
-    amount: 0,
-    percentage: 0.0,
-  },
-];
-
 export function AtivosList({
-  initialTotal = 190.75,
+  initialTotal = 0,
   initialAssets = [],
 }: AtivosListProps) {
   const { isPrivate } = usePrivacy();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const assetsList = initialAssets.length > 0 ? initialAssets : defaultAssets;
+  const assetsList = initialAssets;
   const totalAmount = initialTotal;
 
   const formatAmount = (val: number) => {
@@ -154,8 +70,17 @@ export function AtivosList({
             return (
               <div key={asset.id} className="transition-colors hover:bg-zinc-800/30">
                 <div
-                  className="px-6 py-4 flex items-center justify-between cursor-pointer group"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  className="px-6 py-4 flex items-center justify-between cursor-pointer group outline-none focus-visible:bg-zinc-800/50"
                   onClick={() => setExpandedId(isExpanded ? null : asset.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setExpandedId(isExpanded ? null : asset.id);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-3.5 min-w-0 pr-4">
                     {/* Icon */}
@@ -207,7 +132,7 @@ export function AtivosList({
                 </div>
 
                 {isExpanded && (
-                  <div className="px-6 py-3 bg-zinc-900/40 border-t border-zinc-800/40 text-xs text-zinc-400 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="px-6 py-3 bg-zinc-900/40 border-t border-zinc-800/40 text-xs text-zinc-400 grid grid-cols-3 gap-4">
                     <div>
                       <span className="text-zinc-500 block">Instituição</span>
                       <span className="text-white font-medium">{asset.bankName}</span>
@@ -221,10 +146,6 @@ export function AtivosList({
                       <span className="text-emerald-400 font-medium">
                         {asset.amount > 0 ? 'Ativo' : 'Inativo'}
                       </span>
-                    </div>
-                    <div>
-                      <span className="text-zinc-500 block">Rentabilidade</span>
-                      <span className="text-white font-medium">100% CDI</span>
                     </div>
                   </div>
                 )}
