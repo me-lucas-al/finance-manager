@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Landmark, CreditCard, TrendingUp, ChevronDown, Lock, ChevronUp } from 'lucide-react';
+import { Landmark, CreditCard, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { usePrivacy } from '@/components/PrivacyProvider';
@@ -11,11 +11,10 @@ interface OverviewCardsProps {
     total: number;
     accounts: Array<{
       id: string;
-      bank: 'itau' | 'nubank' | 'inter';
+      bank: string;
       name: string;
       countText: string;
       amount: number;
-      locked?: boolean;
     }>;
   };
   creditCardData?: {
@@ -118,15 +117,17 @@ export function OverviewCards({
                         inter
                       </div>
                     )}
+                    {acc.bank !== 'itau' && acc.bank !== 'nubank' && acc.bank !== 'inter' && (
+                      <div className="h-7 w-7 rounded-md bg-zinc-700 flex items-center justify-center font-bold text-[10px] text-white">
+                        {acc.name.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
 
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-medium text-white group-hover:text-zinc-200">
                           {acc.name}
                         </span>
-                        {acc.locked && (
-                          <Lock className="h-3 w-3 text-amber-500/80" />
-                        )}
                       </div>
                       <p className="text-xs text-zinc-500">{acc.countText}</p>
                     </div>

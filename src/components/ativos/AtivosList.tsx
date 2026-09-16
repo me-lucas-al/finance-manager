@@ -108,6 +108,11 @@ export function AtivosList({
                             nu
                           </span>
                         )}
+                        {asset.bank !== 'itau' && asset.bank !== 'inter' && asset.bank !== 'nubank' && (
+                          <span className="h-3.5 px-1 bg-zinc-700 text-white text-[9px] font-bold rounded flex items-center">
+                            {asset.bankName.slice(0, 2).toUpperCase()}
+                          </span>
+                        )}
                         <span>{asset.bankName} · {asset.type}</span>
                       </div>
                     </div>
