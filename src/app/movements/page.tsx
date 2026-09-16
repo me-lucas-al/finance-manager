@@ -28,8 +28,8 @@ export default async function MovementsPage({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
-  const defaultMonth = getCurrentMonth();
   const { month: rawMonth } = await searchParams;
+  const defaultMonth = getCurrentMonth();
   const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
 
   const data = await getLiveMovementsData(month);
