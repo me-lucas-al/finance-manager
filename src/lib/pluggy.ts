@@ -22,10 +22,23 @@ export function getPluggyClient(): PluggyClient {
 // Pagamentos S.A."), so a bank can have more than one recognizable alias.
 const BANK_ALIASES: [alias: string, bank: string][] = [
   ['itau', 'itau'],
+  ['click', 'itau'],
   ['nubank', 'nubank'],
   ['nu pagamentos', 'nubank'],
   ['inter', 'inter'],
 ];
+
+const BANK_DISPLAY_NAMES: Record<string, string> = {
+  itau: 'Itaú',
+  nubank: 'Nubank',
+  inter: 'Inter',
+};
+
+// For institutions normalizeBankName didn't recognize, the raw name is all
+// we have — capitalize its first letter so it still reads as a proper noun.
+export function bankDisplayName(bank: string): string {
+  return BANK_DISPLAY_NAMES[bank] ?? bank.charAt(0).toUpperCase() + bank.slice(1);
+}
 
 function stripAccents(value: string): string {
   return value.normalize('NFD').replace(/\p{Diacritic}/gu, '');

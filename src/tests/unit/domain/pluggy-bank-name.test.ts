@@ -15,6 +15,15 @@ describe('normalizeBankName', () => {
     expect(normalizeBankName('Banco Inter')).toBe('inter');
   });
 
+  it('maps Itaú "Click" product names to "itau"', () => {
+    expect(normalizeBankName('Itaú Click Múltiplo MC Plat')).toBe('itau');
+  });
+
+  it('falls back to the raw name for ambiguous product names like "gold"', () => {
+    expect(normalizeBankName('gold')).toBe('gold');
+    expect(normalizeBankName('GOLD')).toBe('GOLD');
+  });
+
   it('is case-insensitive and accent-insensitive', () => {
     expect(normalizeBankName('ITAU')).toBe('itau');
     expect(normalizeBankName('iTaú')).toBe('itau');
