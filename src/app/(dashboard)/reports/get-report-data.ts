@@ -2,8 +2,9 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { userSettings } from '@/db/schema';
 import { fetchRawPluggyData } from '@/lib/pluggy-service';
+import { getCurrentMonth, shiftMonth } from '@/lib/month';
 import { loadCategoryVsGoalData } from './category-vs-goal';
-import { formatMonthLabel, getCurrentMonth, shiftMonth } from './month-format';
+import { formatMonthLabel } from './month-format';
 import type { CategoryDatum, EvolutionDatum, CategoryGoalDatum } from './charts';
 
 export type ReportFilterParams = {

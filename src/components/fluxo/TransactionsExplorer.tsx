@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { usePrivacy } from '@/components/PrivacyProvider';
+import { getCurrentMonth, shiftMonth } from '@/lib/month';
 import type { LiveTransactionItem } from '@/lib/pluggy-service';
 
 interface TransactionsExplorerProps {
@@ -29,12 +30,6 @@ interface TransactionsExplorerProps {
   totalIncome?: number;
   totalExpenses?: number;
   netBalance?: number;
-}
-
-function shiftMonth(month: string, delta: number): string {
-  const [year, mon] = month.split('-').map(Number);
-  const date = new Date(year, mon - 1 + delta, 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export function TransactionsExplorer({
@@ -52,8 +47,7 @@ export function TransactionsExplorer({
   const [selectedAccount, setSelectedAccount] = useState('all');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
 
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const currentMonth = getCurrentMonth();
   const previousMonth = shiftMonth(month, -1);
   const nextMonth = shiftMonth(month, 1);
   const isNextDisabled = nextMonth > currentMonth;

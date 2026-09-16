@@ -1,4 +1,5 @@
 import { getLiveMovementsData } from '@/lib/pluggy-service';
+import { getCurrentMonth } from '@/lib/month';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
 import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
 
@@ -27,8 +28,7 @@ export default async function MovementsPage({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
-  const now = new Date();
-  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const defaultMonth = getCurrentMonth();
   const { month: rawMonth } = await searchParams;
   const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
 
