@@ -13,7 +13,9 @@ export default async function ReportsPage({
   const userId = await getEffectiveUserId();
   const resolvedParams = await searchParams;
 
-  const period = resolvedParams.period || resolvedParams.range || '2026-09';
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const period = resolvedParams.period || resolvedParams.range || currentMonth;
   const bank = resolvedParams.bank || 'all';
 
   const data = await getReportData(userId, { period, bank });

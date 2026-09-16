@@ -1,8 +1,13 @@
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { userSettings } from '@/db/schema';
 import { fetchRawPluggyData } from '@/lib/pluggy-service';
+import { loadCategoryVsGoalData } from './category-vs-goal';
+import { formatMonthLabel, getCurrentMonth, shiftMonth } from './month-format';
 import type { CategoryDatum, EvolutionDatum, CategoryGoalDatum } from './charts';
 
 export type ReportFilterParams = {
-  period?: string; // '2026-09', '2026-08', '2026-07', '2026-06', 'all', 'current', 'last'
+  period?: string; // 'YYYY-MM', 'all', 'current', 'last'
   bank?: string;   // 'all', 'itau', 'nubank', 'inter'
 };
 
@@ -25,45 +30,26 @@ export type ReportData = {
   selectedBank: string;
 };
 
-const MONTH_LABELS: Record<string, string> = {
-  '2026-09': 'Set/26',
-  '2026-08': 'Ago/26',
-  '2026-07': 'Jul/26',
-  '2026-06': 'Jun/26',
-  '2026-05': 'Mai/26',
-  '2026-04': 'Abr/26',
-  '2026-03': 'Mar/26',
-  '2026-02': 'Fev/26',
-  '2026-01': 'Jan/26',
-  '2025-12': 'Dez/25',
-  '2025-11': 'Nov/25',
-  '2025-10': 'Out/25',
-  '2025-09': 'Set/25',
-  '2025-08': 'Ago/25',
-};
-
 export async function getReportData(
   userId: string,
   params: ReportFilterParams
 ): Promise<ReportData> {
   const { allTransactions, allInvestments } = await fetchRawPluggyData();
 
+  const currentMonth = getCurrentMonth();
+  const lastMonth = shiftMonth(currentMonth, -1);
+
   // Normalize period filter
-  let period = params.period || '2026-09';
-  if (period === 'current') period = '2026-09';
-  if (period === 'last') period = '2026-08';
+  let period = params.period || currentMonth;
+  if (period === 'current') period = currentMonth;
+  if (period === 'last') period = lastMonth;
 
   const bank = params.bank || 'all';
 
   // Filter transactions
   const filteredTransactions = allTransactions.filter((tx) => {
     // 1. Bank filter
-    if (bank !== 'all') {
-      const acc = (tx.accountName || '').toLowerCase();
-      if (bank === 'itau' && !acc.includes('itau') && !acc.includes('click')) return false;
-      if (bank === 'nubank' && !acc.includes('nu') && !acc.includes('pagamentos')) return false;
-      if (bank === 'inter' && !acc.includes('inter') && !acc.includes('gold')) return false;
-    }
+    if (bank !== 'all' && tx.bank !== bank) return false;
 
     // 2. Period filter
     if (period !== 'all') {
@@ -98,10 +84,9 @@ export async function getReportData(
       ? 'Nenhuma transação encontrada para o período e banco selecionados.'
       : null;
 
-  let totalInvestments = 0;
-  if (bank === 'all' || bank === 'itau') {
-    totalInvestments = allInvestments.reduce((sum, inv) => sum + (Number(inv.balance) || 0), 0);
-  }
+  const totalInvestments = allInvestments
+    .filter((inv) => bank === 'all' || inv.bank === bank)
+    .reduce((sum, inv) => sum + (Number(inv.balance) || 0), 0);
 
   const balance = totalIncome - totalExpenses;
   const expensePercentage = totalIncome > 0 ? Math.min(100, Math.round((totalExpenses / totalIncome) * 100)) : 0;
@@ -116,12 +101,7 @@ export async function getReportData(
   // Evolution chart across months
   const monthlyAggregates: Record<string, { income: number; expenses: number }> = {};
   for (const tx of allTransactions) {
-    if (bank !== 'all') {
-      const acc = (tx.accountName || '').toLowerCase();
-      if (bank === 'itau' && !acc.includes('itau') && !acc.includes('click')) continue;
-      if (bank === 'nubank' && !acc.includes('nu') && !acc.includes('pagamentos')) continue;
-      if (bank === 'inter' && !acc.includes('inter') && !acc.includes('gold')) continue;
-    }
+    if (bank !== 'all' && tx.bank !== bank) continue;
 
     const txDateStr = tx.date instanceof Date ? tx.date.toISOString() : String(tx.date);
     const m = txDateStr.slice(0, 7);
@@ -136,37 +116,22 @@ export async function getReportData(
     }
   }
 
-  // Last 6 consecutive months
-  const timelineMonths = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09'];
+  // Last 6 consecutive months ending on the current real month
+  const timelineMonths = Array.from({ length: 6 }, (_, i) => shiftMonth(currentMonth, i - 5));
   const evolutionData: EvolutionDatum[] = timelineMonths.map((ym) => {
     const agg = monthlyAggregates[ym] || { income: 0, expenses: 0 };
-    const label = MONTH_LABELS[ym] || ym;
     return {
-      label,
+      label: formatMonthLabel(ym),
       income: Math.round(agg.income * 100) / 100,
       expenses: Math.round(agg.expenses * 100) / 100,
-      investments: ym === '2026-09' ? totalInvestments : 0,
+      investments: ym === currentMonth ? totalInvestments : 0,
     };
   });
 
-  // Category vs Goal data
-  const defaultGoals: Record<string, number> = {
-    Transfers: 2000,
-    'Eating out': 1200,
-    Groceries: 1500,
-    School: 1000,
-    Shopping: 800,
-    'Gas stations': 900,
-    Clothing: 700,
-  };
+  const categoryVsGoalData = await loadCategoryVsGoalData(userId);
 
-  const categoryVsGoalData: CategoryGoalDatum[] = Object.entries(categoryMap)
-    .slice(0, 6)
-    .map(([category, actual]) => ({
-      category,
-      actual: Math.round(actual),
-      target: defaultGoals[category] || Math.round(actual * 1.1),
-    }));
+  const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+  const minInvestmentPercentage = settings?.minInvestmentPercentage ?? 20;
 
   return {
     noDataMessage,
@@ -181,7 +146,7 @@ export async function getReportData(
     categoryData,
     evolutionData,
     currentInvestmentPercentage: investmentPercentage,
-    minInvestmentPercentage: 20,
+    minInvestmentPercentage,
     categoryVsGoalData,
     selectedPeriod: period,
     selectedBank: bank,

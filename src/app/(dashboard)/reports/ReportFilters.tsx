@@ -10,13 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { formatMonthLabel, getCurrentMonth, shiftMonth } from './month-format';
 
 const PERIOD_OPTIONS = [
-  { value: '2026-09', label: 'Setembro 2026 (Atual)' },
-  { value: '2026-08', label: 'Agosto 2026' },
-  { value: '2026-07', label: 'Julho 2026' },
-  { value: '2026-06', label: 'Junho 2026' },
-  { value: '2026-05', label: 'Maio 2026' },
+  ...Array.from({ length: 5 }, (_, i) => {
+    const month = shiftMonth(getCurrentMonth(), -i);
+    return {
+      value: month,
+      label: i === 0 ? `${formatMonthLabel(month)} (Atual)` : formatMonthLabel(month),
+    };
+  }),
   { value: 'all', label: 'Todo o Histórico' },
 ];
 
