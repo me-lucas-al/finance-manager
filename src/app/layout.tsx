@@ -6,6 +6,7 @@ import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { AppHeader } from '@/components/AppHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PrivacyProvider } from '@/components/PrivacyProvider';
+import { AssistantChat } from '@/components/AssistantChat';
 
 const inter = Inter({
   variable: '--font-sans',
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">
               {children}
             </main>
+            <AssistantChat />
           </PrivacyProvider>
         </TooltipProvider>
       </body>

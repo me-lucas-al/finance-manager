@@ -434,3 +434,41 @@ export async function getLiveInvestmentsData(): Promise<{
     assets,
   };
 }
+
+export async function searchLiveTransactions(query: string, limit: number = 20): Promise<LiveTransactionItem[]> {
+  const { allTransactions } = await fetchRawPluggyData();
+  const lowerQuery = query.toLowerCase();
+
+  const mapped: LiveTransactionItem[] = allTransactions.map((tx) => {
+    const rawDate = new Date(tx.date);
+    const day = rawDate.getDate();
+    const weekday = WEEKDAYS[rawDate.getDay()];
+    const dateStr = `${day} ${weekday}`;
+
+    const numAmount = Number(tx.amount);
+    const isIncome = tx.type === 'CREDIT' || numAmount > 0;
+    const isExpense = !isIncome;
+
+    return {
+      id: tx.id,
+      dateStr,
+      rawDate,
+      type: isExpense ? 'expense' : 'income',
+      description: tx.description,
+      account: tx.accountName || 'Conta Corrente',
+      category: tx.category || 'Outros',
+      amount: numAmount,
+      bank: tx.bank,
+      isCreditCard: tx.isCreditCard,
+    };
+  });
+
+  const results = mapped.filter(t => 
+    t.description.toLowerCase().includes(lowerQuery) || 
+    t.category.toLowerCase().includes(lowerQuery)
+  );
+
+  results.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
+
+  return results.slice(0, limit);
+}
