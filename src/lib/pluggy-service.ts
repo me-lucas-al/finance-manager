@@ -110,7 +110,8 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
     const repo = new SupabaseAccountRepository();
     const dbAccounts = await repo.findAllByUserId(userId);
     itemIds = Array.from(new Set(dbAccounts.map((a) => a.pluggyItemId).filter(Boolean)));
-  } catch {
+  } catch (error) {
+    console.error('Failed to resolve connected Pluggy item ids:', error);
     itemIds = [];
   }
 
