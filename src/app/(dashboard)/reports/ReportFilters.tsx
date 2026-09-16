@@ -10,18 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatMonthLabel, getCurrentMonth, shiftMonth } from './month-format';
+import { getCurrentMonth, shiftMonth } from '@/lib/month';
+import { formatMonthLabel } from './month-format';
 
-const PERIOD_OPTIONS = [
-  ...Array.from({ length: 5 }, (_, i) => {
-    const month = shiftMonth(getCurrentMonth(), -i);
-    return {
-      value: month,
-      label: i === 0 ? `${formatMonthLabel(month)} (Atual)` : formatMonthLabel(month),
-    };
-  }),
-  { value: 'all', label: 'Todo o Histórico' },
-];
+function buildPeriodOptions() {
+  return [
+    ...Array.from({ length: 5 }, (_, i) => {
+      const month = shiftMonth(getCurrentMonth(), -i);
+      return {
+        value: month,
+        label: i === 0 ? `${formatMonthLabel(month)} (Atual)` : formatMonthLabel(month),
+      };
+    }),
+    { value: 'all', label: 'Todo o Histórico' },
+  ];
+}
 
 const BANK_OPTIONS = [
   { value: 'all', label: 'Todas as Instituições' },
@@ -38,6 +41,7 @@ interface ReportFiltersProps {
 export function ReportFilters({ period, bank }: ReportFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const periodOptions = buildPeriodOptions();
 
   function handleFilterChange(key: 'period' | 'bank', value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -69,7 +73,7 @@ export function ReportFilters({ period, bank }: ReportFiltersProps) {
                 <SelectValue placeholder="Selecione o período" />
               </SelectTrigger>
               <SelectContent className="bg-[#121318] border-zinc-800 text-zinc-200">
-                {PERIOD_OPTIONS.map((opt) => (
+                {periodOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value} className="text-xs cursor-pointer hover:bg-zinc-800">
                     {opt.label}
                   </SelectItem>
