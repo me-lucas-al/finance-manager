@@ -1,4 +1,4 @@
-import { KNOWN_BANK_NAMES } from '@/lib/pluggy';
+import { KNOWN_BANK_NAMES } from '@/lib/bank-names';
 
 export type ItemStatusPresentation = {
   label: string;

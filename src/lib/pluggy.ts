@@ -1,4 +1,5 @@
 import { PluggyClient, Transaction as PluggyTransaction } from 'pluggy-sdk';
+import { KNOWN_BANK_NAMES } from '@/lib/bank-names';
 
 let client: PluggyClient | null = null;
 
@@ -27,15 +28,6 @@ const BANK_ALIASES: [alias: string, bank: string][] = [
   ['nu pagamentos', 'nubank'],
   ['inter', 'inter'],
 ];
-
-// Single source of truth for the display name of the banks normalizeBankName
-// recognizes, shared with src/components/connections/bank-style.ts so the two
-// layers don't drift into different labels for the same bank key.
-export const KNOWN_BANK_NAMES: Record<string, string> = {
-  itau: 'Itaú',
-  nubank: 'Nubank',
-  inter: 'Inter',
-};
 
 // For institutions normalizeBankName didn't recognize, the raw name is all
 // we have — capitalize its first letter so it still reads as a proper noun.
