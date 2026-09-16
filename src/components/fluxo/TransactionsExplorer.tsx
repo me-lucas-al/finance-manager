@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronLeft,
   ChevronRight,
@@ -22,30 +23,46 @@ import { usePrivacy } from '@/components/PrivacyProvider';
 import type { LiveTransactionItem } from '@/lib/pluggy-service';
 
 interface TransactionsExplorerProps {
+  month: string;
+  monthLabel: string;
   initialTransactions?: LiveTransactionItem[];
   totalIncome?: number;
   totalExpenses?: number;
   netBalance?: number;
 }
 
+function shiftMonth(month: string, delta: number): string {
+  const [year, mon] = month.split('-').map(Number);
+  const date = new Date(year, mon - 1 + delta, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function TransactionsExplorer({
+  month,
+  monthLabel,
   initialTransactions = [],
   totalIncome = 0,
   totalExpenses = 0,
   netBalance = 0,
 }: TransactionsExplorerProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { isPrivate } = usePrivacy();
   const [search, setSearch] = useState('');
   const [selectedAccount, setSelectedAccount] = useState('all');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
-  const [monthIndex, setMonthIndex] = useState(0);
 
-  const months = [
-    'Setembro De 2026',
-    'Agosto De 2026',
-    'Julho De 2026',
-    'Junho De 2026',
-  ];
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const previousMonth = shiftMonth(month, -1);
+  const nextMonth = shiftMonth(month, 1);
+  const isNextDisabled = nextMonth > currentMonth;
+
+  function navigateToMonth(targetMonth: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('month', targetMonth);
+    router.push(`/movements?${params.toString()}`);
+  }
 
   const transactionsList = initialTransactions;
 
@@ -107,19 +124,18 @@ export function TransactionsExplorer({
           {/* Month Selector */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setMonthIndex((prev) => Math.max(0, prev - 1))}
-              disabled={monthIndex === 0}
+              onClick={() => navigateToMonth(previousMonth)}
               aria-label="Mês anterior"
               className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white disabled:opacity-40 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="text-sm font-semibold text-white px-2">
-              {months[monthIndex]}
+              {monthLabel}
             </span>
             <button
-              onClick={() => setMonthIndex((prev) => Math.min(months.length - 1, prev + 1))}
-              disabled={monthIndex === months.length - 1}
+              onClick={() => navigateToMonth(nextMonth)}
+              disabled={isNextDisabled}
               aria-label="Próximo mês"
               className="p-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white disabled:opacity-40 transition-colors"
             >
@@ -253,7 +269,7 @@ export function TransactionsExplorer({
                                   itaú
                                 </span>
                               )}
-                              {tx.bank === 'gold' && (
+                              {tx.isCreditCard && (
                                 <CreditCard className="h-3 w-3 text-zinc-400" />
                               )}
                               <span>{tx.account} · {tx.category}</span>

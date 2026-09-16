@@ -2,8 +2,37 @@ import { getLiveMovementsData } from '@/lib/pluggy-service';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
 import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
 
-export default async function MovementsPage() {
-  const data = await getLiveMovementsData();
+const MONTH_NAMES = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+];
+
+function formatMonthLabel(month: string): string {
+  const [year, mon] = month.split('-').map(Number);
+  return `${MONTH_NAMES[mon - 1]} De ${year}`;
+}
+
+export default async function MovementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const now = new Date();
+  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const { month: rawMonth } = await searchParams;
+  const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
+
+  const data = await getLiveMovementsData(month);
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
@@ -26,6 +55,8 @@ export default async function MovementsPage() {
 
         {/* Bottom Transactions Card with Live Data */}
         <TransactionsExplorer
+          month={month}
+          monthLabel={formatMonthLabel(month)}
           initialTransactions={data.transactions}
           totalIncome={data.totalIncome}
           totalExpenses={data.totalExpenses}
