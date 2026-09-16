@@ -55,6 +55,12 @@ export async function POST(req: NextRequest) {
       const askUseCase = new AskForTransactionReasonUseCase(transactionRepository);
 
       const newTransactions = await fetchNewTransactions(payload.accountId, payload.transactionsCreatedAtFrom);
+      console.log('[webhook-pluggy] transactions/created', {
+        itemId: payload.itemId,
+        accountId: payload.accountId,
+        transactionsCreatedAtFrom: payload.transactionsCreatedAtFrom,
+        fetchedCount: newTransactions.length,
+      });
       for (const transaction of newTransactions) {
         const stored = await ingestUseCase.execute(userId, payload.itemId, payload.accountId, transaction);
         if (stored && !stored.telegramQuestionMessageId) {

@@ -31,6 +31,11 @@ export class AskForTransactionReasonUseCase {
     });
 
     const messageId = await TelegramService.sendMessage(buildQuestionMessage(transaction, category));
+    console.log('[ask-transaction-reason]', {
+      transactionId: transaction.id,
+      category,
+      telegramMessageId: messageId,
+    });
 
     await this.transactionRepository.update(transaction.id, {
       categorySuggested: category,
