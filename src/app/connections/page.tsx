@@ -1,7 +1,14 @@
 import { OpenFinanceConnect } from './OpenFinanceConnect';
 import { ConnectionsView } from '@/components/connections/ConnectionsView';
+import { groupAccountsByItem } from '@/components/connections/group-accounts';
+import { getEffectiveUserId } from '@/app/actions/require-session';
+import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 
 export default async function ConnectionsPage() {
+  const userId = await getEffectiveUserId();
+  const accounts = await new SupabaseAccountRepository().findAllByUserId(userId);
+  const connections = groupAccountsByItem(accounts);
+
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
       <div className="max-w-[1440px] mx-auto p-4 sm:p-6 md:p-8 space-y-8">
@@ -20,7 +27,7 @@ export default async function ConnectionsPage() {
         </div>
 
         {/* Connections and Partner Apps */}
-        <ConnectionsView />
+        <ConnectionsView connections={connections} />
       </div>
     </div>
   );

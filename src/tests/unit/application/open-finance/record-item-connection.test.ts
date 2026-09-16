@@ -23,9 +23,8 @@ describe('RecordItemConnectionUseCase', () => {
 
   it('creates an account per item account with the item status', async () => {
     fetchItemConnectionInfoMock.mockResolvedValue({
-      bank: 'itau',
       status: 'UPDATED',
-      accounts: [{ id: 'account-1', accountType: 'CHECKING_ACCOUNT' }],
+      accounts: [{ id: 'account-1', accountType: 'CHECKING_ACCOUNT', bank: 'itau' }],
     });
 
     await useCase.execute('user-1', 'item-1');
@@ -47,9 +46,8 @@ describe('RecordItemConnectionUseCase', () => {
       lastSyncedAt: '2026-01-01T00:00:00.000Z',
     });
     fetchItemConnectionInfoMock.mockResolvedValue({
-      bank: 'itau',
       status: 'LOGIN_ERROR',
-      accounts: [{ id: 'account-1', accountType: 'CHECKING_ACCOUNT' }],
+      accounts: [{ id: 'account-1', accountType: 'CHECKING_ACCOUNT', bank: 'itau' }],
     });
 
     await useCase.execute('user-1', 'item-1');

@@ -19,7 +19,7 @@ export class RecordItemConnectionUseCase {
           userId: existing?.userId ?? userId,
           pluggyAccountId: account.id,
           pluggyItemId: itemId,
-          bank: info.bank,
+          bank: account.bank,
           accountType: account.accountType,
           itemStatus: info.status,
           lastSyncedAt: existing?.lastSyncedAt ?? null,

@@ -1,5 +1,5 @@
 import type { Transaction as PluggyTransaction } from 'pluggy-sdk';
-import { fetchAccountType, fetchItemBankName } from '@/lib/pluggy';
+import { fetchAccountInfo } from '@/lib/pluggy';
 import { toBrazilDateString } from '@/lib/format';
 import type { AccountRepository } from '../../domain/repositories/account-repository';
 import type { Transaction, TransactionRepository } from '../../domain/repositories/transaction-repository';
@@ -26,7 +26,7 @@ export class IngestPluggyTransactionUseCase {
       });
     }
 
-    const [bank, accountType] = await Promise.all([fetchItemBankName(itemId), fetchAccountType(accountId)]);
+    const { bank, accountType } = await fetchAccountInfo(accountId);
     return this.accountRepository.upsert({
       userId,
       pluggyAccountId: accountId,
@@ -41,13 +41,10 @@ export class IngestPluggyTransactionUseCase {
   // Idempotent: the Pluggy sync retries webhooks and the same transaction can
   // be reported more than once, so this is a no-op when it was already ingested.
   //
-  // Only DEBIT (money going out) transactions are ingested — CREDIT movements
-  // (salary, incoming Pix, refunds...) are not "gastos" and must never trigger
-  // the categorization/Telegram question flow. Callers should skip CREDIT
-  // transactions before calling this (see /api/webhook-pluggy), but this is
-  // re-checked here so no caller can accidentally store one. The amount is
-  // stored as a positive "spent" value so every downstream sum (goals,
-  // analytics, the daily analysis job) can treat every stored row as spend.
+  // Both DEBIT and CREDIT movements are ingested and asked about on Telegram —
+  // the amount is stored as its absolute value so downstream sums don't need
+  // to special-case sign, and `reason`/`category` capture whether it was an
+  // expense or income.
   async execute(
     userId: string,
     itemId: string,

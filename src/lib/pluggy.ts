@@ -17,30 +17,37 @@ export function getPluggyClient(): PluggyClient {
   return client;
 }
 
-const BANK_KEYWORDS = ['itau', 'nubank', 'inter'];
+// Some accounts surface their institution via a legal/registered name rather
+// than the everyday brand (e.g. Nubank's accounts are named after "Nu
+// Pagamentos S.A."), so a bank can have more than one recognizable alias.
+const BANK_ALIASES: [alias: string, bank: string][] = [
+  ['itau', 'itau'],
+  ['nubank', 'nubank'],
+  ['nu pagamentos', 'nubank'],
+  ['inter', 'inter'],
+];
 
 function stripAccents(value: string): string {
   return value.normalize('NFD').replace(/\p{Diacritic}/gu, '');
 }
 
-// Pluggy identifies the institution via item.connector.name (e.g. "Itaú",
-// "Banco Inter"), not a fixed enum — this maps it to the bank keys the rest of
-// the app expects (transactions.bank: itau/nubank/inter), falling back to the
-// raw connector name for any other institution.
-export function normalizeBankName(connectorName: string): string {
-  const normalized = stripAccents(connectorName).toLowerCase();
-  const match = BANK_KEYWORDS.find((keyword) => normalized.includes(keyword));
-  return match ?? connectorName;
+// Pluggy identifies the institution via a connector or account name (e.g.
+// "Itaú", "Banco Inter"), not a fixed enum — this maps it to the bank keys the
+// rest of the app expects (transactions.bank: itau/nubank/inter), falling
+// back to the raw name for any other institution.
+export function normalizeBankName(name: string): string {
+  const normalized = stripAccents(name).toLowerCase();
+  const match = BANK_ALIASES.find(([alias]) => normalized.includes(alias));
+  return match?.[1] ?? name;
 }
 
-export async function fetchItemBankName(itemId: string): Promise<string> {
-  const item = await getPluggyClient().fetchItem(itemId);
-  return normalizeBankName(item.connector.name);
-}
-
-export async function fetchAccountType(accountId: string): Promise<string> {
+// Bank identity is derived from the account's own name, not the item's
+// connector — an aggregator connector (e.g. "MeuPluggy") wraps accounts from
+// several different real institutions under one item, so the connector name
+// alone can't tell them apart.
+export async function fetchAccountInfo(accountId: string): Promise<{ bank: string; accountType: string }> {
   const account = await getPluggyClient().fetchAccount(accountId);
-  return account.subtype;
+  return { bank: normalizeBankName(account.name), accountType: account.subtype };
 }
 
 export async function fetchTransactionDetails(transactionId: string): Promise<PluggyTransaction> {
@@ -48,9 +55,8 @@ export async function fetchTransactionDetails(transactionId: string): Promise<Pl
 }
 
 export type PluggyItemConnectionInfo = {
-  bank: string;
   status: string;
-  accounts: { id: string; accountType: string }[];
+  accounts: { id: string; accountType: string; bank: string }[];
 };
 
 // Called right after PluggyConnect's onSuccess so a connection is recorded even
@@ -62,9 +68,12 @@ export async function fetchItemConnectionInfo(itemId: string): Promise<PluggyIte
   const client = getPluggyClient();
   const [item, accountsPage] = await Promise.all([client.fetchItem(itemId), client.fetchAccounts(itemId)]);
   return {
-    bank: normalizeBankName(item.connector.name),
     status: item.status,
-    accounts: accountsPage.results.map((account) => ({ id: account.id, accountType: account.subtype })),
+    accounts: accountsPage.results.map((account) => ({
+      id: account.id,
+      accountType: account.subtype,
+      bank: normalizeBankName(account.name),
+    })),
   };
 }
 
