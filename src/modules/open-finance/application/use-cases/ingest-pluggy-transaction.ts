@@ -1,5 +1,6 @@
 import type { Transaction as PluggyTransaction } from 'pluggy-sdk';
 import { fetchAccountType, fetchItemBankName } from '@/lib/pluggy';
+import { toBrazilDateString } from '@/lib/format';
 import type { AccountRepository } from '../../domain/repositories/account-repository';
 import type { Transaction, TransactionRepository } from '../../domain/repositories/transaction-repository';
 
@@ -65,7 +66,7 @@ export class IngestPluggyTransactionUseCase {
       bank: account.bank,
       amount: Math.abs(transaction.amount),
       description: transaction.description,
-      occurredAt: new Date(transaction.date).toISOString().slice(0, 10),
+      occurredAt: toBrazilDateString(new Date(transaction.date)),
       category: null,
       categorySuggested: null,
       reason: null,
