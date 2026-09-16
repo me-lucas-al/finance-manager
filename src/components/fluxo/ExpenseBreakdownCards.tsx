@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { CreditCard, Clock, Info } from 'lucide-react';
+import { CreditCard, Clock } from 'lucide-react';
 import { usePrivacy } from '@/components/PrivacyProvider';
 import type { LiveExpenseCategory } from '@/lib/pluggy-service';
 
@@ -46,13 +46,6 @@ export function ExpenseBreakdownCards({
           </div>
 
           <p className="text-xs text-zinc-400 mt-0.5">Transações categorizadas</p>
-
-          <div className="flex items-start gap-1.5 text-[11px] text-zinc-500 mt-2">
-            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-zinc-500" />
-            <span>
-              Convertido para R$ pela cotação de 15/09/2026 · Fonte: Banco Central (PTAX) e ExchangeRate-API
-            </span>
-          </div>
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-4">
@@ -92,13 +85,6 @@ export function ExpenseBreakdownCards({
           </div>
 
           <p className="text-xs text-zinc-400 mt-0.5">Transações pendentes</p>
-
-          <div className="flex items-start gap-1.5 text-[11px] text-zinc-500 mt-2">
-            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-zinc-500" />
-            <span>
-              Convertido para R$ pela cotação de 15/09/2026 · Fonte: Banco Central (PTAX) e ExchangeRate-API
-            </span>
-          </div>
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-4">
