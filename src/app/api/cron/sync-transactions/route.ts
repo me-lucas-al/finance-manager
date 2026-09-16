@@ -35,7 +35,9 @@ export async function GET(req: NextRequest) {
   const errors: { accountId: string; error: string }[] = [];
 
   for (const account of accounts) {
-    const since = account.lastSyncedAt ?? new Date(Date.now() - FALLBACK_LOOKBACK_MS).toISOString();
+    const since = account.lastSyncedAt
+      ? new Date(account.lastSyncedAt).toISOString()
+      : new Date(Date.now() - FALLBACK_LOOKBACK_MS).toISOString();
     try {
       const transactions = await fetchNewTransactions(account.pluggyAccountId, since);
       for (const transaction of transactions) {
