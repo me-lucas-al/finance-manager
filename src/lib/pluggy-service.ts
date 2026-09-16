@@ -5,19 +5,21 @@ import {
   type Item as PluggyItem,
 } from 'pluggy-sdk';
 import { connection } from 'next/server';
-import { getPluggyClient } from '@/lib/pluggy';
+import { getPluggyClient, normalizeBankName, bankDisplayName } from '@/lib/pluggy';
 import { getEffectiveUserId } from '@/app/actions/require-session';
 import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 
 export interface RawPluggyData {
   allItems: PluggyItem[];
-  allAccounts: (PluggyAccount & { itemId: string })[];
-  allInvestments: (PluggyInvestment & { itemId: string })[];
+  allAccounts: (PluggyAccount & { itemId: string; bank: string })[];
+  allInvestments: (PluggyInvestment & { itemId: string; bank: string })[];
   allTransactions: (PluggyTransaction & {
     accountId: string;
     accountName: string;
     accountSubtype?: string;
     accountNumber?: string;
+    bank: string;
+    isCreditCard: boolean;
   })[];
 }
 
@@ -33,11 +35,10 @@ export interface LiveOverviewData {
   bankTotal: number;
   bankAccounts: Array<{
     id: string;
-    bank: 'itau' | 'nubank' | 'inter';
+    bank: string;
     name: string;
     countText: string;
     amount: number;
-    locked?: boolean;
   }>;
   cardTotal: number;
   cardLimit: number;
@@ -66,7 +67,8 @@ export interface LiveTransactionItem {
   account: string;
   category: string;
   amount: number;
-  bank: 'itau' | 'nubank' | 'inter' | 'gold';
+  bank: string;
+  isCreditCard: boolean;
 }
 
 export interface LiveExpenseCategory {
@@ -89,18 +91,12 @@ export interface LiveMovementsData {
 export interface LiveAssetItem {
   id: string;
   name: string;
-  bank: 'itau' | 'inter' | 'nubank';
+  bank: string;
   bankName: string;
   type: string;
   amount: number;
   percentage: number;
 }
-
-const KNOWN_ITEM_IDS = [
-  'df08deaf-5389-4186-a9fc-4342056f36da', // Itau
-  '88509b21-8364-45e2-9ef3-6c2d82431399', // Nubank
-  '92e9bd81-9ff2-4ea2-96e0-6a8cde80d0d0', // Inter
-];
 
 export async function fetchRawPluggyData(): Promise<RawPluggyData> {
   await connection();
@@ -108,29 +104,27 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
     return cache.data;
   }
 
-  const client = getPluggyClient();
-  const allAccounts: (PluggyAccount & { itemId: string })[] = [];
-  const allInvestments: (PluggyInvestment & { itemId: string })[] = [];
-  const allTransactions: (PluggyTransaction & {
-    accountId: string;
-    accountName: string;
-    accountSubtype?: string;
-    accountNumber?: string;
-  })[] = [];
-  const allItems: PluggyItem[] = [];
-
-  let itemIds = KNOWN_ITEM_IDS;
+  let itemIds: string[] = [];
   try {
     const userId = await getEffectiveUserId();
     const repo = new SupabaseAccountRepository();
     const dbAccounts = await repo.findAllByUserId(userId);
-    const dbItemIds = Array.from(new Set(dbAccounts.map((a) => a.pluggyItemId).filter(Boolean)));
-    if (dbItemIds.length > 0) {
-      itemIds = dbItemIds;
-    }
+    itemIds = Array.from(new Set(dbAccounts.map((a) => a.pluggyItemId).filter(Boolean)));
   } catch {
-    // fallback to KNOWN_ITEM_IDS
+    itemIds = [];
   }
+
+  if (itemIds.length === 0) {
+    const empty: RawPluggyData = { allItems: [], allAccounts: [], allInvestments: [], allTransactions: [] };
+    cache = { timestamp: Date.now(), data: empty };
+    return empty;
+  }
+
+  const client = getPluggyClient();
+  const allAccounts: RawPluggyData['allAccounts'] = [];
+  const allInvestments: RawPluggyData['allInvestments'] = [];
+  const allTransactions: RawPluggyData['allTransactions'] = [];
+  const allItems: PluggyItem[] = [];
 
   for (const itemId of itemIds) {
     try {
@@ -143,7 +137,8 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
       if (item) allItems.push(item);
 
       for (const a of accs.results) {
-        allAccounts.push({ ...a, itemId });
+        const bank = normalizeBankName(a.name);
+        allAccounts.push({ ...a, itemId, bank });
         try {
           const txRes = await client.fetchTransactionsCursor(a.id);
           for (const tx of txRes.results) {
@@ -153,6 +148,8 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
               accountName: a.name,
               accountSubtype: a.subtype,
               accountNumber: a.number,
+              bank,
+              isCreditCard: a.subtype === 'CREDIT_CARD',
             });
           }
         } catch {
@@ -161,7 +158,7 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
       }
 
       for (const inv of invs.results) {
-        allInvestments.push({ ...inv, itemId });
+        allInvestments.push({ ...inv, itemId, bank: normalizeBankName(inv.name) });
       }
     } catch {
       // ignore
@@ -177,47 +174,22 @@ export async function getLiveOverviewData(): Promise<LiveOverviewData> {
   const { allAccounts, allInvestments, allTransactions } = await fetchRawPluggyData();
 
   // 1. Bank Accounts (Checking)
-  const checking = allAccounts.filter(
+  const checkingAccounts = allAccounts.filter(
     (a: PluggyAccount) => a.subtype === 'CHECKING_ACCOUNT' || a.type === 'BANK'
   );
-  const itauChecking = checking.find((a: PluggyAccount) => a.name.toLowerCase().includes('itau'));
-  const nuChecking = checking.find(
-    (a: PluggyAccount) =>
-      a.name.toLowerCase().includes('nu') || a.name.toLowerCase().includes('pagamentos')
-  );
-  const interChecking = checking.find((a: PluggyAccount) =>
-    a.name.toLowerCase().includes('inter')
-  );
 
-  const itauBal = itauChecking ? Number(itauChecking.balance) : 0;
-  const nuBal = nuChecking ? Number(nuChecking.balance) : 0;
-  const interBal = interChecking ? Number(interChecking.balance) : 0;
-  const bankTotal = itauBal + nuBal + interBal;
+  const bankTotal = checkingAccounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
 
-  const bankAccounts: LiveOverviewData['bankAccounts'] = [
-    {
-      id: itauChecking?.id || 'itau-checking',
-      bank: 'itau',
-      name: 'Itaú',
-      countText: `1 conta · ${bankTotal > 0 ? ((itauBal / bankTotal) * 100).toFixed(1) : 0}%`,
-      amount: itauBal,
-    },
-    {
-      id: nuChecking?.id || 'nu-checking',
-      bank: 'nubank',
-      name: 'Nubank',
-      countText: `1 conta · ${bankTotal > 0 ? ((nuBal / bankTotal) * 100).toFixed(1) : 0}%`,
-      amount: nuBal,
-      locked: true,
-    },
-    {
-      id: interChecking?.id || 'inter-checking',
-      bank: 'inter',
-      name: 'Inter',
-      countText: `1 conta · ${bankTotal > 0 ? ((interBal / bankTotal) * 100).toFixed(1) : 0}%`,
-      amount: interBal,
-    },
-  ];
+  const bankAccounts: LiveOverviewData['bankAccounts'] = checkingAccounts.map((a) => {
+    const amount = Number(a.balance) || 0;
+    return {
+      id: a.id,
+      bank: a.bank,
+      name: bankDisplayName(a.bank),
+      countText: `1 conta · ${bankTotal > 0 ? ((amount / bankTotal) * 100).toFixed(1) : 0}%`,
+      amount,
+    };
+  });
 
   // 2. Credit Cards
   const cards = allAccounts.filter(
@@ -250,29 +222,18 @@ export async function getLiveOverviewData(): Promise<LiveOverviewData> {
   ).length;
   const inactiveInvestmentCount = investmentCount - activeInvestmentCount;
 
-  // Investment Institutions dynamic breakdown
-  const instMap: Record<string, { count: number; amount: number }> = {
-    Itaú: { count: 0, amount: 0 },
-    Inter: { count: 0, amount: 0 },
-    Nubank: { count: 0, amount: 0 },
-  };
-
+  // Investment Institutions dynamic breakdown, grouped by resolved bank
+  const instMap = new Map<string, { count: number; amount: number }>();
   for (const inv of allInvestments) {
     const bal = Number(inv.balance) || 0;
-    const nameLower = inv.name.toLowerCase();
-    if (nameLower.includes('itau')) {
-      instMap['Itaú'].count += 1;
-      instMap['Itaú'].amount += bal;
-    } else if (nameLower.includes('inter')) {
-      instMap['Inter'].count += 1;
-      instMap['Inter'].amount += bal;
-    } else {
-      instMap['Nubank'].count += 1;
-      instMap['Nubank'].amount += bal;
-    }
+    const name = bankDisplayName(inv.bank);
+    const entry = instMap.get(name) ?? { count: 0, amount: 0 };
+    entry.count += 1;
+    entry.amount += bal;
+    instMap.set(name, entry);
   }
 
-  const investmentInstitutions = Object.entries(instMap).map(([name, data]) => ({
+  const investmentInstitutions = Array.from(instMap.entries()).map(([name, data]) => ({
     name,
     count: data.count,
     amount: Math.round(data.amount * 100) / 100,
@@ -327,7 +288,7 @@ const WEEKDAYS = [
   'Sábado',
 ];
 
-export async function getLiveMovementsData(selectedMonth = '2026-09'): Promise<LiveMovementsData> {
+export async function getLiveMovementsData(selectedMonth: string): Promise<LiveMovementsData> {
   const { allTransactions } = await fetchRawPluggyData();
 
   // Normalize transactions
@@ -341,12 +302,6 @@ export async function getLiveMovementsData(selectedMonth = '2026-09'): Promise<L
     const isIncome = tx.type === 'CREDIT' || numAmount > 0;
     const isExpense = !isIncome;
 
-    let bank: 'itau' | 'nubank' | 'inter' | 'gold' = 'itau';
-    const accLower = (tx.accountName || '').toLowerCase();
-    if (accLower.includes('gold')) bank = 'gold';
-    else if (accLower.includes('nu')) bank = 'nubank';
-    else if (accLower.includes('inter')) bank = 'inter';
-
     return {
       id: tx.id,
       dateStr,
@@ -356,7 +311,8 @@ export async function getLiveMovementsData(selectedMonth = '2026-09'): Promise<L
       account: tx.accountName || 'Conta Corrente',
       category: tx.category || 'Outros',
       amount: numAmount,
-      bank,
+      bank: tx.bank,
+      isCreditCard: tx.isCreditCard,
     };
   });
 
@@ -410,11 +366,7 @@ export async function getLiveMovementsData(selectedMonth = '2026-09'): Promise<L
 
   // Dynamic Pending Expenses from Credit Card Transactions
   const creditCardTxs = allTransactions.filter(
-    (t) =>
-      (t.accountSubtype === 'CREDIT_CARD' ||
-        (t.accountName || '').toLowerCase().includes('gold') ||
-        (t.accountName || '').toLowerCase().includes('click')) &&
-      (t.type === 'DEBIT' || Number(t.amount) < 0)
+    (t) => t.isCreditCard && (t.type === 'DEBIT' || Number(t.amount) < 0)
   );
 
   const pendingTotals: Record<string, number> = {};
@@ -459,26 +411,15 @@ export async function getLiveInvestmentsData(): Promise<{
     0
   );
 
-  const assets: LiveAssetItem[] = allInvestments.map((inv: PluggyInvestment) => {
-    let bank: 'itau' | 'inter' | 'nubank' = 'nubank';
-    let bankName = 'Nubank';
-    const nameLower = inv.name.toLowerCase();
-    if (nameLower.includes('itau')) {
-      bank = 'itau';
-      bankName = 'Itaú';
-    } else if (nameLower.includes('inter')) {
-      bank = 'inter';
-      bankName = 'Inter';
-    }
-
+  const assets: LiveAssetItem[] = allInvestments.map((inv) => {
     const bal = Number(inv.balance) || 0;
     const pct = total > 0 ? Math.round((bal / total) * 100) : 0;
 
     return {
       id: inv.id,
       name: inv.name,
-      bank,
-      bankName,
+      bank: inv.bank,
+      bankName: bankDisplayName(inv.bank),
       type: inv.type === 'FIXED_INCOME' ? 'Renda Fixa' : inv.subtype || 'Investimento',
       amount: bal,
       percentage: pct,
