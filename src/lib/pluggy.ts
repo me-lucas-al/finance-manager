@@ -28,7 +28,10 @@ const BANK_ALIASES: [alias: string, bank: string][] = [
   ['inter', 'inter'],
 ];
 
-const BANK_DISPLAY_NAMES: Record<string, string> = {
+// Single source of truth for the display name of the banks normalizeBankName
+// recognizes, shared with src/components/connections/bank-style.ts so the two
+// layers don't drift into different labels for the same bank key.
+export const KNOWN_BANK_NAMES: Record<string, string> = {
   itau: 'Itaú',
   nubank: 'Nubank',
   inter: 'Inter',
@@ -37,7 +40,7 @@ const BANK_DISPLAY_NAMES: Record<string, string> = {
 // For institutions normalizeBankName didn't recognize, the raw name is all
 // we have — capitalize its first letter so it still reads as a proper noun.
 export function bankDisplayName(bank: string): string {
-  return BANK_DISPLAY_NAMES[bank] ?? bank.charAt(0).toUpperCase() + bank.slice(1);
+  return KNOWN_BANK_NAMES[bank] ?? bank.charAt(0).toUpperCase() + bank.slice(1);
 }
 
 function stripAccents(value: string): string {

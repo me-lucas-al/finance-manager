@@ -1,3 +1,5 @@
+import { KNOWN_BANK_NAMES } from '@/lib/pluggy';
+
 export type ItemStatusPresentation = {
   label: string;
   variant: 'default' | 'destructive' | 'outline';
@@ -10,18 +12,12 @@ const BANK_ACCENT: Record<string, string> = {
   inter: 'bg-[#FF7A00]',
 };
 
-const BANK_LABEL: Record<string, string> = {
-  itau: 'Itaú',
-  nubank: 'Nubank',
-  inter: 'Inter',
-};
-
 export function bankAccentClass(bank: string): string {
   return BANK_ACCENT[bank] ?? 'bg-primary';
 }
 
 export function bankLabel(bank: string): string {
-  return BANK_LABEL[bank] ?? bank;
+  return KNOWN_BANK_NAMES[bank] ?? bank;
 }
 
 export function itemStatusPresentation(itemStatus: string | null): ItemStatusPresentation {
