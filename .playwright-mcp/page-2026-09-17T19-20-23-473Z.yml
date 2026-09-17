@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "finance.manager" [ref=e5] [cursor=pointer]:
+          - /url: /
+        - navigation "Menu Principal" [ref=e7]:
+          - link "Overview" [ref=e8] [cursor=pointer]:
+            - /url: /
+          - link "Fluxo" [ref=e9] [cursor=pointer]:
+            - /url: /movements
+          - link "Ativos" [ref=e10] [cursor=pointer]:
+            - /url: /ativos
+          - link "Conexões" [ref=e11] [cursor=pointer]:
+            - /url: /connections
+          - link "Metas" [ref=e12] [cursor=pointer]:
+            - /url: /goals
+          - link "Relatórios" [ref=e13] [cursor=pointer]:
+            - /url: /reports
+          - link "Calendário" [ref=e14] [cursor=pointer]:
+            - /url: /periods
+      - button "Abrir menu de perfil do usuário" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: LA
+        - generic [ref=e19]: Lucas Almeida de Souza
+  - main [ref=e22]:
+    - generic [ref=e24]:
+      - link "finance.manager" [ref=e25] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: Entrar
+          - generic [ref=e30]: Acesse sua conta para continuar
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - generic [ref=e34]: Email
+              - textbox "Email" [ref=e35]:
+                - /placeholder: seu@email.com
+            - generic [ref=e36]:
+              - generic [ref=e37]:
+                - generic [ref=e38]: Senha
+                - link "Esqueceu a senha?" [ref=e39] [cursor=pointer]:
+                  - /url: /forgot-password
+              - generic [ref=e40]:
+                - textbox "Senha" [ref=e41]
+                - button "Mostrar senha" [ref=e42]
+            - button "Entrar" [ref=e43]
+          - paragraph [ref=e44]:
+            - text: Não tem uma conta?
+            - link "Cadastre-se" [ref=e45] [cursor=pointer]:
+              - /url: /register
+  - button "Abrir assistente financeiro" [ref=e46]
+  - alert [ref=e50]

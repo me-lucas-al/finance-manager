@@ -42,17 +42,26 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
                 : "bg-zinc-800 text-zinc-200"
             )}
           >
-            <p className="whitespace-pre-wrap">
-              {message.parts?.map((part, index) => {
+            <div className="whitespace-pre-wrap">
+              {message.parts ? message.parts.map((part, index) => {
                 if (part.type === 'text') {
                   return <span key={index}>{part.text}</span>;
                 }
                 if (part.type.startsWith('tool-') || part.type === 'dynamic-tool') {
-                  return <span key={index} className="text-zinc-400 italic block mt-2 text-xs">🛠️ Trabalhando...</span>;
+                  return (
+                    <div key={index} className="my-2 rounded bg-zinc-900 p-2 text-xs text-zinc-400 border border-zinc-700/50">
+                      <span className="flex items-center gap-2">
+                        <span className="animate-pulse flex h-2 w-2 rounded-full bg-indigo-500"></span>
+                        Analisando seus dados...
+                      </span>
+                    </div>
+                  );
                 }
                 return null;
-              })}
-            </p>
+              }) : (
+                <span>{message.text}</span>
+              )}
+            </div>
           </div>
         </div>
       ))}
