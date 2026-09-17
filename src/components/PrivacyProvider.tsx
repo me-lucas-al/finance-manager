@@ -20,6 +20,7 @@ export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('finance_manager_privacy_mode');
     if (saved !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsPrivate(saved === 'true');
     }
   }, []);

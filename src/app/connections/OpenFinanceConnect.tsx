@@ -8,7 +8,7 @@ const PluggyConnect = dynamic(
   { ssr: false }
 );
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Loader2, Plus, CheckCircle, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

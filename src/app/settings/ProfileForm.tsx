@@ -37,8 +37,8 @@ export function ProfileForm({ initialName, email, createdAt }: ProfileFormProps)
       await updateUserProfile(name);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err?.message || 'Erro ao atualizar perfil.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar perfil.');
     } finally {
       setIsSaving(false);
     }

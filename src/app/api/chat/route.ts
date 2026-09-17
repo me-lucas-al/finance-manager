@@ -55,7 +55,8 @@ Instruções:
       get_expense_categories: tool({
         description: 'Obtém as categorias de despesa válidas cadastradas pelo usuário.',
         parameters: z.object({}),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
         execute: async (_args: any) => {
           const categories = await getExpenseCategories(userId);
           return { categories };
@@ -64,7 +65,8 @@ Instruções:
       get_financial_goals: tool({
         description: 'Lista todas as metas financeiras do mês atual (teto de gastos por categoria e geral) e as metas de economia ativas do usuário.',
         parameters: z.object({}),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
         execute: async (_args: any) => {
           const goalRepository = new SupabaseGoalRepository();
           const savingsGoalRepository = new SupabaseSavingsGoalRepository();
@@ -93,7 +95,8 @@ Instruções:
             contributionAmount: z.number().nullable().describe('Valor a ser adicionado agora (aporte) à meta')
           })).describe('Novas metas de economia ou aportes a metas existentes.')
         }),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         execute: async ({ monthlyGeneralTarget, monthlyCategoryTargets, savingsGoalUpdates }: any) => {
           const goalRepository = new SupabaseGoalRepository();
           const savingsGoalRepository = new SupabaseSavingsGoalRepository();
@@ -159,7 +162,8 @@ Instruções:
           query: z.string().describe('Termo para buscar nas descrições ou categorias das transações.'),
           limit: z.number().optional().describe('Número máximo de resultados. Padrão: 10.')
         }),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         execute: async ({ query, limit = 10 }: any) => {
           const txs = await searchLiveTransactions(query, limit);
           return {
@@ -178,7 +182,8 @@ Instruções:
       get_overview: tool({
         description: 'Obtém um resumo geral dos saldos das contas bancárias, cartões de crédito e investimentos do usuário.',
         parameters: z.object({}),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
         execute: async (_args: any) => {
           const data = await getLiveOverviewData();
           return {
@@ -195,7 +200,8 @@ Instruções:
         parameters: z.object({
           month: z.string().describe('O mês no formato YYYY-MM. Exemplo: 2024-09'),
         }),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         execute: async ({ month }: any) => {
           const data = await getLiveMovementsData(month);
           return {
@@ -209,7 +215,8 @@ Instruções:
       get_investments: tool({
         description: 'Obtém os detalhes dos investimentos do usuário.',
         parameters: z.object({}),
-        // @ts-ignore
+        // @ts-expect-error - AI SDK inference is strict
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
         execute: async (_args: any) => {
           const data = await getLiveInvestmentsData();
           return data;

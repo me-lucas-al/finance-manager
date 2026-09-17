@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Landmark, CreditCard, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+
 import { usePrivacy } from '@/components/PrivacyProvider';
 
 interface OverviewCardsProps {

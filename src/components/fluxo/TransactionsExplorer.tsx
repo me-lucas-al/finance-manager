@@ -29,7 +29,6 @@ interface TransactionsExplorerProps {
   initialTransactions?: LiveTransactionItem[];
   totalIncome?: number;
   totalExpenses?: number;
-  netBalance?: number;
 }
 
 export function TransactionsExplorer({
@@ -38,7 +37,6 @@ export function TransactionsExplorer({
   initialTransactions = [],
   totalIncome = 0,
   totalExpenses = 0,
-  netBalance = 0,
 }: TransactionsExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();

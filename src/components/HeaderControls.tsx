@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ChevronDown, User, Settings, LogOut, Target, BarChart3, Calendar, Landmark } from 'lucide-react';
+import { ChevronDown, User, LogOut, Target, BarChart3, Calendar, Landmark } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

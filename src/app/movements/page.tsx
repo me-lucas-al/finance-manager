@@ -60,7 +60,6 @@ export default async function MovementsPage({
           initialTransactions={data.transactions}
           totalIncome={data.totalIncome}
           totalExpenses={data.totalExpenses}
-          netBalance={data.netBalance}
         />
       </div>
     </div>
