@@ -32,34 +32,37 @@ export function AssistantChat() {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger 
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all hover:scale-110 hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] active:scale-95 group"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-black border border-white/10 text-white shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] active:scale-95 group overflow-hidden"
         aria-label="Abrir assistente financeiro"
       >
-        <Sparkles className="h-6 w-6 group-hover:animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Sparkles className="h-6 w-6 text-zinc-300 group-hover:text-white transition-colors" />
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md p-0 flex flex-col bg-[#09090b] border-zinc-800 border-l">
-        <SheetHeader className="p-4 border-b border-zinc-800/80">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-sm">
-              <Sparkles className="h-5 w-5" />
+      <SheetContent className="w-full sm:max-w-md p-0 flex flex-col bg-black/60 backdrop-blur-2xl border-white/5 border-l">
+        <SheetHeader className="p-5 border-b border-white/5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 border border-white/10 text-white shadow-inner">
+              <Sparkles className="h-6 w-6 text-purple-400" />
             </div>
             <div>
-              <SheetTitle className="text-zinc-100 text-lg">Finance AI</SheetTitle>
-              <p className="text-xs text-zinc-400">Seu assistente financeiro inteligente</p>
+              <SheetTitle className="text-zinc-100 text-xl font-light tracking-tight">Finance AI</SheetTitle>
+              <p className="text-sm text-zinc-500 font-medium tracking-wide">ASSISTENTE INTELIGENTE</p>
             </div>
           </div>
         </SheetHeader>
         
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 px-5 py-6">
           <ChatMessageList messages={messages} isLoading={isLoading} />
         </ScrollArea>
         
-        <ChatInputForm 
-          input={input} 
-          isLoading={isLoading} 
-          handleInputChange={handleInputChange} 
-          handleSubmit={handleSubmit} 
-        />
+        <div className="px-5 pb-5">
+          <ChatInputForm 
+            input={input} 
+            isLoading={isLoading} 
+            handleInputChange={handleInputChange} 
+            handleSubmit={handleSubmit} 
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );
