@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { Bot } from 'lucide-react';
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessageList } from './ChatMessageList';
@@ -11,19 +12,30 @@ import { ChatInputForm } from './ChatInputForm';
 export function AssistantChat() {
   const [isOpen, setIsOpen] = useState(false);
   
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/chat',
+  const { messages, status, sendMessage } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
   });
+
+  const [input, setInput] = useState('');
+  const isLoading = status === 'submitted' || status === 'streaming';
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    sendMessage({ text: input });
+    setInput('');
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <button
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
-          aria-label="Abrir assistente financeiro"
-        >
-          <Bot className="h-6 w-6" />
-        </button>
+      <SheetTrigger 
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+        aria-label="Abrir assistente financeiro"
+      >
+        <Bot className="h-6 w-6" />
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md p-0 flex flex-col bg-[#09090b] border-zinc-800 border-l">
         <SheetHeader className="p-4 border-b border-zinc-800/80">

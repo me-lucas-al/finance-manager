@@ -1,10 +1,10 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { AssistantAvatar } from './AssistantAvatar';
-import type { Message } from 'ai/react';
+import type { UIMessage } from '@ai-sdk/react';
 
 interface ChatMessageListProps {
-  messages: Message[];
+  messages: UIMessage[];
   isLoading: boolean;
 }
 
@@ -42,7 +42,17 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
                 : "bg-zinc-800 text-zinc-200"
             )}
           >
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap">
+              {message.parts?.map((part, index) => {
+                if (part.type === 'text') {
+                  return <span key={index}>{part.text}</span>;
+                }
+                if (part.type.startsWith('tool-') || part.type === 'dynamic-tool') {
+                  return <span key={index} className="text-zinc-400 italic block mt-2 text-xs">🛠️ Trabalhando...</span>;
+                }
+                return null;
+              })}
+            </p>
           </div>
         </div>
       ))}

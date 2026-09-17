@@ -1,5 +1,6 @@
 import { getLiveInvestmentsData } from '@/lib/pluggy-service';
 import { AtivosList } from '@/components/ativos/AtivosList';
+import { Suspense } from 'react';
 
 export default async function AtivosPage() {
   const data = await getLiveInvestmentsData();
@@ -16,7 +17,9 @@ export default async function AtivosPage() {
         </div>
 
         {/* Ativos List and Summary with Live Pluggy Data */}
-        <AtivosList initialTotal={data.total} initialAssets={data.assets} />
+        <Suspense fallback={<div className="text-zinc-400">Carregando ativos...</div>}>
+          <AtivosList initialTotal={data.total} initialAssets={data.assets} />
+        </Suspense>
       </div>
     </div>
   );
