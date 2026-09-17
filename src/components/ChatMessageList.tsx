@@ -65,7 +65,7 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
                 }
                 return null;
               }) : (
-                <span>{message.text}</span>
+                <span>{(message as any).text || (message as any).content}</span>
               )}
             </div>
           </div>

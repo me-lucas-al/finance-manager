@@ -74,7 +74,6 @@ Instruções:
 - Caso o usuário pergunte sobre uma transação específica ou loja (ex: "Uber", "MercadoLivre", "quanto paguei no McDonald's"), use \`search_transactions\`.
 - Nunca devolva IDs crus de banco de dados para o usuário.
 `,
-    messages,
     tools: {
       get_expense_categories: tool({
         description: 'Obtém as categorias de despesa válidas cadastradas pelo usuário.',

@@ -2,3 +2,7 @@
 [    1333ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://financemanager.lucasalmeidasouza.com/login:0
 [    2547ms] [WARNING] Error while trying to use the following icon from the Manifest: https://financemanager.lucasalmeidasouza.com/icon-192x192.png (Download error or resource isn't a valid image) @ https://financemanager.lucasalmeidasouza.com/login:0
 [   28241ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://financemanager.lucasalmeidasouza.com/:0
+[  544193ms] [LOG] Service Worker registered with scope: https://financemanager.lucasalmeidasouza.com/ @ https://financemanager.lucasalmeidasouza.com/_next/static/immutable/chunks/2z52_--r-70p-.js:97
+[  585045ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://financemanager.lucasalmeidasouza.com/dashboard:0
+[  585311ms] [LOG] Service Worker registered with scope: https://financemanager.lucasalmeidasouza.com/ @ https://financemanager.lucasalmeidasouza.com/_next/static/immutable/chunks/2z52_--r-70p-.js:97
+[  607707ms] [LOG] Service Worker registered with scope: https://financemanager.lucasalmeidasouza.com/ @ https://financemanager.lucasalmeidasouza.com/_next/static/immutable/chunks/2z52_--r-70p-.js:97
