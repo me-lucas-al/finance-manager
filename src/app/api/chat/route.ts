@@ -42,7 +42,8 @@ export async function POST(req: Request) {
   const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
   const result = streamText({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.5-pro'),
+    maxSteps: 5,
     system: `Você é um Consultor Financeiro Inteligente integrado ao Finance Manager.
 A data de hoje é ${currentDateFormatted} (mês atual: ${currentMonthStr}).
 Seu objetivo é ajudar o usuário a entender suas finanças, responder a perguntas sobre transações, metas, saldos e investimentos.
