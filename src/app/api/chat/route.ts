@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: google('gemini-2.5-pro'),
-    maxSteps: 5,
+    stopWhen: ({ steps }) => steps.length >= 5,
     system: `Você é um Consultor Financeiro Inteligente integrado ao Finance Manager.
 A data de hoje é ${currentDateFormatted} (mês atual: ${currentMonthStr}).
 Seu objetivo é ajudar o usuário a entender suas finanças, responder a perguntas sobre transações, metas, saldos e investimentos.
@@ -230,6 +230,6 @@ Instruções:
     },
   });
 
-  return result.toTextStreamResponse();
+  return result.toUIMessageStreamResponse();
 }
 
