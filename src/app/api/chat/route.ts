@@ -32,6 +32,21 @@ function findMatchingSavingsGoal(title: string, existing: SavingsGoal[]): Saving
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
+    // Map UI messages to CoreMessages to prevent AI_TypeValidationError
+    const coreMessages = messages.map((m: any) => {
+      if (m.role === 'user' || m.role === 'assistant') {
+        let content = m.content;
+        if (!content && m.parts) {
+          content = m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
+        }
+        return {
+          role: m.role,
+          content: content || '',
+        };
+      }
+      return m;
+    });
+
   const userId = process.env.FINANCE_OWNER_USER_ID;
   if (!userId) {
     return new Response('User ID not configured', { status: 500 });
@@ -43,6 +58,10 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: google('gemini-3.1-pro-preview'),
+    messages: coreMessages,
+    onError: (e: any) => {
+      console.error('STREAM ERROR DETECTED:', JSON.stringify(e, null, 2));
+    },
     stopWhen: ({ steps }) => steps.length >= 5,
     system: `Você é um Consultor Financeiro Inteligente integrado ao Finance Manager.
 A data de hoje é ${currentDateFormatted} (mês atual: ${currentMonthStr}).
