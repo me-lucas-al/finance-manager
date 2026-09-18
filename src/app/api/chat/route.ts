@@ -29,23 +29,38 @@ function findMatchingSavingsGoal(title: string, existing: SavingsGoal[]): Saving
   );
 }
 
+interface MessagePart {
+  type: string;
+  text?: string;
+}
+
+interface IncomingMessage {
+  role?: string;
+  content?: string;
+  parts?: MessagePart[];
+}
+
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-    // Map UI messages to CoreMessages to prevent AI_TypeValidationError
-    const coreMessages = messages.map((m: any) => {
-      if (m.role === 'user' || m.role === 'assistant') {
-        let content = m.content;
-        if (!content && m.parts) {
-          content = m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
-        }
-        return {
-          role: m.role,
-          content: content || '',
-        };
+  // Map UI messages to CoreMessages to prevent AI_TypeValidationError
+  const incomingMessages = (messages as IncomingMessage[]) || [];
+  const coreMessages = incomingMessages.map((m) => {
+    if (m.role === 'user' || m.role === 'assistant') {
+      let content = m.content;
+      if (!content && m.parts) {
+        content = m.parts
+          .filter((p): p is MessagePart & { text: string } => p.type === 'text' && typeof p.text === 'string')
+          .map((p) => p.text)
+          .join('\n');
       }
-      return m;
-    });
+      return {
+        role: m.role,
+        content: content || '',
+      };
+    }
+    return m;
+  });
 
   const userId = process.env.FINANCE_OWNER_USER_ID;
   if (!userId) {
@@ -59,8 +74,8 @@ export async function POST(req: Request) {
   const result = streamText({
     model: google('gemini-3.1-pro-preview'),
     messages: coreMessages,
-    onError: (e: any) => {
-      console.error('STREAM ERROR DETECTED:', JSON.stringify(e, null, 2));
+    onError: ({ error }: { error: unknown }) => {
+      console.error('STREAM ERROR DETECTED:', JSON.stringify(error, null, 2));
     },
     stopWhen: ({ steps }) => steps.length >= 5,
     system: `Você é um Consultor Financeiro Inteligente integrado ao Finance Manager.
