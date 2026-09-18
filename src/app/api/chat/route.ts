@@ -1,4 +1,4 @@
-import { streamText, tool } from 'ai';
+import { streamText, tool, type ModelMessage } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 const google = createGoogleGenerativeAI({
@@ -43,10 +43,12 @@ interface IncomingMessage {
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  // Map UI messages to CoreMessages to prevent AI_TypeValidationError
+  // Map UI messages to ModelMessages to prevent AI_TypeValidationError
   const incomingMessages = (messages as IncomingMessage[]) || [];
-  const coreMessages = incomingMessages.map((m) => {
-    if (m.role === 'user' || m.role === 'assistant') {
+  const coreMessages: ModelMessage[] = [];
+
+  for (const m of incomingMessages) {
+    if (m.role === 'user' || m.role === 'assistant' || m.role === 'system') {
       let content = m.content;
       if (!content && m.parts) {
         content = m.parts
@@ -54,13 +56,12 @@ export async function POST(req: Request) {
           .map((p) => p.text)
           .join('\n');
       }
-      return {
+      coreMessages.push({
         role: m.role,
         content: content || '',
-      };
+      });
     }
-    return m;
-  });
+  }
 
   const userId = process.env.FINANCE_OWNER_USER_ID;
   if (!userId) {
