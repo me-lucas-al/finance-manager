@@ -3,6 +3,7 @@ import { db } from '@/db';
 import { userSettings } from '@/db/schema';
 import { fetchRawPluggyData } from '@/lib/pluggy-service';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
+import { sanitizeTransactions } from '@/lib/transaction-classifier';
 import { loadCategoryVsGoalData } from './category-vs-goal';
 import { formatMonthLabel } from './month-format';
 import type { CategoryDatum, EvolutionDatum, CategoryGoalDatum } from './charts';
@@ -62,23 +63,11 @@ export async function getReportData(
     return true;
   });
 
-  // Calculate totals for the filtered selection
-  let totalIncome = 0;
-  let totalExpenses = 0;
-  const categoryMap: Record<string, number> = {};
-
-  for (const tx of filteredTransactions) {
-    const amt = Number(tx.amount);
-    const isCredit = tx.type === 'CREDIT' || amt > 0;
-    if (isCredit) {
-      totalIncome += Math.abs(amt);
-    } else {
-      const expenseVal = Math.abs(amt);
-      totalExpenses += expenseVal;
-      const cat = tx.category || 'Outros';
-      categoryMap[cat] = (categoryMap[cat] || 0) + expenseVal;
-    }
-  }
+  // Calculate sanitized totals for the filtered selection
+  const { summary: filteredSummary } = sanitizeTransactions(filteredTransactions);
+  const totalIncome = filteredSummary.totalIncome;
+  const totalExpenses = filteredSummary.totalExpenses;
+  const categoryMap = filteredSummary.categoryTotals;
 
   const noDataMessage =
     filteredTransactions.length === 0
@@ -99,32 +88,28 @@ export async function getReportData(
     .sort((a, b) => b.total - a.total)
     .slice(0, 7);
 
-  // Evolution chart across months
-  const monthlyAggregates: Record<string, { income: number; expenses: number }> = {};
+  // Evolution chart across months with sanitization applied per month
+  const monthlyTransactionsMap: Record<string, typeof allTransactions> = {};
   for (const tx of allTransactions) {
     if (bank !== 'all' && tx.bank !== bank) continue;
 
     const txDateStr = tx.date instanceof Date ? tx.date.toISOString() : String(tx.date);
     const m = txDateStr.slice(0, 7);
-    if (!monthlyAggregates[m]) {
-      monthlyAggregates[m] = { income: 0, expenses: 0 };
+    if (!monthlyTransactionsMap[m]) {
+      monthlyTransactionsMap[m] = [];
     }
-    const amt = Number(tx.amount);
-    if (tx.type === 'CREDIT' || amt > 0) {
-      monthlyAggregates[m].income += Math.abs(amt);
-    } else {
-      monthlyAggregates[m].expenses += Math.abs(amt);
-    }
+    monthlyTransactionsMap[m].push(tx);
   }
 
   // Last 6 consecutive months ending on the current real month
   const timelineMonths = Array.from({ length: 6 }, (_, i) => shiftMonth(currentMonth, i - 5));
   const evolutionData: EvolutionDatum[] = timelineMonths.map((ym) => {
-    const agg = monthlyAggregates[ym] || { income: 0, expenses: 0 };
+    const txs = monthlyTransactionsMap[ym] || [];
+    const { summary } = sanitizeTransactions(txs);
     return {
       label: formatMonthLabel(ym),
-      income: Math.round(agg.income * 100) / 100,
-      expenses: Math.round(agg.expenses * 100) / 100,
+      income: summary.totalIncome,
+      expenses: summary.totalExpenses,
       investments: ym === currentMonth ? totalInvestments : 0,
     };
   });

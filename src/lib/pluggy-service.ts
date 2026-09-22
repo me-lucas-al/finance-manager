@@ -8,6 +8,7 @@ import { connection } from 'next/server';
 import { getPluggyClient, normalizeBankName, bankDisplayName } from '@/lib/pluggy';
 import { getEffectiveUserId } from '@/app/actions/require-session';
 import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { sanitizeTransactions } from '@/lib/transaction-classifier';
 
 export interface RawPluggyData {
   allItems: PluggyItem[];
@@ -292,22 +293,32 @@ const WEEKDAYS = [
 export async function getLiveMovementsData(selectedMonth: string): Promise<LiveMovementsData> {
   const { allTransactions } = await fetchRawPluggyData();
 
+  // Filter for selected month
+  const [targetYear, targetMonth] = selectedMonth.split('-').map(Number);
+  const rawMonthTransactions = allTransactions.filter((tx) => {
+    const rawDate = new Date(tx.date);
+    const y = rawDate.getFullYear();
+    const m = rawDate.getMonth() + 1;
+    return y === targetYear && m === targetMonth;
+  });
+
+  const { sanitized, summary } = sanitizeTransactions(rawMonthTransactions);
+
   // Normalize transactions
-  const mapped: LiveTransactionItem[] = allTransactions.map((tx) => {
+  const monthTransactions: LiveTransactionItem[] = sanitized.map(({ raw: tx, classification }) => {
     const rawDate = new Date(tx.date);
     const day = rawDate.getDate();
     const weekday = WEEKDAYS[rawDate.getDay()];
     const dateStr = `${day} ${weekday}`;
 
     const numAmount = Number(tx.amount);
-    const isIncome = tx.type === 'CREDIT' || numAmount > 0;
-    const isExpense = !isIncome;
+    const isIncome = classification === 'INCOME';
 
     return {
       id: tx.id,
       dateStr,
       rawDate,
-      type: isExpense ? 'expense' : 'income',
+      type: isIncome ? 'income' : 'expense',
       description: tx.description,
       account: tx.accountName || 'Conta Corrente',
       category: tx.category || 'Outros',
@@ -317,31 +328,12 @@ export async function getLiveMovementsData(selectedMonth: string): Promise<LiveM
     };
   });
 
-  // Filter for selected month
-  const [targetYear, targetMonth] = selectedMonth.split('-').map(Number);
-  const monthTransactions = mapped.filter((t) => {
-    const y = t.rawDate.getFullYear();
-    const m = t.rawDate.getMonth() + 1;
-    return y === targetYear && m === targetMonth;
-  });
-
   // Sort by date descending
   monthTransactions.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
 
-  // Categorize expenses
-  const categoryTotals: Record<string, number> = {};
-  let totalExpenses = 0;
-  let totalIncome = 0;
-
-  for (const tx of monthTransactions) {
-    if (tx.type === 'expense') {
-      const val = Math.abs(tx.amount);
-      totalExpenses += val;
-      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + val;
-    } else {
-      totalIncome += Math.abs(tx.amount);
-    }
-  }
+  const totalExpenses = summary.totalExpenses;
+  const totalIncome = summary.totalIncome;
+  const categoryTotals = summary.categoryTotals;
 
   // Color map for categories (Transfers is dark blue per user requirement)
   const colorMap: Record<string, string> = {
