@@ -77,6 +77,7 @@ export function TransactionsExplorer({
         if (selectedAccount === 'itau' && tx.bank !== 'itau') return false;
         if (selectedAccount === 'nubank' && tx.bank !== 'nubank') return false;
         if (selectedAccount === 'inter' && tx.bank !== 'inter') return false;
+        if (selectedAccount === 'mercadopago' && tx.bank !== 'mercadopago') return false;
       }
       if (search.trim()) {
         const query = search.toLowerCase();
@@ -173,6 +174,7 @@ export function TransactionsExplorer({
                 <SelectItem value="itau">Itaú</SelectItem>
                 <SelectItem value="nubank">Nubank</SelectItem>
                 <SelectItem value="inter">Banco Inter</SelectItem>
+                <SelectItem value="mercadopago">Mercado Pago</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -259,6 +261,11 @@ export function TransactionsExplorer({
                               {tx.bank === 'itau' && (
                                 <span className="h-3.5 px-1 bg-[#002f6c] text-white text-[9px] font-bold rounded flex items-center">
                                   itaú
+                                </span>
+                              )}
+                              {tx.bank === 'mercadopago' && (
+                                <span className="h-3.5 px-1 bg-[#00a650] text-white text-[9px] font-bold rounded flex items-center">
+                                  MP
                                 </span>
                               )}
                               {tx.isCreditCard && (

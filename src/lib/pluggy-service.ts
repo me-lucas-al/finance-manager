@@ -141,6 +141,57 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
       for (const a of accs.results) {
         const bank = normalizeBankName(a.name);
         allAccounts.push({ ...a, itemId, bank });
+
+        // Capture reserved balances (Mercado Pago Cofrinhos, Nubank Caixinhas, etc.)
+        if (a.bankData?.reservedBalances && a.bankData.reservedBalances.length > 0) {
+          for (const res of a.bankData.reservedBalances) {
+            const totalReserved = (res.availableAmounts || []).reduce(
+              (sum, amt) => sum + (Number(amt.amount) || 0),
+              0
+            );
+            if (totalReserved > 0) {
+              allInvestments.push({
+                id: res.identification || `${a.id}-reserved-${res.name}`,
+                itemId,
+                type: 'FIXED_INCOME',
+                subtype: 'OTHER',
+                name: res.name || 'Cofrinho / Reserva',
+                balance: totalReserved,
+                bank,
+                currencyCode: (res.availableAmounts?.[0]?.currencyCode as any) || 'BRL',
+                date: null,
+                value: totalReserved,
+                quantity: 1,
+                taxes: null,
+                taxes2: null,
+                amount: totalReserved,
+                amountWithdrawal: totalReserved,
+                amountProfit: null,
+                amountOriginal: totalReserved,
+                dueDate: null,
+                issuer: a.name,
+                issueDate: null,
+                purchaseDate: null,
+                rate: null,
+                rateType: null,
+                fixedAnnualRate: null,
+                lastMonthRate: null,
+                annualRate: null,
+                lastTwelveMonthsRate: null,
+                status: 'ACTIVE',
+                transactions: null,
+                metadata: null,
+                owner: null,
+                institution: { name: bankDisplayName(bank), number: null },
+                code: null,
+                issuerCNPJ: null,
+                number: null,
+                isin: null,
+              });
+            }
+          }
+        }
+
         try {
           const txRes = await client.fetchTransactionsCursor(a.id);
           for (const tx of txRes.results) {
@@ -160,7 +211,8 @@ export async function fetchRawPluggyData(): Promise<RawPluggyData> {
       }
 
       for (const inv of invs.results) {
-        allInvestments.push({ ...inv, itemId, bank: normalizeBankName(inv.name) });
+        const instName = inv.institution?.name || item?.connector?.name || inv.name;
+        allInvestments.push({ ...inv, itemId, bank: normalizeBankName(instName) });
       }
     } catch {
       // ignore

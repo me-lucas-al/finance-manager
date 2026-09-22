@@ -49,7 +49,7 @@ const CC_PAYMENT_CATEGORY_REGEX =
   /(credit\s*card\s*payment|pagamento\s*de\s*fatura|cart[aã]o\s*de\s*cr[eé]dito)/i;
 
 const INVESTMENT_REGEX =
-  /(\b(cdb|rdb|lci|lca|tesouro(\s*direto)?|nuinvest|inter\s*dtvm|xp\s*investimentos|caixinha|caixinhas)\b)|(aplica[cç][aã]o\s*(financeira|investimento|caixinha|cdb|rdb|fundo|poupanca|poupança)?)|(resgate\s*(caixinha|investimento|cdb|rdb|fundo|aplica[cç][aã]o|poupan[cç]a|tesouro)?)/i;
+  /(\b(cdb|rdb|lci|lca|tesouro(\s*direto)?|nuinvest|inter\s*dtvm|xp\s*investimentos|caixinha|caixinhas|cofrinho|cofrinhos)\b)|(aplica[cç][aã]o\s*(financeira|investimento|caixinha|cdb|rdb|fundo|poupanca|poupança)?)|(resgate\s*(caixinha|investimento|cdb|rdb|fundo|aplica[cç][aã]o|poupan[cç]a|tesouro|cofrinho)?)|(dinheiro\s*(reservado|retirado|guardado))/i;
 
 const INVESTMENT_CATEGORY_REGEX =
   /^(investments?|investimentos?|aplica[cç][oõ]es)$/i;

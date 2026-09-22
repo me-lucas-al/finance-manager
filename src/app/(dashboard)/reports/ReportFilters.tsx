@@ -31,6 +31,7 @@ const BANK_OPTIONS = [
   { value: 'itau', label: 'Itaú' },
   { value: 'nubank', label: 'Nubank' },
   { value: 'inter', label: 'Inter' },
+  { value: 'mercadopago', label: 'Mercado Pago' },
 ];
 
 interface ReportFiltersProps {

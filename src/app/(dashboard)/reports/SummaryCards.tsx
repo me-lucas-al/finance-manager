@@ -77,12 +77,12 @@ export function SummaryCards({ metrics }: SummaryCardsProps) {
         </CardContent>
       </Card>
 
-      {/* Saldo Líquido */}
+      {/* Resultado do Mês (Receitas - Gastos) */}
       <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm border-l-4 border-l-indigo-600">
         <CardHeader className="pb-2 pt-5 px-5">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Saldo Líquido
+              Resultado do Mês
             </CardTitle>
             <Scale className="h-4 w-4 text-indigo-400" />
           </div>
@@ -92,7 +92,7 @@ export function SummaryCards({ metrics }: SummaryCardsProps) {
             {formatCurrency(metrics.balance)}
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            {metrics.balance >= 0 ? 'Resultado positivo' : 'Déficit no período'}
+            {metrics.balance >= 0 ? 'Economia no período (Receitas - Gastos)' : 'Déficit no período'}
           </p>
         </CardContent>
       </Card>

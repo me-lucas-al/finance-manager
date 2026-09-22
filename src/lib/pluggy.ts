@@ -27,6 +27,9 @@ const BANK_ALIASES: [alias: string, bank: string][] = [
   ['nubank', 'nubank'],
   ['nu pagamentos', 'nubank'],
   ['inter', 'inter'],
+  ['mercado pago', 'mercadopago'],
+  ['mercadopago', 'mercadopago'],
+  ['mercado livre', 'mercadopago'],
 ];
 
 // For institutions normalizeBankName didn't recognize, the raw name is all
