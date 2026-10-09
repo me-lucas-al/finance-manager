@@ -55,8 +55,9 @@ export class RegisterManualEntryUseCase {
     }
 
     const necessity = await this.classifyNecessity.execute(userId, entry.category, entry.description);
+    const monthPrefix = new Date().toISOString().slice(0, 7);
     const recent = await this.transactionRepo.findAllByUserId(userId, { limit: 30 });
-    const month = new Date().toISOString().slice(0, 7) + '-01';
+    const month = `${monthPrefix}-01`;
     let categoryLimit: number | undefined;
     if (this.goalRepo) {
       const goals = await this.goalRepo.findAllByUserIdAndMonth(userId, month);
@@ -69,6 +70,7 @@ export class RegisterManualEntryUseCase {
       category: entry.category,
       recentTransactions: recent,
       categoryLimit,
+      referenceMonth: monthPrefix,
     });
 
     await this.transactionRepo.create({

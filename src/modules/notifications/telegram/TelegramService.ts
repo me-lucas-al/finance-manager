@@ -20,10 +20,10 @@ export class TelegramService {
       }),
     });
 
-    const body = await response.json();
-    if (!response.ok || !body.ok) return null;
+    const body = (await response.json()) as { ok?: boolean; result?: { message_id?: number } };
+    if (!response.ok || !body.ok || !body.result?.message_id) return null;
 
-    return body.result.message_id as number;
+    return body.result.message_id;
   }
 
   static async sendTyping(): Promise<void> {

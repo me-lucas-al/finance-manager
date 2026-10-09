@@ -12,13 +12,13 @@ export class ClassifyNecessityService {
   ) {}
 
   async execute(userId: string, category: string, description: string): Promise<TransactionNecessity> {
-    const key = category.toLowerCase().trim();
+    const key = `${userId}:${category.toLowerCase().trim()}:${description.toLowerCase().trim()}`;
     if (necessityCache.has(key)) {
       return necessityCache.get(key)!;
     }
 
-    const past = await this.transactionRepo.findAllByUserId(userId, { category, limit: 5 });
-    const pastNecessity = past.find((t) => t.necessity)?.necessity;
+    const past = await this.transactionRepo.findAllByUserId(userId, { category, limit: 10 });
+    const pastNecessity = past.find((t) => t.description.toLowerCase().trim() === description.toLowerCase().trim() && t.necessity)?.necessity;
     if (pastNecessity) {
       necessityCache.set(key, pastNecessity);
       return pastNecessity;

@@ -1,7 +1,6 @@
 export type BuscarLancamentosArgs = {
   periodo?: string;
   categoria?: string;
-  tipo?: 'expense' | 'income' | 'investment';
 };
 
 export type TotalPorCategoriaArgs = {
@@ -33,8 +32,7 @@ export const BUSCAR_LANCAMENTOS_SCHEMA = {
   type: 'object',
   properties: {
     periodo: { type: 'string', description: 'Mês no formato YYYY-MM' },
-    tipo: { type: 'string', enum: ['expense', 'income', 'investment'] },
-    categoria: { type: 'string' },
+    categoria: { type: 'string', description: 'Nome da categoria de despesa' },
   },
 };
 

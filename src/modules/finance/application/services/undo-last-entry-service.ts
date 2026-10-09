@@ -17,7 +17,9 @@ export class UndoLastEntryService {
     ]);
 
     const candidates = [
-      latestTx ? { type: 'expense' as const, id: latestTx.id, time: new Date(latestTx.createdAt).getTime(), desc: latestTx.description, amount: latestTx.amount } : null,
+      latestTx && latestTx.source === 'manual'
+        ? { type: 'expense' as const, id: latestTx.id, time: new Date(latestTx.createdAt).getTime(), desc: latestTx.description, amount: latestTx.amount }
+        : null,
       latestInc ? { type: 'income' as const, id: latestInc.id, time: new Date(latestInc.createdAt).getTime(), desc: latestInc.description, amount: Number(latestInc.amount) } : null,
       latestInv ? { type: 'investment' as const, id: latestInv.id, time: new Date(latestInv.createdAt).getTime(), desc: latestInv.description, amount: Number(latestInv.amount) } : null,
     ].filter((c): c is NonNullable<typeof c> => c !== null);

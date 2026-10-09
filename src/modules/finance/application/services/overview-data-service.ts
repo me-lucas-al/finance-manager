@@ -1,4 +1,5 @@
 import { getEffectiveUserId } from '@/app/actions/require-session';
+import { getCurrentMonth, shiftMonth } from '@/lib/month';
 import { db } from '@/db';
 import { incomes, investments } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -38,11 +39,9 @@ export async function getLiveOverviewData(overrideUserId?: string): Promise<Live
   }));
 
   const monthsMap = new Map<string, number>();
+  const current = getCurrentMonth();
   for (let i = 5; i >= 0; i--) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    const key = d.toISOString().slice(0, 7);
-    monthsMap.set(key, 0);
+    monthsMap.set(shiftMonth(current, -i), 0);
   }
 
   for (const inc of dbIncomes) {

@@ -1,5 +1,5 @@
 import { ILanguageModel } from '@/modules/ai/domain/models/language-model';
-import { ParsedEntry } from '../..//domain/parsers/parse-entry-message';
+import { ParsedEntry } from '../../domain/parsers/parse-entry-message';
 
 export type AiExtractionResult =
   | { success: true; entry: ParsedEntry }

@@ -6,6 +6,7 @@ export type SpendingContext = {
   category: string;
   recentTransactions: Transaction[];
   categoryLimit?: number | null;
+  referenceMonth?: string;
 };
 
 export function detectSpendingPatterns(ctx: SpendingContext): SpendingPatternReport {
@@ -46,7 +47,9 @@ export function detectSpendingPatterns(ctx: SpendingContext): SpendingPatternRep
   }
 
   if (ctx.categoryLimit && ctx.categoryLimit > 0) {
-    const currentMonthTotal = catTxs.reduce((s, t) => s + t.amount, 0) + ctx.newAmount;
+    const month = ctx.referenceMonth ?? new Date().toISOString().slice(0, 7);
+    const monthTxs = catTxs.filter((t) => t.occurredAt.startsWith(month));
+    const currentMonthTotal = monthTxs.reduce((s, t) => s + t.amount, 0) + ctx.newAmount;
     if (currentMonthTotal >= ctx.categoryLimit * 0.8) {
       const pct = Math.round((currentMonthTotal / ctx.categoryLimit) * 100);
       alerts.push({

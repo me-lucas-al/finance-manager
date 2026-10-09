@@ -19,7 +19,7 @@ export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[]
   return [
     {
       name: 'buscar_lancamentos',
-      description: 'Busca lançamentos manuais do usuário por período, tipo ou categoria. Retorna no máximo 20 itens.',
+      description: 'Busca despesas manuais do usuário por período ou categoria. Retorna no máximo 20 itens.',
       parameters: BUSCAR_LANCAMENTOS_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = (rawArgs ?? {}) as BuscarLancamentosArgs;
