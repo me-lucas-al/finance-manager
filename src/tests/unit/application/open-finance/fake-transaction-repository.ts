@@ -10,7 +10,13 @@ export class FakeTransactionRepository implements TransactionRepository {
   private idCounter = 1;
 
   async create(data: NewTransaction): Promise<Transaction> {
-    const item: Transaction = { ...data, id: String(this.idCounter++), createdAt: new Date().toISOString() };
+    const item: Transaction = {
+      ...data,
+      id: String(this.idCounter++),
+      source: data.source ?? 'manual',
+      necessity: data.necessity ?? null,
+      createdAt: new Date().toISOString(),
+    };
     this.items.push(item);
     return item;
   }
@@ -34,9 +40,17 @@ export class FakeTransactionRepository implements TransactionRepository {
     return matching[0] ?? null;
   }
 
+  async findLatestByUserId(userId: string): Promise<Transaction | null> {
+    const matching = this.items
+      .filter((item) => item.userId === userId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return matching[0] ?? null;
+  }
+
   async findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]> {
     return this.items.filter((item) => {
       if (item.userId !== userId) return false;
+      if (filters?.source && item.source !== filters.source) return false;
       if (filters?.category && item.category !== filters.category) return false;
       if (filters?.month && !item.occurredAt.startsWith(filters.month)) return false;
       if (filters?.search && !item.description.toLowerCase().includes(filters.search.toLowerCase())) return false;
@@ -56,5 +70,9 @@ export class FakeTransactionRepository implements TransactionRepository {
     if (index === -1) throw new Error('Not found');
     this.items[index] = { ...this.items[index], ...data };
     return this.items[index];
+  }
+
+  async delete(id: string): Promise<void> {
+    this.items = this.items.filter((item) => item.id !== id);
   }
 }
