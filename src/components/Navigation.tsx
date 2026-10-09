@@ -12,7 +12,6 @@ const navLinks = [
   { href: '/', label: 'Overview' },
   { href: '/movements', label: 'Fluxo' },
   { href: '/ativos', label: 'Ativos' },
-  { href: '/connections', label: 'Conexões' },
   { href: '/goals', label: 'Metas' },
   { href: '/reports', label: 'Relatórios' },
   { href: '/periods', label: 'Calendário' },
@@ -29,7 +28,6 @@ export function Navigation() {
 
   return (
     <>
-      {/* Mobile Nav Button */}
       <div className="lg:hidden flex items-center">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger
@@ -73,7 +71,6 @@ export function Navigation() {
         </Sheet>
       </div>
 
-      {/* Desktop Nav - Clean Pill Tabs */}
       <nav aria-label="Menu Principal" className="hidden lg:flex items-center space-x-1 text-sm font-medium">
         {navLinks.map((link) => {
           const active = isActive(link.href);

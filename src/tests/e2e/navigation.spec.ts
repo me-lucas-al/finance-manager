@@ -22,10 +22,6 @@ test.describe('Navegação', () => {
     await expect(page).toHaveURL('/ativos');
     await expect(page.getByRole('heading', { name: 'Patrimônio & Ativos' })).toBeVisible();
 
-    await nav.getByRole('link', { name: 'Conexões' }).click();
-    await expect(page).toHaveURL('/connections');
-    await expect(page.getByRole('heading', { name: 'Open Finance & Conexões' })).toBeVisible();
-
     await nav.getByRole('link', { name: 'Relatórios' }).click();
     await expect(page).toHaveURL('/reports');
     await expect(page.getByRole('heading', { name: 'Relatórios Financeiros' })).toBeVisible();
