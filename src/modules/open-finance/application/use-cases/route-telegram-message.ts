@@ -1,8 +1,13 @@
-import type { GoalPromptRepository } from '../../domain/repositories/goal-prompt-repository';
-import type { TransactionRepository } from '../../domain/repositories/transaction-repository';
+import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
+import { parseEntryMessage } from '@/modules/finance/domain/parsers/parse-entry-message';
+import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
+import { ExtractEntryWithAiUseCase } from '@/modules/finance/application/use-cases/extract-entry-with-ai';
+import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
+import { AdvisorChatService } from '@/modules/ai/application/services/advisor-chat-service';
+import { formatEntryConfirmation } from '@/modules/finance/application/services/manual-entry-confirmation-formatter';
 import type { AskFinancialGoalsUseCase } from './ask-financial-goals';
 import type { RecordGoalsReplyUseCase } from './record-goals-reply';
-import type { RecordTransactionReasonUseCase } from './record-transaction-reason';
+import type { GoalPromptRepository } from '../../domain/repositories/goal-prompt-repository';
 
 export type TelegramIncomingMessage = {
   messageId: number;
@@ -10,62 +15,69 @@ export type TelegramIncomingMessage = {
   replyToMessageId?: number;
 };
 
-const GOAL_COMMAND = '/goal';
+export type RouteTelegramDeps = {
+  handleBotCommand: HandleBotCommandUseCase;
+  registerManualEntry: RegisterManualEntryUseCase;
+  extractWithAi: ExtractEntryWithAiUseCase;
+  advisorChat: AdvisorChatService;
+  askFinancialGoals: AskFinancialGoalsUseCase;
+  recordGoalsReply: RecordGoalsReplyUseCase;
+  goalPromptRepo: GoalPromptRepository;
+};
 
-// Single decision point for the Telegram webhook, replacing the old
-// "everything is a transaction reason" routing now that the bot also handles
-// financial goals. Kept here (instead of inline in route.ts) so the webhook
-// route itself stays thin.
 export class RouteTelegramMessageUseCase {
-  constructor(
-    private askFinancialGoals: AskFinancialGoalsUseCase,
-    private recordGoalsReply: RecordGoalsReplyUseCase,
-    private recordTransactionReason: RecordTransactionReasonUseCase,
-    private goalPromptRepository: GoalPromptRepository,
-    private transactionRepository: TransactionRepository,
-  ) {}
+  constructor(private deps: RouteTelegramDeps) {}
 
   async execute(message: TelegramIncomingMessage, userId: string): Promise<void> {
     const trimmed = message.text.trim();
 
-    if (trimmed.toLowerCase().startsWith(GOAL_COMMAND)) {
-      const remaining = trimmed.slice(GOAL_COMMAND.length).trim();
-      if (!remaining) {
-        await this.askFinancialGoals.execute(userId);
-      } else {
-        await this.recordGoalsReply.execute(userId, remaining, undefined, message.messageId);
-      }
-      return;
-    }
-
     if (message.replyToMessageId) {
-      const goalPrompt = await this.goalPromptRepository.findByTelegramMessageId(message.replyToMessageId);
-      if (goalPrompt && !goalPrompt.answeredAt) {
-        await this.recordGoalsReply.execute(userId, message.text, goalPrompt.id, message.messageId);
+      const prompt = await this.deps.goalPromptRepo.findByTelegramMessageId(message.replyToMessageId);
+      if (prompt && !prompt.answeredAt) {
+        await this.deps.recordGoalsReply.execute(userId, trimmed, prompt.id, message.messageId);
         return;
       }
+    }
 
-      await this.recordTransactionReason.execute(message.replyToMessageId, message.text, message.messageId, userId);
+    if (trimmed.toLowerCase().startsWith('/goal')) {
+      const remaining = trimmed.slice(5).trim();
+      if (!remaining) {
+        await this.deps.askFinancialGoals.execute(userId);
+      } else {
+        await this.deps.recordGoalsReply.execute(userId, remaining, undefined, message.messageId);
+      }
       return;
     }
 
-    const [pendingGoalPrompt, pendingTransaction] = await Promise.all([
-      this.goalPromptRepository.findLatestPendingByUserId(userId),
-      this.transactionRepository.findLatestPendingByUserId(userId),
-    ]);
-
-    if (!pendingGoalPrompt && !pendingTransaction) {
+    if (trimmed.startsWith('/')) {
+      const commandReply = await this.deps.handleBotCommand.execute(userId, trimmed);
+      await TelegramService.sendMessage(commandReply, message.messageId);
       return;
     }
 
-    const goalIsNewer =
-      !!pendingGoalPrompt && (!pendingTransaction || pendingGoalPrompt.createdAt > pendingTransaction.createdAt);
-
-    if (goalIsNewer && pendingGoalPrompt) {
-      await this.recordGoalsReply.execute(userId, message.text, pendingGoalPrompt.id, message.messageId);
+    const parsed = parseEntryMessage(trimmed);
+    if (parsed) {
+      const res = await this.deps.registerManualEntry.execute(userId, parsed);
+      const conf = formatEntryConfirmation(res);
+      await TelegramService.sendMessage(conf, message.messageId);
       return;
     }
 
-    await this.recordTransactionReason.execute(undefined, message.text, message.messageId, userId);
+    const aiExtraction = await this.deps.extractWithAi.execute(trimmed);
+    if (aiExtraction.success) {
+      const res = await this.deps.registerManualEntry.execute(userId, aiExtraction.entry);
+      const conf = formatEntryConfirmation(res);
+      await TelegramService.sendMessage(conf, message.messageId);
+      return;
+    }
+
+    if (aiExtraction.needsClarification) {
+      await TelegramService.sendMessage(aiExtraction.question, message.messageId);
+      return;
+    }
+
+    await TelegramService.sendTyping();
+    const reply = await this.deps.advisorChat.respond(userId, trimmed);
+    await TelegramService.sendMessage(reply, message.messageId);
   }
 }
