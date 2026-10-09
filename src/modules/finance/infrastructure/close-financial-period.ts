@@ -77,8 +77,9 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
     return { success: true, message: 'Period already closed' };
   }
 
+  const snapshotId = crypto.randomUUID();
   await db.insert(periodSnapshots).values({
-    id: crypto.randomUUID(),
+    id: snapshotId,
     userId,
     periodId,
     totalIncomes: totalIncomes.toString(),
@@ -125,5 +126,5 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
     }
   }
 
-  return { success: true, message: 'Period closed and next period created' };
+  return { success: true, message: 'Period closed and next period created', snapshotId };
 }

@@ -3,6 +3,8 @@ import { db } from '@/db';
 import { financialPeriods } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { closeFinancialPeriod } from '@/modules/finance/infrastructure/close-financial-period';
+import { GeminiLanguageModel } from '@/modules/ai/infrastructure/gemini-language-model';
+import { SendMonthlyClosingSummaryUseCase } from '@/modules/open-finance/application/use-cases/send-monthly-closing-summary';
 
 export async function GET(req: NextRequest) {
   // Protect cron route (assuming Vercel passes a secret)
@@ -26,8 +28,14 @@ export async function GET(req: NextRequest) {
     // 2. Iterate and close each period securely
     for (const period of expiredPeriods) {
       try {
-        await closeFinancialPeriod(period.id, period.userId);
+        const result = await closeFinancialPeriod(period.id, period.userId);
         closedCount++;
+        
+        if (result.snapshotId) {
+          const llm = new GeminiLanguageModel();
+          const useCase = new SendMonthlyClosingSummaryUseCase(llm);
+          await useCase.execute(period.userId, result.snapshotId);
+        }
       } catch (error) {
         errors.push({ periodId: period.id, error: error instanceof Error ? error.message : String(error) });
       }
