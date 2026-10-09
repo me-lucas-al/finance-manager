@@ -5,6 +5,7 @@ import {
   SupabaseSavingsGoalRepository,
   SupabaseTransactionRepository,
 } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { GeminiLanguageModel } from '@/modules/ai/infrastructure/gemini-language-model';
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
       new SupabaseGoalRepository(),
       new SupabaseSavingsGoalRepository(),
       new SupabaseTransactionRepository(),
+      new GeminiLanguageModel(),
     );
     await useCase.execute(userId);
     return NextResponse.json({ ok: true });
