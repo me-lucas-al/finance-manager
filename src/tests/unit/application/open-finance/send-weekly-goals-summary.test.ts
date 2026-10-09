@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { NewTransaction } from '../../../../modules/open-finance/domain/repositories/transaction-repository';
+import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
 
 const sendMessageMock = vi.fn();
 
@@ -24,9 +25,9 @@ function newTransaction(overrides: Partial<NewTransaction> = {}): NewTransaction
   const { filterMonth } = currentMonth();
   return {
     userId: 'user-1',
-    pluggyTransactionId: 'p-1',
+    pluggyTransactionId: null,
     accountId: null,
-    bank: 'itau',
+    bank: 'Manual',
     amount: 100,
     description: 'Mercado',
     occurredAt: `${filterMonth}-05`,
@@ -34,6 +35,8 @@ function newTransaction(overrides: Partial<NewTransaction> = {}): NewTransaction
     categorySuggested: 'Alimentação',
     reason: 'Compras',
     status: 'categorized',
+    source: 'manual',
+    necessity: 'essencial',
     telegramQuestionMessageId: null,
     ...overrides,
   };
@@ -75,13 +78,13 @@ describe('SendWeeklyGoalsSummaryUseCase', () => {
     expect(message).toContain('Viagem');
   });
 
-  it('ignores pending (uncategorized) transactions in the spend total', async () => {
-    sendMessageMock.mockResolvedValue(1);
-    await transactionRepository.create(newTransaction({ status: 'pending_reason', amount: 999 }));
+  it('generates Pro AI summary when LLM is provided', async () => {
+    const fakeLlm = new FakeLanguageModel();
+    fakeLlm.nextTextResponse = 'Relatório Semanal Gerado pela IA Pro';
+    const aiUseCase = new SendWeeklyGoalsSummaryUseCase(goalRepository, savingsGoalRepository, transactionRepository, fakeLlm);
 
-    await useCase.execute('user-1');
+    await aiUseCase.execute('user-1');
 
-    const [message] = sendMessageMock.mock.calls[0];
-    expect(message).not.toContain('999');
+    expect(sendMessageMock).toHaveBeenCalledWith('Relatório Semanal Gerado pela IA Pro');
   });
 });

@@ -1,126 +1,73 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { userSettings } from '@/db/schema';
-import { fetchRawPluggyData } from '@/lib/pluggy-service';
+import { userSettings, incomes, investments } from '@/db/schema';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
-import { sanitizeTransactions } from '@/lib/transaction-classifier';
+import { SupabaseTransactionRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 import { loadCategoryVsGoalData } from './category-vs-goal';
-import { formatMonthLabel } from './month-format';
-import type { CategoryDatum, EvolutionDatum, CategoryGoalDatum } from './charts';
+import { buildEvolutionTimeline, MonthSummary } from './report-timeline-builder';
+import type { ReportFilterParams, ReportData } from './report-types';
+import type { CategoryDatum } from './charts';
 
-export type ReportFilterParams = {
-  period?: string; // 'YYYY-MM', 'all', 'current', 'last'
-  bank?: string;   // 'all', 'itau', 'nubank', 'inter'
-};
+export * from './report-types';
 
-export type ReportData = {
-  noDataMessage: string | null;
-  metrics: {
-    totalIncome: number;
-    totalExpenses: number;
-    totalInvestments: number;
-    balance: number;
-    expensePercentage: number;
-    investmentPercentage: number;
-  };
-  categoryData: CategoryDatum[];
-  evolutionData: EvolutionDatum[];
-  currentInvestmentPercentage: number;
-  minInvestmentPercentage: number;
-  categoryVsGoalData: CategoryGoalDatum[];
-  selectedPeriod: string;
-  selectedBank: string;
-};
-
-export async function getReportData(
-  userId: string,
-  params: ReportFilterParams
-): Promise<ReportData> {
-  const { allTransactions, allInvestments } = await fetchRawPluggyData();
-
+export async function getReportData(userId: string, params: ReportFilterParams): Promise<ReportData> {
   const currentMonth = getCurrentMonth();
   const lastMonth = shiftMonth(currentMonth, -1);
-
-  // Normalize period filter
   let period = params.period || currentMonth;
   if (period === 'current') period = currentMonth;
   if (period === 'last') period = lastMonth;
 
-  const bank = params.bank || 'all';
+  const repo = new SupabaseTransactionRepository();
+  const [allTxs, allIncomes, allInvs, [settings]] = await Promise.all([
+    repo.findAllByUserId(userId),
+    db.select().from(incomes).where(eq(incomes.userId, userId)),
+    db.select().from(investments).where(eq(investments.userId, userId)),
+    db.select().from(userSettings).where(eq(userSettings.userId, userId)),
+  ]);
 
-  // Filter transactions
-  const filteredTransactions = allTransactions.filter((tx) => {
-    // 1. Bank filter
-    if (bank !== 'all' && tx.bank !== bank) return false;
+  const filteredTxs = allTxs.filter((tx) => period === 'all' || tx.occurredAt.slice(0, 7) === period);
+  const filteredIncomes = allIncomes.filter(
+    (inc) => period === 'all' || inc.receivedAt.toISOString().slice(0, 7) === period
+  );
 
-    // 2. Period filter
-    if (period !== 'all') {
-      const txDateStr = tx.date instanceof Date ? tx.date.toISOString() : String(tx.date);
-      const txMonth = txDateStr.slice(0, 7);
-      if (txMonth !== period) return false;
-    }
-
-    return true;
-  });
-
-  // Calculate sanitized totals for the filtered selection
-  const { summary: filteredSummary } = sanitizeTransactions(filteredTransactions);
-  const totalIncome = filteredSummary.totalIncome;
-  const totalExpenses = filteredSummary.totalExpenses;
-  const categoryMap = filteredSummary.categoryTotals;
-
-  const noDataMessage =
-    filteredTransactions.length === 0
-      ? 'Nenhuma transação encontrada para o período e banco selecionados.'
-      : null;
-
-  const totalInvestments = allInvestments
-    .filter((inv) => bank === 'all' || inv.bank === bank)
-    .reduce((sum, inv) => sum + (Number(inv.balance) || 0), 0);
-
+  const totalIncome = filteredIncomes.reduce((s, i) => s + Number(i.amount), 0);
+  const totalExpenses = filteredTxs.reduce((s, t) => s + Number(t.amount), 0);
+  const totalInvestments = allInvs.reduce((s, i) => s + Number(i.amount), 0);
   const balance = totalIncome - totalExpenses;
-  const expensePercentage = totalIncome > 0 ? Math.min(100, Math.round((totalExpenses / totalIncome) * 100)) : 0;
-  const investmentPercentage = totalIncome > 0 ? Math.round((totalInvestments / totalIncome) * 100) : 0;
 
-  // Category breakdown for pie chart
-  const categoryData: CategoryDatum[] = Object.entries(categoryMap)
+  const catMap = new Map<string, number>();
+  for (const tx of filteredTxs) {
+    const c = tx.category || 'Outros';
+    catMap.set(c, (catMap.get(c) ?? 0) + Number(tx.amount));
+  }
+
+  const categoryData: CategoryDatum[] = Array.from(catMap.entries())
     .map(([category, total]) => ({ category, total: Math.round(total * 100) / 100 }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 7);
 
-  // Evolution chart across months with sanitization applied per month
-  const monthlyTransactionsMap: Record<string, typeof allTransactions> = {};
-  for (const tx of allTransactions) {
-    if (bank !== 'all' && tx.bank !== bank) continue;
-
-    const txDateStr = tx.date instanceof Date ? tx.date.toISOString() : String(tx.date);
-    const m = txDateStr.slice(0, 7);
-    if (!monthlyTransactionsMap[m]) {
-      monthlyTransactionsMap[m] = [];
-    }
-    monthlyTransactionsMap[m].push(tx);
+  const monthlyMap = new Map<string, MonthSummary>();
+  for (const inc of allIncomes) {
+    const m = inc.receivedAt.toISOString().slice(0, 7);
+    const cur = monthlyMap.get(m) ?? { income: 0, expenses: 0 };
+    cur.income += Number(inc.amount);
+    monthlyMap.set(m, cur);
+  }
+  for (const tx of allTxs) {
+    const m = tx.occurredAt.slice(0, 7);
+    const cur = monthlyMap.get(m) ?? { income: 0, expenses: 0 };
+    cur.expenses += Number(tx.amount);
+    monthlyMap.set(m, cur);
   }
 
-  // Last 6 consecutive months ending on the current real month
-  const timelineMonths = Array.from({ length: 6 }, (_, i) => shiftMonth(currentMonth, i - 5));
-  const evolutionData: EvolutionDatum[] = timelineMonths.map((ym) => {
-    const txs = monthlyTransactionsMap[ym] || [];
-    const { summary } = sanitizeTransactions(txs);
-    return {
-      label: formatMonthLabel(ym),
-      income: summary.totalIncome,
-      expenses: summary.totalExpenses,
-      investments: ym === currentMonth ? totalInvestments : 0,
-    };
-  });
-
+  const evolutionData = buildEvolutionTimeline(currentMonth, monthlyMap, totalInvestments);
   const categoryVsGoalData = await loadCategoryVsGoalData(userId);
 
-  const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
-  const minInvestmentPercentage = settings?.minInvestmentPercentage ?? 20;
+  const expensePercentage = totalIncome > 0 ? Math.min(100, Math.round((totalExpenses / totalIncome) * 100)) : 0;
+  const investmentPercentage = totalIncome > 0 ? Math.round((totalInvestments / totalIncome) * 100) : 0;
 
   return {
-    noDataMessage,
+    noDataMessage: filteredTxs.length === 0 && filteredIncomes.length === 0 ? 'Nenhuma transação encontrada.' : null,
     metrics: {
       totalIncome: Math.round(totalIncome * 100) / 100,
       totalExpenses: Math.round(totalExpenses * 100) / 100,
@@ -132,9 +79,9 @@ export async function getReportData(
     categoryData,
     evolutionData,
     currentInvestmentPercentage: investmentPercentage,
-    minInvestmentPercentage,
+    minInvestmentPercentage: settings?.minInvestmentPercentage ?? 20,
     categoryVsGoalData,
     selectedPeriod: period,
-    selectedBank: bank,
+    selectedBank: params.bank || 'all',
   };
 }

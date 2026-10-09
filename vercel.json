@@ -11,10 +11,6 @@
     {
       "path": "/api/cron/weekly-goals-summary",
       "schedule": "0 12 * * 1"
-    },
-    {
-      "path": "/api/cron/sync-transactions",
-      "schedule": "0 6 * * *"
     }
   ]
 }

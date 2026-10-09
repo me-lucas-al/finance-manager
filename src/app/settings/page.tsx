@@ -1,15 +1,13 @@
-import Link from 'next/link';
-import { ArrowRight, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getUserSettings } from '@/app/actions/users';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
 import { getEffectiveUserId } from '@/app/actions/require-session';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { SettingsForm } from './SettingsForm';
-import { NotificationPreferencesForm } from './NotificationPreferencesForm';
-import { PushNotificationButton } from './PushNotificationButton';
-import { ChangePasswordForm } from './ChangePasswordForm';
+import { SettingsNotificationsCard } from './SettingsNotificationsCard';
 import { ProfileForm } from './ProfileForm';
+import { ChangePasswordForm } from './ChangePasswordForm';
 
 export default async function SettingsPage() {
   const [settings, preferences, userId] = await Promise.all([
@@ -38,12 +36,11 @@ export default async function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Meu Perfil & Configurações</h1>
-            <p className="text-xs text-zinc-400 mt-1">Gerencie suas informações pessoais, preferências e conexões</p>
+            <p className="text-xs text-zinc-400 mt-1">Gerencie suas informações pessoais e preferências</p>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* User Profile Card */}
           <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl md:col-span-2 shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2">
@@ -62,72 +59,36 @@ export default async function SettingsPage() {
               />
             </CardContent>
           </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Regras Financeiras</CardTitle>
-            <CardDescription>Defina o ciclo do seu período e as metas de gastos e investimentos.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SettingsForm
-              periodStartDay={settings.periodStartDay}
-              periodEndDay={settings.periodEndDay}
-              maxExpensesPercentage={settings.maxExpensesPercentage}
-              minInvestmentPercentage={settings.minInvestmentPercentage}
-              expenseCategories={settings.expenseCategories ?? []}
-              investmentTypes={settings.investmentTypes ?? []}
-            />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Regras Financeiras</CardTitle>
+              <CardDescription>Defina o ciclo do seu período e as metas de gastos e investimentos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SettingsForm
+                periodStartDay={settings.periodStartDay}
+                periodEndDay={settings.periodEndDay}
+                maxExpensesPercentage={settings.maxExpensesPercentage}
+                minInvestmentPercentage={settings.minInvestmentPercentage}
+                expenseCategories={settings.expenseCategories ?? []}
+                investmentTypes={settings.investmentTypes ?? []}
+              />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Segurança e Senha</CardTitle>
-            <CardDescription>Altere a sua senha de acesso de forma segura.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChangePasswordForm />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Segurança e Senha</CardTitle>
+              <CardDescription>Altere a sua senha de acesso de forma segura.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChangePasswordForm />
+            </CardContent>
+          </Card>
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Notificações</CardTitle>
-            <CardDescription>Escolha quais avisos você quer receber.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {preferences ? (
-              <div className="space-y-4">
-                <NotificationPreferencesForm
-                  expenseNotificationsEnabled={preferences.expenseNotificationsEnabled}
-                  investmentNotificationsEnabled={preferences.investmentNotificationsEnabled}
-                  goalNotificationsEnabled={preferences.goalNotificationsEnabled}
-                  closingNotificationsEnabled={preferences.closingNotificationsEnabled}
-                  generalNotificationsEnabled={preferences.generalNotificationsEnabled}
-                  pushNotificationsEnabled={preferences.pushNotificationsEnabled}
-                />
-                <div className="border-t pt-4">
-                  <PushNotificationButton />
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Preferências de notificação não encontradas.</p>
-            )}
-          </CardContent>
-        </Card>
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Integração de Bancos (Open Finance)</CardTitle>
-            <CardDescription>Conecte contas bancárias para importação automática de transações via Pluggy.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/connections" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
-              Gerenciar bancos conectados
-              <ArrowRight className="size-4" />
-            </Link>
-          </CardContent>
-        </Card>
+          <SettingsNotificationsCard preferences={preferences} />
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

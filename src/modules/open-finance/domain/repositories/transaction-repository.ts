@@ -1,9 +1,11 @@
 export type TransactionStatus = 'pending_reason' | 'categorized';
+export type TransactionSource = 'manual' | 'pluggy';
+export type TransactionNecessity = 'essencial' | 'importante' | 'superfluo';
 
 export type Transaction = {
   id: string;
   userId: string;
-  pluggyTransactionId: string;
+  pluggyTransactionId: string | null;
   accountId: string | null;
   bank: string;
   amount: number;
@@ -13,12 +15,13 @@ export type Transaction = {
   categorySuggested: string | null;
   reason: string | null;
   status: TransactionStatus;
+  source: TransactionSource;
+  necessity: TransactionNecessity | null;
   telegramQuestionMessageId: number | null;
   createdAt: string;
 };
 
 export type NewTransaction = Omit<Transaction, 'id' | 'createdAt'>;
-
 export type TransactionSortField = 'date' | 'description' | 'amount';
 
 export type TransactionFilters = {
@@ -27,6 +30,7 @@ export type TransactionFilters = {
   dateTo?: Date;
   category?: string;
   search?: string;
+  source?: TransactionSource;
   sort?: TransactionSortField;
   dir?: 'asc' | 'desc';
   limit?: number;
@@ -39,7 +43,9 @@ export interface TransactionRepository {
   findByPluggyId(pluggyTransactionId: string): Promise<Transaction | null>;
   findByTelegramQuestionMessageId(messageId: number): Promise<Transaction | null>;
   findLatestPendingByUserId(userId: string): Promise<Transaction | null>;
+  findLatestByUserId(userId: string): Promise<Transaction | null>;
   findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]>;
   countByUserId(userId: string, filters?: Pick<TransactionFilters, 'month' | 'category' | 'search'>): Promise<number>;
   update(id: string, data: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>): Promise<Transaction>;
+  delete(id: string): Promise<void>;
 }

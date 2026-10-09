@@ -1,4 +1,4 @@
-import { getLiveInvestmentsData } from '@/lib/pluggy-service';
+import { getLiveInvestmentsData } from '@/modules/finance/application/services/assets-data-service';
 import { AtivosList } from '@/components/ativos/AtivosList';
 import { Suspense } from 'react';
 
@@ -8,7 +8,6 @@ export default async function AtivosPage() {
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
       <div className="max-w-[1440px] mx-auto p-4 sm:p-6 md:p-8 space-y-6">
-        {/* Page Title */}
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-white">Ativos</h1>
           <p className="text-sm text-zinc-400">
@@ -16,7 +15,6 @@ export default async function AtivosPage() {
           </p>
         </div>
 
-        {/* Ativos List and Summary with Live Pluggy Data */}
         <Suspense fallback={<div className="text-zinc-400">Carregando ativos...</div>}>
           <AtivosList initialTotal={data.total} initialAssets={data.assets} />
         </Suspense>

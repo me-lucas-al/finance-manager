@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { usePrivacy } from '@/components/PrivacyProvider';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
-import type { LiveTransactionItem } from '@/lib/pluggy-service';
+import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 
 interface TransactionsExplorerProps {
   month: string;

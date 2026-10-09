@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ChevronDown, User, LogOut, Target, BarChart3, Calendar, Landmark } from 'lucide-react';
+import { ChevronDown, User, LogOut, Target, BarChart3, Calendar } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +34,6 @@ export function HeaderControls({ user }: HeaderControlsProps) {
 
   return (
     <div className="flex items-center gap-3">
-      {/* User Profile Avatar with Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger render={
           <button
@@ -65,10 +64,6 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           <DropdownMenuItem render={<Link href="/settings" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
             <User className="h-4 w-4 text-blue-400" />
             <span>Meu Perfil & Configurações</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/connections" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
-            <Landmark className="h-4 w-4 text-zinc-400" />
-            <span>Conexões Bancárias</span>
           </DropdownMenuItem>
           <DropdownMenuItem render={<Link href="/goals" className="flex items-center gap-2.5 cursor-pointer w-full text-xs hover:bg-zinc-800 hover:text-white py-2 px-3 rounded-md transition" />}>
             <Target className="h-4 w-4 text-zinc-400" />
