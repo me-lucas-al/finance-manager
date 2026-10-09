@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Briefcase, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePrivacy } from '@/components/PrivacyProvider';
-import type { LiveAssetItem } from '@/lib/pluggy-service';
+import type { LiveAssetItem } from '@/modules/finance/domain/models/financial-types';
 
 interface AtivosListProps {
   initialTotal?: number;

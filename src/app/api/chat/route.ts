@@ -7,7 +7,10 @@ const google = createGoogleGenerativeAI({
 import { z } from 'zod';
 import { formatCurrency } from '@/lib/format';
 import { SupabaseGoalRepository, SupabaseSavingsGoalRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
-import { getLiveOverviewData, getLiveMovementsData, getLiveInvestmentsData, searchLiveTransactions } from '@/lib/pluggy-service';
+import { getLiveOverviewData } from '@/modules/finance/application/services/overview-data-service';
+import { getLiveMovementsData } from '@/modules/finance/application/services/movements-data-service';
+import { getLiveInvestmentsData } from '@/modules/finance/application/services/assets-data-service';
+import { searchLiveTransactions } from '@/modules/finance/application/services/search-transactions-service';
 import { getExpenseCategories } from '@/modules/open-finance/application/shared/expense-categories';
 import { SavingsGoal } from '@/modules/open-finance/domain/repositories/savings-goal-repository';
 
