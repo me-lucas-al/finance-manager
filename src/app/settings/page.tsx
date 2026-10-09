@@ -6,6 +6,8 @@ import { getEffectiveUserId } from '@/app/actions/require-session';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { SettingsForm } from './SettingsForm';
 import { SettingsNotificationsCard } from './SettingsNotificationsCard';
+import { ProfileForm } from './ProfileForm';
+import { ChangePasswordForm } from './ChangePasswordForm';
 
 export default async function SettingsPage() {
   const [settings, preferences, userId] = await Promise.all([
