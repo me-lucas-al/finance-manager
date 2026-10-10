@@ -138,7 +138,7 @@ Analisa os últimos lançamentos do usuário e dispara alertas proativos na conf
 
 ### 1. Modelo de Linguagem Abstrato (`GeminiLanguageModel.ts`)
 Implementa a interface `ILanguageModel` sobre o Vercel AI SDK (`ai` v7):
-- Alternância entre `gemini-2.5-flash` (operações rápidas/parsers) e `gemini-2.5-pro` (análises e resumos semanais profundos).
+- Alternância entre `gemini-3.6-flash` (operações rápidas/parsers) e `gemini-3.1-pro-preview` (análises e resumos semanais profundos).
 - Suporte a Tool Calling via `inputSchema` e `stopWhen: isStepCount(...)`.
 
 ### 2. Ferramentas do Consultor (Tool Calling)

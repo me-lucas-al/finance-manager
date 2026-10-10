@@ -49,7 +49,7 @@ Pergunte qualquer coisa sobre suas finanças diretamente no Telegram. O assisten
 - **Estilização**: Tailwind CSS v4 & shadcn/ui
 - **Banco de Dados**: Neon (Serverless Postgres) & Supabase
 - **ORM & Migrations**: Drizzle ORM & Supabase Migrations
-- **Inteligência Artificial**: Vercel AI SDK (`ai` v7) & Google Gemini (`gemini-2.5-flash`, `gemini-2.5-pro`)
+- **Inteligência Artificial**: Vercel AI SDK (`ai` v7) & Google Gemini (`gemini-3.6-flash`, `gemini-3.1-pro-preview`)
 - **Mensageria**: Telegram Bot API (Webhook serverless com idempotência)
 - **Testes**: Vitest (Unitários/Integração) & Playwright (E2E)
 

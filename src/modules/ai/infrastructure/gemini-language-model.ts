@@ -9,8 +9,8 @@ import {
 } from '../domain/models/language-model';
 
 function getModelName(tier: 'flash' | 'pro' = 'flash'): string {
-  if (tier === 'pro') return 'gemini-2.5-pro';
-  return 'gemini-2.5-flash';
+  if (tier === 'pro') return 'gemini-3.1-pro-preview';
+  return 'gemini-3.6-flash';
 }
 
 function buildGoogleProvider() {
