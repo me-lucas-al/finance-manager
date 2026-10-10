@@ -21,7 +21,10 @@ export class TelegramService {
     });
 
     const body = (await response.json()) as { ok?: boolean; result?: { message_id?: number } };
-    if (!response.ok || !body.ok || !body.result?.message_id) return null;
+    if (!response.ok || !body.ok || !body.result?.message_id) {
+      console.error('Telegram sendMessage failed:', response.status, JSON.stringify(body));
+      return null;
+    }
 
     return body.result.message_id;
   }

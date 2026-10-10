@@ -77,7 +77,17 @@ export class RouteTelegramMessageUseCase {
     }
 
     await TelegramService.sendTyping();
-    const reply = await this.deps.advisorChat.respond(userId, trimmed);
+    let reply: string;
+    try {
+      reply = (await this.deps.advisorChat.respond(userId, trimmed)).trim();
+    } catch (err) {
+      console.error('Advisor chat failed:', err);
+      reply = 'Tive um problema ao processar sua mensagem. Tente novamente em instantes.';
+    }
+    if (!reply) {
+      console.error('Advisor chat returned an empty reply');
+      reply = 'Não consegui gerar uma resposta agora. Pode reformular a pergunta?';
+    }
     await TelegramService.sendMessage(reply, message.messageId);
   }
 }

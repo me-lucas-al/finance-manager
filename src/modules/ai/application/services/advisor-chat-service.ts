@@ -64,7 +64,7 @@ export class AdvisorChatService {
 
     const reply = await this.deps.llm.chat(
       [...messages, { role: 'user', content: userMessage }],
-      { systemPrompt, tools, tier: 'flash', maxTokens: 800 }
+      { systemPrompt, tools, tier: 'flash', maxTokens: 2048 }
     );
 
     await this.deps.chatRepo.create({ userId, role: 'assistant', content: reply });
