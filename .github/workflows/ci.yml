@@ -69,3 +69,44 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+  migrate-supabase:
+    # Applies supabase/migrations/*.sql to the production Supabase project.
+    # Runs only on pushes to main, after build-and-test passes.
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Supabase secrets
+        run: |
+          for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Missing repository secret $v (Settings > Secrets and variables > Actions)"
+              exit 1
+            fi
+          done
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      # 0001-0006 were applied by hand before this job existed; record them as
+      # applied so only newer migrations are executed. Safe to repeat.
+      - name: Baseline already-applied migrations
+        run: supabase migration repair --status applied 0001 0002 0003 0004 0005 0006 --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Push migrations
+        run: supabase db push --password "$SUPABASE_DB_PASSWORD"
