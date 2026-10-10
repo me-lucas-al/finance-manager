@@ -37,7 +37,7 @@ export class GeminiLanguageModel implements ILanguageModel {
     const model = google(getModelName(options?.tier));
     const result = await generateText({
       model,
-      system: options?.systemPrompt,
+      instructions: options?.systemPrompt,
       prompt,
       maxOutputTokens: options?.maxTokens ?? 800,
       temperature: options?.temperature ?? 0.2,
@@ -57,10 +57,18 @@ export class GeminiLanguageModel implements ILanguageModel {
     const model = google(getModelName(options?.tier ?? 'flash'));
     const mappedTools = mapTools(options?.tools);
 
+    // ai v7 rejects system-role entries in `messages`; fold them (e.g. history summaries) into the instructions.
+    const systemParts = [
+      options?.systemPrompt,
+      ...messages.filter((m) => m.role === 'system').map((m) => m.content),
+    ].filter(Boolean);
+
     const result = await generateText({
       model,
-      system: options?.systemPrompt,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      instructions: systemParts.length > 0 ? systemParts.join('\n\n') : undefined,
+      messages: messages
+        .filter((m): m is typeof m & { role: 'user' | 'assistant' } => m.role !== 'system')
+        .map((m) => ({ role: m.role, content: m.content })),
       tools: mappedTools,
       stopWhen: isStepCount(options?.tools ? 4 : 1),
       maxOutputTokens: options?.maxTokens ?? 800,
