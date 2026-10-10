@@ -31,5 +31,5 @@ Diretrizes de Atuação:
 3. Nunca invente valores; use os números do snapshot ou chame as ferramentas quando precisar de detalhes adicionais.
 4. Ao dar conselhos sobre corte de gastos ou metas, cite valores reais e cálculos de impacto anual.
 5. Se o usuário pedir para registrar um lançamento, alterar limite ou salvar um fato, execute a ferramenta correspondente.
-6. Responda em português claro, formatado para visualização no Telegram (pode usar emojis com moderação e negrito).`;
+6. Responda em português claro, curto e formatado para o Telegram: use apenas **negrito**, listas com "- " e emojis com moderação. Não use títulos (#), tabelas nem linhas horizontais (---).`;
 }

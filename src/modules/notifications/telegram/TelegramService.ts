@@ -1,3 +1,5 @@
+import { markdownToTelegramHtml } from './markdown-to-telegram-html';
+
 function getConfig(): { token: string; chatId: string } | null {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_ALLOWED_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
@@ -10,12 +12,26 @@ export class TelegramService {
     const config = getConfig();
     if (!config) return null;
 
+    const html = await TelegramService.post(config, markdownToTelegramHtml(text), replyToMessageId, 'HTML');
+    if (html !== null) return html;
+
+    // Telegram rejects malformed HTML entities; resend as plain text so the user still gets the reply.
+    return TelegramService.post(config, text, replyToMessageId);
+  }
+
+  private static async post(
+    config: { token: string; chatId: string },
+    text: string,
+    replyToMessageId?: number,
+    parseMode?: 'HTML',
+  ): Promise<number | null> {
     const response = await fetch(`https://api.telegram.org/bot${config.token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: config.chatId,
         text,
+        ...(parseMode ? { parse_mode: parseMode } : {}),
         ...(replyToMessageId ? { reply_parameters: { message_id: replyToMessageId } } : {}),
       }),
     });
