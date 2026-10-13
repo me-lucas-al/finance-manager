@@ -8,10 +8,17 @@ import {
 } from '@/modules/open-finance/infrastructure/supabase-repositories';
 import { AdvisorChatService } from '../application/services/advisor-chat-service';
 import { ChatMemoryService } from '../application/services/chat-memory-service';
+import { DeletionConfirmationService } from '../application/services/deletion-confirmation-service';
 import { createAdvisorToolsFactory } from '../application/tools/financial-advisor-tools';
 import { GeminiLanguageModel } from './gemini-language-model';
 import { SupabaseAssistantMemoryRepository } from './supabase-assistant-memory-repository';
 import { SupabaseChatMessageRepository } from './supabase-chat-message-repository';
+
+function requireDeletionSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error('AUTH_SECRET is required to confirm deletions');
+  return secret;
+}
 
 export function buildAdvisorServices() {
   const llm = new GeminiLanguageModel();
@@ -29,6 +36,7 @@ export function buildAdvisorServices() {
     registerEntry: entries.registerEntry,
     updateEntry: entries.updateEntry,
     deleteEntry: entries.deleteEntry,
+    deletion: new DeletionConfirmationService(requireDeletionSecret()),
     goalsUpdater: new UpdateGoalsFromMessageUseCase(goalRepo, savingsGoalRepo),
     listCategories: getExpenseCategories,
   });

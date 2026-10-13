@@ -2,6 +2,8 @@ import { ToolDefinition } from '../../domain/models/language-model';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
+import { EntryNotFoundError, EntryValidationError } from '@/modules/finance/domain/models/entry-errors';
+import { DeletionConfirmationService } from '../services/deletion-confirmation-service';
 import {
   REGISTRAR_LANCAMENTO_SCHEMA,
   EDITAR_LANCAMENTO_SCHEMA,
@@ -16,13 +18,21 @@ export type AdvisorEntryDeps = {
   registerEntry: RegisterManualEntryUseCase;
   updateEntry: UpdateEntryUseCase;
   deleteEntry: DeleteEntryUseCase;
+  deletion: DeletionConfirmationService;
+  turnId: string;
 };
+
+const GENERIC_FAILURE = "Não foi possível concluir a operação agora.";
+const INVALID_CONFIRMATION =
+  "Confirmação inválida, expirada ou emitida nesta mesma mensagem. Peça ao usuário para confirmar a exclusão e tente de novo.";
 
 async function reportFailure<T>(action: () => Promise<T>): Promise<T | { erro: string }> {
   try {
     return await action();
   } catch (error) {
-    return { erro: error instanceof Error ? error.message : 'Falha ao processar o lançamento' };
+    if (error instanceof EntryNotFoundError || error instanceof EntryValidationError) return { erro: error.message };
+    console.error('Advisor entry tool failed:', error);
+    return { erro: GENERIC_FAILURE };
   }
 }
 
@@ -66,13 +76,19 @@ export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[]
     {
       name: 'excluir_lancamento',
       description:
-        'Exclui um lançamento. Só chame com confirmado=true depois que o usuário confirmar explicitamente; sem confirmação a exclusão não acontece.',
+        'Exclui um lançamento em duas etapas. A primeira chamada (sem confirmacao) devolve um token; pergunte ao usuário e, somente se ele confirmar em uma nova mensagem, chame de novo com o token em confirmacao.',
       parameters: EXCLUIR_LANCAMENTO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as ExcluirLancamentoArgs;
-        if (args.confirmado !== true) {
-          return { status: 'confirmacao_necessaria', mensagem: 'Peça ao usuário para confirmar a exclusão antes de continuar.' };
+        const target = { userId: deps.userId, kind: args.tipo, id: args.id };
+        if (!args.confirmacao) {
+          return {
+            status: 'confirmacao_necessaria',
+            confirmacao: deps.deletion.issue(target, deps.turnId),
+            mensagem: 'Pergunte ao usuário se deseja mesmo excluir. Só use o token depois da confirmação dele em uma nova mensagem.',
+          };
         }
+        if (!deps.deletion.isConfirmed(args.confirmacao, target, deps.turnId)) return { erro: INVALID_CONFIRMATION };
         return reportFailure(async () => {
           await deps.deleteEntry.execute(deps.userId, { kind: args.tipo, id: args.id });
           return { status: 'excluido' };

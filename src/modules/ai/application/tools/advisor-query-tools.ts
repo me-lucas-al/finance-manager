@@ -3,6 +3,7 @@ import { LedgerService } from '@/modules/finance/application/services/ledger-ser
 import type { LedgerEntry } from '@/modules/finance/domain/models/ledger-entry';
 import { entriesInMonth, totalsByCategory, totalsOf } from '@/modules/finance/domain/services/summarize-ledger';
 import { getCurrentMonth } from '@/lib/month';
+import { isValidMonthKey } from '@/modules/finance/domain/parsers/parse-entry-date';
 import {
   BUSCAR_LANCAMENTOS_SCHEMA,
   TOTAL_POR_CATEGORIA_SCHEMA,
@@ -19,6 +20,11 @@ export type AdvisorQueryDeps = {
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
+
+const INVALID_MONTH = { erro: 'Período deve estar no formato YYYY-MM' };
+
+const hasInvalidMonth = (...months: Array<string | undefined>): boolean =>
+  months.some((month) => month !== undefined && !isValidMonthKey(month));
 
 const sameText = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
@@ -39,6 +45,7 @@ export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[]
       parameters: BUSCAR_LANCAMENTOS_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = (rawArgs ?? {}) as BuscarLancamentosArgs;
+        if (hasInvalidMonth(args.periodo)) return INVALID_MONTH;
         const limit = Math.min(Math.max(Number(args.limite) || DEFAULT_LIMIT, 1), MAX_LIMIT);
         const entries = await deps.ledger.load(deps.userId);
         return entries
@@ -53,6 +60,7 @@ export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[]
       parameters: TOTAL_POR_CATEGORIA_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = (rawArgs ?? {}) as TotalPorCategoriaArgs;
+        if (hasInvalidMonth(args.periodo)) return INVALID_MONTH;
         const entries = await deps.ledger.load(deps.userId);
         const month = entriesInMonth(entries, args.periodo ?? getCurrentMonth());
         return Object.fromEntries(
@@ -66,6 +74,7 @@ export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[]
       parameters: COMPARAR_PERIODOS_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as CompararPeriodosArgs;
+        if (!args.periodoA || !args.periodoB || hasInvalidMonth(args.periodoA, args.periodoB)) return INVALID_MONTH;
         const entries = await deps.ledger.load(deps.userId);
         const first = totalsOf(entriesInMonth(entries, args.periodoA));
         const second = totalsOf(entriesInMonth(entries, args.periodoB));

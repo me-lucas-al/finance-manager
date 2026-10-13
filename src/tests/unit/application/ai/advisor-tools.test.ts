@@ -8,6 +8,9 @@ import { FakeGoalRepository } from '../open-finance/fake-goal-repository';
 import { FakeSavingsGoalRepository } from '../open-finance/fake-savings-goal-repository';
 import { FakeAssistantMemoryRepository } from '@/tests/fakes/fake-assistant-memory-repository';
 import { sampleLedgerSource } from '@/tests/fakes/fake-ledger-source';
+import { DeletionConfirmationService } from '@/modules/ai/application/services/deletion-confirmation-service';
+import { getCurrentMonth } from '@/lib/month';
+import { EntryNotFoundError } from '@/modules/finance/domain/models/entry-errors';
 
 type Tool = ReturnType<typeof buildAdvisorTools>[number];
 
@@ -19,6 +22,7 @@ describe('Advisor Tools', () => {
   let deleteEntry: { execute: ReturnType<typeof vi.fn> };
   let goalsUpdater: { execute: ReturnType<typeof vi.fn> };
   let tools: Tool[];
+  let deletion: DeletionConfirmationService;
 
   const run = (name: string, args: Record<string, unknown> = {}) =>
     tools.find((tool) => tool.name === name)!.execute(args);
@@ -30,6 +34,7 @@ describe('Advisor Tools', () => {
     updateEntry = { execute: vi.fn().mockResolvedValue(undefined) };
     deleteEntry = { execute: vi.fn().mockResolvedValue(undefined) };
     goalsUpdater = { execute: vi.fn().mockResolvedValue('ok') };
+    deletion = new DeletionConfirmationService('test-secret');
 
     tools = buildAdvisorTools({
       userId: 'user-1',
@@ -40,6 +45,8 @@ describe('Advisor Tools', () => {
       registerEntry: registerEntry as unknown as RegisterManualEntryUseCase,
       updateEntry: updateEntry as unknown as UpdateEntryUseCase,
       deleteEntry: deleteEntry as unknown as DeleteEntryUseCase,
+      deletion,
+      turnId: 'turn-2',
       goalsUpdater,
       listCategories: async () => ['Mercado', 'Lazer'],
     });
@@ -100,17 +107,35 @@ describe('Advisor Tools', () => {
     await run('editar_lancamento', { id: 'e1', tipo: 'expense', valor: 10 });
     expect(updateEntry.execute).toHaveBeenCalledWith('user-1', { kind: 'expense', id: 'e1' }, expect.objectContaining({ amount: 10 }));
 
-    updateEntry.execute.mockRejectedValueOnce(new Error('Lançamento não encontrado'));
+    updateEntry.execute.mockRejectedValueOnce(new EntryNotFoundError());
     expect(await run('editar_lancamento', { id: 'x', tipo: 'expense', valor: 10 })).toEqual({ erro: 'Lançamento não encontrado' });
   });
 
-  it('only deletes after explicit confirmation', async () => {
-    const pending = await run('excluir_lancamento', { id: 'e1', tipo: 'expense' });
-    expect(pending).toMatchObject({ status: 'confirmacao_necessaria' });
+  it('only deletes with a token issued in an earlier turn', async () => {
+    const pending = (await run('excluir_lancamento', { id: 'e1', tipo: 'expense' })) as { status: string; confirmacao: string };
+    expect(pending.status).toBe('confirmacao_necessaria');
     expect(deleteEntry.execute).not.toHaveBeenCalled();
 
-    expect(await run('excluir_lancamento', { id: 'e1', tipo: 'expense', confirmado: true })).toEqual({ status: 'excluido' });
+    const sameTurn = await run('excluir_lancamento', { id: 'e1', tipo: 'expense', confirmacao: pending.confirmacao });
+    expect(sameTurn).toHaveProperty('erro');
+    expect(deleteEntry.execute).not.toHaveBeenCalled();
+
+    const earlierTurnToken = deletion.issue({ userId: 'user-1', kind: 'expense', id: 'e1' }, 'turn-1');
+    expect(await run('excluir_lancamento', { id: 'e1', tipo: 'expense', confirmacao: earlierTurnToken })).toEqual({ status: 'excluido' });
     expect(deleteEntry.execute).toHaveBeenCalledWith('user-1', { kind: 'expense', id: 'e1' });
+  });
+
+  it('rejects tokens for another entry', async () => {
+    const token = deletion.issue({ userId: 'user-1', kind: 'expense', id: 'e1' }, 'turn-1');
+
+    expect(await run('excluir_lancamento', { id: 'e2', tipo: 'expense', confirmacao: token })).toHaveProperty('erro');
+    expect(deleteEntry.execute).not.toHaveBeenCalled();
+  });
+
+  it('validates periods and limits before querying or saving', async () => {
+    expect(await run('comparar_periodos', { periodoA: '2026-03' })).toHaveProperty('erro');
+    expect(await run('total_por_categoria', { periodo: 'marco' })).toHaveProperty('erro');
+    expect(await run('definir_limite_categoria', { categoria: 'Lazer', valor: -5 })).toHaveProperty('erro');
   });
 
   it('delegates free-text goals to the goals updater and lists categories', async () => {
@@ -124,7 +149,7 @@ describe('Advisor Tools', () => {
     await run('definir_limite_categoria', { categoria: 'Delivery', valor: 400 });
 
     expect((await memoryRepo.findAllByUserId('user-1'))[0].fact).toContain('10k');
-    const goals = await goalRepo.findAllByUserIdAndMonth('user-1', `${new Date().toISOString().slice(0, 7)}-01`);
+    const goals = await goalRepo.findAllByUserIdAndMonth('user-1', `${getCurrentMonth()}-01`);
     expect(goals.some((goal) => goal.category === 'Delivery' && goal.targetAmount === 400)).toBe(true);
   });
 });

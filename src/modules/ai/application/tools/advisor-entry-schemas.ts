@@ -20,7 +20,7 @@ export type EditarLancamentoArgs = {
 export type ExcluirLancamentoArgs = {
   id: string;
   tipo: EntryKindArg;
-  confirmado?: boolean;
+  confirmacao?: string;
 };
 
 const KIND_PROPERTY = { type: 'string', enum: ['expense', 'income', 'investment'] };
@@ -59,9 +59,10 @@ export const EXCLUIR_LANCAMENTO_SCHEMA = {
   properties: {
     id: { type: 'string', description: 'id retornado por buscar_lancamentos' },
     tipo: KIND_PROPERTY,
-    confirmado: {
-      type: 'boolean',
-      description: 'true somente depois que o usuário confirmou explicitamente a exclusão',
+    confirmacao: {
+      type: 'string',
+      description:
+        'Token recebido na resposta anterior de excluir_lancamento. Envie somente depois que o usuário confirmar a exclusão em uma NOVA mensagem.',
     },
   },
   required: ['id', 'tipo'],

@@ -1,7 +1,8 @@
 import type { TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
 import type { IncomeRepository } from '../../domain/repositories/income-repository';
 import type { InvestmentRepository } from '../../domain/repositories/investment-repository';
-import { EntryNotFoundError, type EntryRef } from '../../domain/models/entry-changes';
+import type { EntryRef } from '../../domain/models/entry-changes';
+import { EntryNotFoundError } from '../../domain/models/entry-errors';
 
 export class OwnedEntryGuard {
   constructor(

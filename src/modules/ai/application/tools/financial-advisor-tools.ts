@@ -9,6 +9,7 @@ import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/dele
 import { buildAdvisorQueryTools } from './advisor-query-tools';
 import { buildAdvisorBalanceTools } from './advisor-balance-tools';
 import { buildAdvisorGoalTools, GoalsMessageUpdater } from './advisor-goal-tools';
+import { DeletionConfirmationService } from '../services/deletion-confirmation-service';
 import { buildAdvisorEntryTools } from './advisor-entry-tools';
 import { buildAdvisorActionTools } from './advisor-action-tools';
 
@@ -20,13 +21,16 @@ export type AdvisorToolCollaborators = {
   registerEntry: RegisterManualEntryUseCase;
   updateEntry: UpdateEntryUseCase;
   deleteEntry: DeleteEntryUseCase;
+  deletion: DeletionConfirmationService;
   goalsUpdater: GoalsMessageUpdater;
   listCategories: (userId: string) => Promise<string[]>;
 };
 
-export type ToolDeps = AdvisorToolCollaborators & { userId: string };
+export type AdvisorToolContext = { userId: string; turnId: string };
 
-export type AdvisorToolsFactory = (userId: string) => ToolDefinition[];
+export type ToolDeps = AdvisorToolCollaborators & AdvisorToolContext;
+
+export type AdvisorToolsFactory = (context: AdvisorToolContext) => ToolDefinition[];
 
 export function buildAdvisorTools(deps: ToolDeps): ToolDefinition[] {
   return [
@@ -39,5 +43,5 @@ export function buildAdvisorTools(deps: ToolDeps): ToolDefinition[] {
 }
 
 export function createAdvisorToolsFactory(collaborators: AdvisorToolCollaborators): AdvisorToolsFactory {
-  return (userId) => buildAdvisorTools({ ...collaborators, userId });
+  return (context) => buildAdvisorTools({ ...collaborators, ...context });
 }

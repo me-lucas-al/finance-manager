@@ -3,7 +3,7 @@ import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/upda
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
 import { OwnedEntryGuard } from '@/modules/finance/application/services/owned-entry-guard';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
-import { EntryNotFoundError } from '@/modules/finance/domain/models/entry-changes';
+import { EntryNotFoundError } from '@/modules/finance/domain/models/entry-errors';
 import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 import { FakeTransactionRepository } from '../open-finance/fake-transaction-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';

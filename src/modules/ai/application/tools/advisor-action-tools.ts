@@ -23,12 +23,16 @@ export function buildAdvisorActionTools(deps: AdvisorActionDeps): ToolDefinition
       parameters: DEFINIR_LIMITE_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as DefinirLimiteArgs;
+        const targetAmount = Number(args.valor);
+        if (!args.categoria?.trim() || !(Number.isFinite(targetAmount) && targetAmount > 0)) {
+          return { erro: 'Informe uma categoria e um valor maior que zero' };
+        }
         const month = `${getCurrentMonth()}-01`;
         return deps.goalRepo.upsert({
           userId: deps.userId,
           month,
           category: args.categoria,
-          targetAmount: Number(args.valor),
+          targetAmount,
         });
       },
     },
