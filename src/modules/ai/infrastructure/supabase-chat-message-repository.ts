@@ -10,6 +10,7 @@ type ChatMessageRow = {
   user_id: string;
   role: ChatMessage['role'];
   content: string;
+  channel: ChatMessage['channel'];
   created_at: string;
 };
 
@@ -19,6 +20,7 @@ function toChatMessage(row: ChatMessageRow): ChatMessage {
     userId: row.user_id,
     role: row.role,
     content: row.content,
+    channel: row.channel ?? 'telegram',
     createdAt: row.created_at,
   };
 }
@@ -31,6 +33,7 @@ export class SupabaseChatMessageRepository implements ChatMessageRepository {
         user_id: data.userId,
         role: data.role,
         content: data.content,
+        channel: data.channel ?? 'telegram',
       })
       .select()
       .single();

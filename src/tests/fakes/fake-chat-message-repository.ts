@@ -14,6 +14,7 @@ export class FakeChatMessageRepository implements ChatMessageRepository {
       userId: data.userId,
       role: data.role,
       content: data.content,
+      channel: data.channel ?? 'telegram',
       createdAt: new Date().toISOString(),
     };
     this.items.push(item);

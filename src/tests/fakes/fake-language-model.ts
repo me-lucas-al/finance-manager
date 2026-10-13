@@ -23,6 +23,11 @@ export class FakeLanguageModel implements ILanguageModel {
     return JSON.parse(this.nextTextResponse) as T;
   }
 
+  async *stream(messages: LanguageModelMessage[], options?: ChatOptions): AsyncIterable<string> {
+    const reply = await this.chat(messages, options);
+    for (const word of reply.split(/(?<= )/)) yield word;
+  }
+
   async chat(messages: LanguageModelMessage[], options?: ChatOptions): Promise<string> {
     this.lastMessages = messages;
     if (options?.tools && options.tools.length > 0 && this.nextStructuredResponse) {
