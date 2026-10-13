@@ -29,7 +29,7 @@ export interface LiveTransactionItem {
   id: string;
   dateStr: string;
   rawDate: Date;
-  type: 'expense' | 'income';
+  type: 'expense' | 'income' | 'investment';
   description: string;
   account: string;
   category: string;
@@ -49,6 +49,7 @@ export interface LiveMovementsData {
   totalExpenses: number;
   totalPending: number;
   totalIncome: number;
+  totalInvestments: number;
   netBalance: number;
   categorizedExpenses: LiveExpenseCategory[];
   pendingExpenses: LiveExpenseCategory[];
