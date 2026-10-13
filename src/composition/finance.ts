@@ -1,5 +1,7 @@
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
+import { EditLastEntryService } from '@/modules/finance/application/services/edit-last-entry-service';
 import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';
+import { LatestEntryFinder } from '@/modules/finance/application/services/latest-entry-finder';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import { OwnedEntryGuard } from '@/modules/finance/application/services/owned-entry-guard';
 import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
@@ -12,6 +14,7 @@ import { DrizzleInvestmentRepository } from '@/modules/finance/infrastructure/dr
 import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-entry-change-notifier';
 import { PersistenceLedgerSource } from '@/modules/finance/infrastructure/persistence-ledger-source';
 import { PersistencePortfolioSource } from '@/modules/finance/infrastructure/persistence-portfolio-source';
+import { toLocalDateString } from '@/lib/month';
 import { languageModel } from './language-model';
 import { accountRepository, goalRepository, transactionRepository } from './open-finance';
 import { resolveCurrentPeriod } from './periods';
@@ -53,9 +56,8 @@ export const deleteEntry = new DeleteEntryUseCase(
   entryChangeNotifier,
 );
 
-export const undoLastEntry = new UndoLastEntryService(
-  transactionRepository,
-  incomeRepository,
-  investmentRepository,
-  entryChangeNotifier,
-);
+const latestEntryFinder = new LatestEntryFinder(transactionRepository, incomeRepository, investmentRepository);
+
+export const undoLastEntry = new UndoLastEntryService(latestEntryFinder, deleteEntry);
+
+export const editLastEntry = new EditLastEntryService(latestEntryFinder, updateEntry, () => toLocalDateString(new Date()));
