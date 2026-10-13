@@ -5,6 +5,7 @@ import { LedgerService } from '@/modules/finance/application/services/ledger-ser
 import type { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import type { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import type { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
+import type { AdvisorFixedEntryServices } from '@/modules/ai/application/tools/advisor-fixed-types';
 import { DeletionConfirmationService } from '@/modules/ai/application/services/deletion-confirmation-service';
 import { fakePortfolioSource } from './fake-portfolio-source';
 import { sampleLedgerSource } from './fake-ledger-source';
@@ -33,6 +34,7 @@ export function createAdvisorToolsHarness() {
     registerEntry: registerEntry as unknown as RegisterManualEntryUseCase,
     updateEntry: updateEntry as unknown as UpdateEntryUseCase,
     deleteEntry: deleteEntry as unknown as DeleteEntryUseCase,
+    fixedEntries: {} as unknown as AdvisorFixedEntryServices,
     deletion,
     turnId: 'turn-2',
     goalsUpdater,
