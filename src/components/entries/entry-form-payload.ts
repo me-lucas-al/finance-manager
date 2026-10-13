@@ -1,0 +1,36 @@
+import { parseCurrencyAmount } from '@/modules/finance/domain/parsers/parse-currency-amount';
+import type { EntryChanges } from '@/modules/finance/domain/models/entry-changes';
+import type { ParsedEntry } from '@/modules/finance/domain/parsers/parse-entry-message';
+import type { EditableEntry, EntryFormValues } from './entry-form-values';
+
+export type UpdateEntryInput = { kind: EditableEntry['kind']; id: string; changes: EntryChanges };
+
+function informedNecessity(values: EntryFormValues): Pick<EntryChanges, 'necessity'> {
+  if (values.type !== 'expense' || values.necessity === '') return {};
+  return { necessity: values.necessity };
+}
+
+export function toCreateInput(values: EntryFormValues): ParsedEntry {
+  return {
+    type: values.type,
+    amount: parseCurrencyAmount(values.amount) ?? 0,
+    description: values.description.trim(),
+    category: values.category.trim(),
+    date: values.date,
+    ...informedNecessity(values),
+  };
+}
+
+export function toUpdateInput(entry: EditableEntry, values: EntryFormValues): UpdateEntryInput {
+  const amount = parseCurrencyAmount(values.amount) ?? 0;
+  const description = values.description.trim();
+  const category = values.category.trim();
+  const changes: EntryChanges = {
+    ...(amount !== entry.amount && { amount }),
+    ...(description !== entry.description && { description }),
+    ...(category !== entry.category && { category }),
+    ...(values.date !== entry.date && { date: values.date }),
+    ...informedNecessity(values),
+  };
+  return { kind: entry.kind, id: entry.id, changes };
+}
