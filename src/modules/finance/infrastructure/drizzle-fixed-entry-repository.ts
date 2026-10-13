@@ -38,6 +38,14 @@ export class DrizzleFixedEntryRepository implements FixedEntryRepository {
     return rows.map(toFixedEntry);
   }
 
+  async findUserIdsWithActiveEntries(): Promise<string[]> {
+    const rows = await db
+      .selectDistinct({ userId: fixedEntries.userId })
+      .from(fixedEntries)
+      .where(eq(fixedEntries.active, true));
+    return rows.map((row) => row.userId);
+  }
+
   async update(id: string, data: FixedEntryUpdate): Promise<FixedEntry> {
     const { amount, ...rest } = data;
     const [updated] = await db

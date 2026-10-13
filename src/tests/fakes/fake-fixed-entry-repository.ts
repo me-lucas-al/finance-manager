@@ -29,6 +29,10 @@ export class FakeFixedEntryRepository implements FixedEntryRepository {
     return this.items.filter((item) => item.userId === userId);
   }
 
+  async findUserIdsWithActiveEntries(): Promise<string[]> {
+    return [...new Set(this.items.filter((item) => item.active).map((item) => item.userId))];
+  }
+
   async update(id: string, data: FixedEntryUpdate): Promise<FixedEntry> {
     const index = this.items.findIndex((item) => item.id === id);
     if (index === -1) throw new Error('Fixed entry not found');

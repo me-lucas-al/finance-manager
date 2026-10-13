@@ -1,23 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createFixedEntryServices } from '@/modules/finance/infrastructure/create-fixed-entry-services';
-import { rejectUnauthorizedCron } from '../cron-authorization';
+import { NextResponse } from 'next/server';
+import {
+  fixedEntryRepository,
+  generateDueFixedEntries,
+  sendFixedEntryReminders,
+} from '@/composition/fixed-entries';
+import { runForUsers } from '../run-for-users';
+import { withCronAuth } from '../with-cron-auth';
 
-export async function GET(req: NextRequest) {
-  const rejection = rejectUnauthorizedCron(req);
-  if (rejection) return rejection;
-
-  const userId = process.env.FINANCE_OWNER_USER_ID;
-  if (!userId) {
-    return NextResponse.json({ error: 'FINANCE_OWNER_USER_ID is not configured' }, { status: 500 });
-  }
-
+export const GET = withCronAuth(async () => {
   try {
-    const services = createFixedEntryServices();
-    const generation = await services.generate.execute(userId);
-    const remindersSent = await services.reminders.execute(userId);
-    return NextResponse.json({ ok: generation.failed === 0, generation, remindersSent });
+    const userIds = await fixedEntryRepository.findUserIdsWithActiveEntries();
+    const totals = { launched: 0, launchFailures: 0, remindersSent: 0 };
+    const { users, failed } = await runForUsers('fixed-entries', userIds, async (userId) => {
+      const report = await generateDueFixedEntries.execute(userId);
+      totals.launched += report.launched;
+      totals.launchFailures += report.failed;
+      totals.remindersSent += await sendFixedEntryReminders.execute(userId);
+    });
+    return NextResponse.json({ ok: failed === 0 && totals.launchFailures === 0, users, failed, ...totals });
   } catch (error) {
     console.error('Error executing fixed-entries cron:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});
