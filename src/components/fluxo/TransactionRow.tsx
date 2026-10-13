@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { CreditCard } from 'lucide-react';
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
