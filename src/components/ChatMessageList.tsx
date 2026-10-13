@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,6 @@ import type { UIMessage } from '@ai-sdk/react';
 interface ChatMessageListProps {
   messages: UIMessage[];
   isLoading: boolean;
-  onEditMessage: (index: number, text: string) => void;
 }
 
 function AssistantMessage({ text }: { text: string }) {
@@ -44,9 +42,8 @@ function AssistantMessage({ text }: { text: string }) {
   );
 }
 
-export function ChatMessageList({ messages, isLoading, onEditMessage }: ChatMessageListProps) {
+export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,7 +63,7 @@ export function ChatMessageList({ messages, isLoading, onEditMessage }: ChatMess
         </div>
       )}
 
-      {messages.map((message, index) => {
+      {messages.map((message) => {
         const textPart = message.parts?.find((p) => p.type === 'text');
         const fallback = message as unknown as { text?: string; content?: string };
         const messageText =
@@ -78,8 +75,6 @@ export function ChatMessageList({ messages, isLoading, onEditMessage }: ChatMess
           <div
             key={message.id}
             className="flex gap-4 text-sm flex-row group/msg"
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
           >
             {message.role === 'assistant' ? (
               <div className="h-8 w-8 shrink-0 rounded-lg bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center mt-0.5">
@@ -96,18 +91,6 @@ export function ChatMessageList({ messages, isLoading, onEditMessage }: ChatMess
                 <span className="text-xs font-medium text-zinc-500">
                   {message.role === 'assistant' ? 'Finance AI' : 'Você'}
                 </span>
-                {message.role === 'user' && (
-                  <button
-                    onClick={() => onEditMessage(index, messageText)}
-                    className={cn(
-                      'transition-opacity text-zinc-600 hover:text-zinc-300',
-                      hoveredIndex === index ? 'opacity-100' : 'opacity-0'
-                    )}
-                    aria-label="Editar mensagem"
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </button>
-                )}
               </div>
 
               <div className={cn('leading-relaxed text-sm', message.role === 'user' ? 'text-zinc-300' : 'text-zinc-100')}>

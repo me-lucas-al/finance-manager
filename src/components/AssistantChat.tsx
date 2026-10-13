@@ -11,7 +11,7 @@ import { ChatInputForm } from './ChatInputForm';
 export function AssistantChat() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { messages, status, sendMessage, setMessages, loadHistory, clearHistory } = useAssistantChat();
+  const { messages, status, sendMessage, loadHistory, clearHistory } = useAssistantChat();
 
   useEffect(() => {
     if (isOpen) loadHistory();
@@ -27,11 +27,6 @@ export function AssistantChat() {
     if (!input.trim()) return;
     sendMessage({ text: input });
     setInput('');
-  };
-
-  const handleEditMessage = (index: number, text: string) => {
-    setMessages((prev) => prev.slice(0, index));
-    setInput(text);
   };
 
   return (
@@ -75,7 +70,6 @@ export function AssistantChat() {
           <ChatMessageList
             messages={messages}
             isLoading={isLoading}
-            onEditMessage={handleEditMessage}
           />
         </div>
 
