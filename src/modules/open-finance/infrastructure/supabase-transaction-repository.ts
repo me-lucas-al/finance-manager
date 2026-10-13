@@ -6,6 +6,8 @@ import {
   TransactionRepository,
 } from '../domain/repositories/transaction-repository';
 import { unwrap } from './supabase-common';
+import { buildTransactionInsert } from './transaction-insert-mapper';
+import { DuplicateFixedLaunchError } from '@/modules/finance/domain/models/fixed-launch-errors';
 import {
   TransactionRow,
   toTransaction,
@@ -25,24 +27,11 @@ export class SupabaseTransactionRepository implements TransactionRepository {
   async create(data: NewTransaction): Promise<Transaction> {
     const result = await getSupabaseAdmin()
       .from('transactions')
-      .insert({
-        user_id: data.userId,
-        pluggy_transaction_id: data.pluggyTransactionId ?? null,
-        account_id: data.accountId,
-        bank: data.bank ?? 'Manual',
-        amount: data.amount,
-        description: data.description,
-        occurred_at: data.occurredAt,
-        category: data.category,
-        category_suggested: data.categorySuggested,
-        reason: data.reason,
-        status: data.status,
-        source: data.source ?? 'manual',
-        necessity: data.necessity ?? null,
-        telegram_question_message_id: data.telegramQuestionMessageId,
-      })
+      .insert(buildTransactionInsert(data))
       .select()
       .single();
+
+    if (result.error?.code === '23505' && data.fixedEntryId) throw new DuplicateFixedLaunchError();
 
     if (result.error?.code === '23505' && data.pluggyTransactionId) {
       const existing = await this.findByPluggyId(data.pluggyTransactionId);
