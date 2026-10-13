@@ -8,6 +8,8 @@ import { FakePeriodRepository } from '../periods/fake-period-repository';
 import { FakeSettingRepository } from '../users/fake-setting-repository';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
+import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';
+import { noopEntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 
 describe('RegisterManualEntryUseCase', () => {
   let transactionRepo: FakeTransactionRepository;
@@ -28,7 +30,9 @@ describe('RegisterManualEntryUseCase', () => {
       incomeRepo,
       investmentRepo,
       resolvePeriod,
-      classifyNecessity
+      classifyNecessity,
+      new ExpensePatternAnalyzer(transactionRepo),
+      noopEntryChangeNotifier
     );
   });
 

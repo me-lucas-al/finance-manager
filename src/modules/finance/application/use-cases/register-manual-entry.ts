@@ -6,8 +6,9 @@ import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-c
 import { ClassifyNecessityService } from '../services/classify-necessity-service';
 import { ExpensePatternAnalyzer } from '../services/expense-pattern-analyzer';
 import { SpendingAlert } from '../../domain/models/spending-patterns';
-import { EntryChangeNotifier, noopEntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
+import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
 import { dateAtNoon, toLocalDateString } from '@/lib/month';
+import { assertValidEntryDate } from '../../domain/parsers/parse-entry-date';
 
 export type RegisteredEntryResult = {
   type: ParsedEntry['type'];
@@ -25,12 +26,13 @@ export class RegisterManualEntryUseCase {
     private investmentRepo: InvestmentRepository,
     private resolvePeriod: ResolveCurrentPeriodUseCase,
     private classifyNecessity: ClassifyNecessityService,
-    private patternAnalyzer: ExpensePatternAnalyzer = new ExpensePatternAnalyzer(transactionRepo),
-    private notifier: EntryChangeNotifier = noopEntryChangeNotifier
+    private patternAnalyzer: ExpensePatternAnalyzer,
+    private notifier: EntryChangeNotifier
   ) {}
 
   async execute(userId: string, entry: ParsedEntry): Promise<RegisteredEntryResult> {
     const dateString = entry.date ?? toLocalDateString(new Date());
+    assertValidEntryDate(dateString);
     const result = await this.persist(userId, entry, dateString);
     await this.notifier.notifyEntriesChanged(userId);
     return result;

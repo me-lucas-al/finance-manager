@@ -1,14 +1,14 @@
 import { TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
 import { IncomeRepository } from '../../domain/repositories/income-repository';
 import { InvestmentRepository } from '../../domain/repositories/investment-repository';
-import { EntryChangeNotifier, noopEntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
+import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
 
 export class UndoLastEntryService {
   constructor(
     private transactionRepo: TransactionRepository,
     private incomeRepo: IncomeRepository,
     private investmentRepo: InvestmentRepository,
-    private notifier: EntryChangeNotifier = noopEntryChangeNotifier
+    private notifier: EntryChangeNotifier
   ) {}
 
   async execute(userId: string): Promise<string> {

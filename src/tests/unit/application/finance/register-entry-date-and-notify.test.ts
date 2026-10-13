@@ -52,6 +52,15 @@ describe('entry date and change notification', () => {
     expect(investmentRepo.items[0].date.toISOString()).toBe('2026-02-06T15:00:00.000Z');
   });
 
+  it('rejects an invalid date without saving or notifying', async () => {
+    await expect(
+      register.execute('user-1', { type: 'expense', category: 'Mercado', description: 'Feira', amount: 40, date: '2026-02-30' })
+    ).rejects.toThrow('Invalid entry date');
+
+    expect(await transactionRepo.findAllByUserId('user-1')).toHaveLength(0);
+    expect(notifier.notifyEntriesChanged).not.toHaveBeenCalled();
+  });
+
   it('notifies once per registered entry of any type', async () => {
     await register.execute('user-1', { type: 'expense', category: 'Mercado', description: 'Feira', amount: 40 });
     await register.execute('user-1', { type: 'income', category: 'Salário', description: 'Empresa', amount: 100 });
