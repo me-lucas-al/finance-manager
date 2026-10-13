@@ -1,7 +1,9 @@
 import { CreditCard } from 'lucide-react';
+import { EntryActionsMenu } from '@/components/entries/EntryActionsMenu';
 import { Amount } from '@/components/shared/Amount';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 import { ENTRY_KIND_STYLE, signedAmount } from './entry-kind-style';
+import { toEditableEntry } from './to-editable-entry';
 
 export function TransactionRow({ transaction }: { transaction: LiveTransactionItem }) {
   const { Icon, boxClass, iconClass, amountClass } = ENTRY_KIND_STYLE[transaction.type];
@@ -22,10 +24,13 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
           </div>
         </div>
       </div>
-      <Amount
-        value={signedAmount(transaction.type, transaction.amount)}
-        className={`text-sm font-semibold tabular-nums ${amountClass}`}
-      />
+      <div className="flex items-center gap-1">
+        <Amount
+          value={signedAmount(transaction.type, transaction.amount)}
+          className={`text-sm font-semibold tabular-nums ${amountClass}`}
+        />
+        <EntryActionsMenu entry={toEditableEntry(transaction)} />
+      </div>
     </div>
   );
 }
