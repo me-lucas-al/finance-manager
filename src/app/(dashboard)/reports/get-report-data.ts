@@ -1,11 +1,12 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { userSettings } from '@/db/schema';
-import { getCurrentMonth, shiftMonth } from '@/lib/month';
+import { getCurrentMonth } from '@/lib/month';
 import { createLedgerService } from '@/modules/finance/infrastructure/ledger-factory';
 import { entriesInMonth, totalsByCategory, totalsOf } from '@/modules/finance/domain/services/summarize-ledger';
 import { buildCategoryVsGoal, loadGoalTargets } from './category-vs-goal';
 import { buildEvolutionTimeline } from './report-timeline-builder';
+import { resolveReportPeriod } from './resolve-report-period';
 import type { ReportFilterParams, ReportData } from './report-types';
 
 export * from './report-types';
@@ -13,17 +14,11 @@ export * from './report-types';
 const TOP_CATEGORIES = 7;
 const DEFAULT_MIN_INVESTMENT_PERCENTAGE = 20;
 
-function resolvePeriod(requested: string | undefined, currentMonth: string): string {
-  if (!requested || requested === 'current') return currentMonth;
-  if (requested === 'last') return shiftMonth(currentMonth, -1);
-  return requested;
-}
-
 const percentOf = (part: number, whole: number): number => (whole > 0 ? Math.round((part / whole) * 100) : 0);
 
 export async function getReportData(userId: string, params: ReportFilterParams): Promise<ReportData> {
   const currentMonth = getCurrentMonth();
-  const period = resolvePeriod(params.period, currentMonth);
+  const period = resolveReportPeriod(params.period, currentMonth);
   const isAllTime = period === 'all';
   const referenceMonth = isAllTime ? currentMonth : period;
 
