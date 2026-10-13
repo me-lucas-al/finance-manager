@@ -19,6 +19,8 @@ function makeMockTx(amount: number, category: string): Transaction {
     source: 'manual',
     necessity: 'superfluo',
     telegramQuestionMessageId: null,
+    fixedEntryId: null,
+    fixedReferenceMonth: null,
     createdAt: new Date().toISOString(),
   };
 }
