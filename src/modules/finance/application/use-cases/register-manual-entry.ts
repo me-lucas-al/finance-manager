@@ -4,9 +4,10 @@ import { IncomeRepository } from '../../domain/repositories/income-repository';
 import { InvestmentRepository } from '../../domain/repositories/investment-repository';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
 import { ClassifyNecessityService } from '../services/classify-necessity-service';
-import { detectSpendingPatterns } from '../../domain/services/detect-spending-patterns';
+import { ExpensePatternAnalyzer } from '../services/expense-pattern-analyzer';
 import { SpendingAlert } from '../../domain/models/spending-patterns';
-import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
+import { EntryChangeNotifier, noopEntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
+import { dateAtNoon, toLocalDateString } from '@/lib/month';
 
 export type RegisteredEntryResult = {
   type: ParsedEntry['type'];
@@ -24,55 +25,52 @@ export class RegisterManualEntryUseCase {
     private investmentRepo: InvestmentRepository,
     private resolvePeriod: ResolveCurrentPeriodUseCase,
     private classifyNecessity: ClassifyNecessityService,
-    private goalRepo?: GoalRepository
+    private patternAnalyzer: ExpensePatternAnalyzer = new ExpensePatternAnalyzer(transactionRepo),
+    private notifier: EntryChangeNotifier = noopEntryChangeNotifier
   ) {}
 
   async execute(userId: string, entry: ParsedEntry): Promise<RegisteredEntryResult> {
-    if (entry.type === 'income') {
-      const period = await this.resolvePeriod.execute(userId);
-      await this.incomeRepo.create({
-        userId,
-        periodId: period.id,
-        amount: entry.amount,
-        description: entry.description,
-        category: entry.category,
-        receivedAt: new Date(),
-      });
-      return { ...entry, alerts: [] };
-    }
+    const dateString = entry.date ?? toLocalDateString(new Date());
+    const result = await this.persist(userId, entry, dateString);
+    await this.notifier.notifyEntriesChanged(userId);
+    return result;
+  }
 
-    if (entry.type === 'investment') {
-      const period = await this.resolvePeriod.execute(userId);
-      await this.investmentRepo.create({
-        userId,
-        periodId: period.id,
-        amount: entry.amount,
-        description: entry.description,
-        type: entry.category,
-        date: new Date(),
-      });
-      return { ...entry, alerts: [] };
-    }
+  private async persist(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+    if (entry.type === 'income') return this.persistIncome(userId, entry, dateString);
+    if (entry.type === 'investment') return this.persistInvestment(userId, entry, dateString);
+    return this.persistExpense(userId, entry, dateString);
+  }
 
-    const necessity = await this.classifyNecessity.execute(userId, entry.category, entry.description);
-    const monthPrefix = new Date().toISOString().slice(0, 7);
-    const recent = await this.transactionRepo.findAllByUserId(userId, { limit: 30 });
-    const month = `${monthPrefix}-01`;
-    let categoryLimit: number | undefined;
-    if (this.goalRepo) {
-      const goals = await this.goalRepo.findAllByUserIdAndMonth(userId, month);
-      const match = goals.find((g) => g.category?.toLowerCase() === entry.category.toLowerCase());
-      categoryLimit = match?.targetAmount;
-    }
-
-    const patternReport = detectSpendingPatterns({
-      newAmount: entry.amount,
+  private async persistIncome(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+    const period = await this.resolvePeriod.execute(userId);
+    await this.incomeRepo.create({
+      userId,
+      periodId: period.id,
+      amount: entry.amount,
+      description: entry.description,
       category: entry.category,
-      recentTransactions: recent,
-      categoryLimit,
-      referenceMonth: monthPrefix,
+      receivedAt: dateAtNoon(dateString),
     });
+    return { ...entry, alerts: [] };
+  }
 
+  private async persistInvestment(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+    const period = await this.resolvePeriod.execute(userId);
+    await this.investmentRepo.create({
+      userId,
+      periodId: period.id,
+      amount: entry.amount,
+      description: entry.description,
+      type: entry.category,
+      date: dateAtNoon(dateString),
+    });
+    return { ...entry, alerts: [] };
+  }
+
+  private async persistExpense(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+    const necessity = await this.classifyNecessity.execute(userId, entry.category, entry.description);
+    const alerts = await this.patternAnalyzer.analyze(userId, entry, dateString.slice(0, 7));
     await this.transactionRepo.create({
       userId,
       pluggyTransactionId: null,
@@ -80,7 +78,7 @@ export class RegisterManualEntryUseCase {
       bank: 'Manual',
       amount: entry.amount,
       description: entry.description,
-      occurredAt: new Date().toISOString().slice(0, 10),
+      occurredAt: dateString,
       category: entry.category,
       categorySuggested: null,
       reason: null,
@@ -89,7 +87,6 @@ export class RegisterManualEntryUseCase {
       necessity,
       telegramQuestionMessageId: null,
     });
-
-    return { ...entry, necessity, alerts: patternReport.alerts };
+    return { ...entry, necessity, alerts };
   }
 }
