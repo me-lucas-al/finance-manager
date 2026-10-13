@@ -61,6 +61,11 @@ export class SupabaseChatMessageRepository implements ChatMessageRepository {
     if (error) throw new Error(error.message);
   }
 
+  async deleteAllByUserId(userId: string): Promise<void> {
+    const { error } = await getSupabaseAdmin().from('chat_messages').delete().eq('user_id', userId);
+    if (error) throw new Error(error.message);
+  }
+
   async countByUserId(userId: string): Promise<number> {
     const { count, error } = await getSupabaseAdmin()
       .from('chat_messages')

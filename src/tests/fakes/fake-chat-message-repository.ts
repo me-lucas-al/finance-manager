@@ -31,6 +31,10 @@ export class FakeChatMessageRepository implements ChatMessageRepository {
     this.items = this.items.filter((m) => !set.has(m.id));
   }
 
+  async deleteAllByUserId(userId: string): Promise<void> {
+    this.items = this.items.filter((m) => m.userId !== userId);
+  }
+
   async countByUserId(userId: string): Promise<number> {
     return this.items.filter((m) => m.userId === userId).length;
   }

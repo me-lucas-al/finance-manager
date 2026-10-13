@@ -17,4 +17,5 @@ export interface ChatMessageRepository {
   findRecentByUserId(userId: string, limit?: number): Promise<ChatMessage[]>;
   deleteByIds(ids: string[]): Promise<void>;
   countByUserId(userId: string): Promise<number>;
+  deleteAllByUserId(userId: string): Promise<void>;
 }
