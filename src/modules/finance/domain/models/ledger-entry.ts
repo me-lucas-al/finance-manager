@@ -8,4 +8,5 @@ export type LedgerEntry = {
   category: string;
   amount: number;
   account: string;
+  fixed: boolean;
 };
