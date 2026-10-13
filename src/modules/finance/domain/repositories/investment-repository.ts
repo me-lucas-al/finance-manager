@@ -26,8 +26,12 @@ export type NewInvestment = {
   date: Date;
 };
 
+export type InvestmentUpdate = Partial<Pick<NewInvestment, 'description' | 'amount' | 'type' | 'date'>>;
+
 export interface InvestmentRepository {
   create(data: NewInvestment): Promise<Investment>;
+  findById(id: string): Promise<Investment | null>;
+  update(id: string, data: InvestmentUpdate): Promise<Investment>;
   findLatestByUserId(userId: string): Promise<Investment | null>;
   delete(id: string): Promise<void>;
   findPageByUserId(userId: string, query: InvestmentQuery): Promise<InvestmentPage>;
