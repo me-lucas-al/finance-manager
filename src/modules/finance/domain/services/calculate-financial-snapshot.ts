@@ -1,88 +1,73 @@
 import { FinancialSnapshot, CategoryMetric } from '../models/financial-snapshot';
-import { Transaction } from '@/modules/open-finance/domain/repositories/transaction-repository';
-import { Income } from '../repositories/income-repository';
-import { Investment } from '../repositories/investment-repository';
+import type { LedgerEntry } from '../models/ledger-entry';
 import { Goal } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
+import { entriesInMonth, totalsByCategory, totalsOf } from './summarize-ledger';
 
 export type SnapshotInput = {
-  transactions: Transaction[];
-  incomes: Income[];
-  investments: Investment[];
+  entries: LedgerEntry[];
   goals: Goal[];
   referenceMonth?: string;
 };
 
-export function calculateFinancialSnapshot(input: SnapshotInput): FinancialSnapshot {
-  const curMonth = input.referenceMonth ?? getCurrentMonth();
-  const prevMonth = shiftMonth(curMonth, -1);
-  const m2 = shiftMonth(curMonth, -2);
+const SAVINGS_RATE_PERCENT = 100;
 
-  const manualTxs = input.transactions.filter((t) => t.source === 'manual');
-  const curTxs = manualTxs.filter((t) => t.occurredAt.slice(0, 7) === curMonth);
-  const prevTxs = manualTxs.filter((t) => t.occurredAt.slice(0, 7) === prevMonth);
-  const m2Txs = manualTxs.filter((t) => t.occurredAt.slice(0, 7) === m2);
+function categoryMap(entries: LedgerEntry[]): Record<string, number> {
+  return Object.fromEntries(totalsByCategory(entries, 'expense').map(({ category, total }) => [category, total]));
+}
 
-  const curIncs = input.incomes.filter((i) => i.receivedAt.toISOString().slice(0, 7) === curMonth);
-  const prevIncs = input.incomes.filter((i) => i.receivedAt.toISOString().slice(0, 7) === prevMonth);
-
-  const curExpense = curTxs.reduce((s, t) => s + Number(t.amount), 0);
-  const prevExpense = prevTxs.reduce((s, t) => s + Number(t.amount), 0);
-  const m2Expense = m2Txs.reduce((s, t) => s + Number(t.amount), 0);
-
-  const curIncome = curIncs.reduce((s, i) => s + Number(i.amount), 0);
-  const prevIncome = prevIncs.reduce((s, i) => s + Number(i.amount), 0);
-
-  const curInvest = input.investments
-    .filter((inv) => inv.date.toISOString().slice(0, 7) === curMonth)
-    .reduce((s, inv) => s + Number(inv.amount), 0);
-
-  const totalInvested = input.investments.reduce((s, inv) => s + Number(inv.amount), 0);
-  const savingsRate = curIncome > 0 ? Math.round(((curIncome - curExpense) / curIncome) * 100) : 0;
-
-  const curCats: Record<string, number> = {};
-  for (const t of curTxs) {
-    const c = t.category || 'Outros';
-    curCats[c] = (curCats[c] ?? 0) + Number(t.amount);
-  }
-
-  const prevCats: Record<string, number> = {};
-  for (const t of prevTxs) {
-    const c = t.category || 'Outros';
-    prevCats[c] = (prevCats[c] ?? 0) + Number(t.amount);
-  }
-
-  const allCatKeys = Array.from(new Set([...Object.keys(curCats), ...Object.keys(prevCats)]));
-  const categoryMetrics: CategoryMetric[] = allCatKeys.map((c) => {
-    const cAmt = curCats[c] ?? 0;
-    const pAmt = prevCats[c] ?? 0;
-    const diff = pAmt > 0 ? Math.round(((cAmt - pAmt) / pAmt) * 100) : 0;
-    const g = input.goals.find((goal) => goal.category?.toLowerCase() === c.toLowerCase());
+function buildCategoryMetrics(
+  current: Record<string, number>,
+  previous: Record<string, number>,
+  goals: Goal[]
+): CategoryMetric[] {
+  return Array.from(new Set([...Object.keys(current), ...Object.keys(previous)])).map((category) => {
+    const currentAmount = current[category] ?? 0;
+    const previousAmount = previous[category] ?? 0;
+    const goal = goals.find((item) => item.category?.toLowerCase() === category.toLowerCase());
     return {
-      category: c,
-      currentAmount: cAmt,
-      previousAmount: pAmt,
-      diffPercentage: diff,
-      goalAmount: g ? Number(g.targetAmount) : undefined,
+      category,
+      currentAmount,
+      previousAmount,
+      diffPercentage: previousAmount > 0 ? Math.round(((currentAmount - previousAmount) / previousAmount) * 100) : 0,
+      goalAmount: goal ? Number(goal.targetAmount) : undefined,
     };
   });
+}
+
+export function calculateFinancialSnapshot(input: SnapshotInput): FinancialSnapshot {
+  const currentKey = input.referenceMonth ?? getCurrentMonth();
+  const previousKey = shiftMonth(currentKey, -1);
+  const twoMonthsAgoKey = shiftMonth(currentKey, -2);
+
+  const currentEntries = entriesInMonth(input.entries, currentKey);
+  const previousEntries = entriesInMonth(input.entries, previousKey);
+  const current = totalsOf(currentEntries);
+  const previous = totalsOf(previousEntries);
+  const twoMonthsAgo = totalsOf(entriesInMonth(input.entries, twoMonthsAgoKey));
+  const all = totalsOf(input.entries);
+
+  const currentCategories = categoryMap(currentEntries);
+  const savingsRate = current.income > 0 ? Math.round(((current.income - current.expenses) / current.income) * SAVINGS_RATE_PERCENT) : 0;
+  const averageExpenses = (current.expenses + previous.expenses + twoMonthsAgo.expenses) / 3;
 
   return {
+    balance: all.balance,
     currentMonth: {
-      totalIncome: curIncome,
-      totalExpenses: curExpense,
-      totalInvestments: curInvest,
-      netBalance: curIncome - curExpense,
+      totalIncome: current.income,
+      totalExpenses: current.expenses,
+      totalInvestments: current.investments,
+      netBalance: current.balance,
       savingsRate,
-      categories: curCats,
+      categories: currentCategories,
     },
     previousMonth: {
-      totalIncome: prevIncome,
-      totalExpenses: prevExpense,
-      netBalance: prevIncome - prevExpense,
+      totalIncome: previous.income,
+      totalExpenses: previous.expenses,
+      netBalance: previous.balance,
     },
-    threeMonthsAverageExpenses: Math.round(((curExpense + prevExpense + m2Expense) / 3) * 100) / 100,
-    totalInvested,
-    categoryMetrics,
+    threeMonthsAverageExpenses: Math.round(averageExpenses * 100) / 100,
+    totalInvested: all.investments,
+    categoryMetrics: buildCategoryMetrics(currentCategories, categoryMap(previousEntries), input.goals),
   };
 }

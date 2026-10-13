@@ -1,7 +1,5 @@
 import { UndoLastEntryService } from '../services/undo-last-entry-service';
-import { TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
-import { IncomeRepository } from '../../domain/repositories/income-repository';
-import { InvestmentRepository } from '../../domain/repositories/investment-repository';
+import { LedgerService } from '../services/ledger-service';
 import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { calculateFinancialSnapshot } from '../../domain/services/calculate-financial-snapshot';
 import { formatMonthSummary } from '../services/month-summary-formatter';
@@ -27,9 +25,7 @@ Ou escreva naturalmente, ex: "gastei 50 no almoço".
 export class HandleBotCommandUseCase {
   constructor(
     private undoService: UndoLastEntryService,
-    private transactionRepo: TransactionRepository,
-    private incomeRepo: IncomeRepository,
-    private investmentRepo: InvestmentRepository,
+    private ledger: LedgerService,
     private goalRepo: GoalRepository
   ) {}
 
@@ -50,20 +46,12 @@ export class HandleBotCommandUseCase {
 
     if (norm === '/resumo') {
       const curMonth = getCurrentMonth();
-      const [txs, incs, invs, goals] = await Promise.all([
-        this.transactionRepo.findAllByUserId(userId, { source: 'manual' }),
-        this.incomeRepo.findPageByUserId(userId, { limit: 100, offset: 0 }).then((p) => p.rows),
-        this.investmentRepo.findPageByUserId(userId, { limit: 100, offset: 0 }).then((p) => p.rows),
+      const [entries, goals] = await Promise.all([
+        this.ledger.load(userId),
         this.goalRepo.findAllByUserIdAndMonth(userId, `${curMonth}-01`),
       ]);
 
-      const snapshot = calculateFinancialSnapshot({
-        transactions: txs,
-        incomes: incs,
-        investments: invs,
-        goals,
-        referenceMonth: curMonth,
-      });
+      const snapshot = calculateFinancialSnapshot({ entries, goals, referenceMonth: curMonth });
 
       return formatMonthSummary(snapshot, curMonth);
     }
