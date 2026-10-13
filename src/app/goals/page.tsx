@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { auth } from '@/auth';
+import { getEffectiveUserId } from '@/app/actions/require-session';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/lib/format';
@@ -12,8 +12,7 @@ import { getExpenseCategories } from '@/modules/open-finance/application/shared/
 import { GoalsChat, GoalsForm } from './components';
 
 export default async function GoalsPage() {
-  const session = await auth();
-  const userId = session?.user?.id ?? process.env.FINANCE_OWNER_USER_ID ?? '3dd11c4e-e3c6-4a97-adb4-431ca7f476f1';
+  const userId = await getEffectiveUserId();
 
   const now = new Date();
   const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;

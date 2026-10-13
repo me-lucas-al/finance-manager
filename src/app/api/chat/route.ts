@@ -5,6 +5,8 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 import { z } from 'zod';
+import { getEffectiveUserId } from '@/app/actions/require-session';
+import { OwnerResolutionError } from '@/modules/auth/domain/resolve-owner-user-id';
 import { formatCurrency } from '@/lib/format';
 import { SupabaseGoalRepository, SupabaseSavingsGoalRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
 import { getLiveOverviewData } from '@/modules/finance/application/services/overview-data-service';
@@ -66,9 +68,12 @@ export async function POST(req: Request) {
     }
   }
 
-  const userId = process.env.FINANCE_OWNER_USER_ID;
-  if (!userId) {
-    return new Response('User ID not configured', { status: 500 });
+  let userId: string;
+  try {
+    userId = await getEffectiveUserId();
+  } catch (error) {
+    if (!(error instanceof OwnerResolutionError)) throw error;
+    return new Response(error.message, { status: error.failure === 'unauthenticated' ? 401 : 403 });
   }
 
   const today = new Date();
