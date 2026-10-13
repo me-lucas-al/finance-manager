@@ -4,19 +4,28 @@ import { db } from '../../../db';
 import { incomes } from '../../../db/schema';
 import { and, asc, desc, eq, ilike } from 'drizzle-orm';
 import { totalOverWindow, toPageWithTotal } from './page-with-total';
+import { DuplicateFixedLaunchError } from '../domain/models/fixed-launch-errors';
+import { isUniqueViolation } from './is-unique-violation';
 
 export class DrizzleIncomeRepository implements IncomeRepository {
   async create(data: NewIncome): Promise<Income> {
-    const [inserted] = await db.insert(incomes).values({
-      id: data.id ?? randomUUID(),
-      userId: data.userId,
-      periodId: data.periodId,
-      description: data.description,
-      amount: String(data.amount),
-      category: data.category,
-      receivedAt: data.receivedAt,
-    }).returning();
-    return inserted;
+    try {
+      const [inserted] = await db.insert(incomes).values({
+        id: data.id ?? randomUUID(),
+        userId: data.userId,
+        periodId: data.periodId,
+        description: data.description,
+        amount: String(data.amount),
+        category: data.category,
+        receivedAt: data.receivedAt,
+        fixedEntryId: data.fixedEntryId ?? null,
+        fixedReferenceMonth: data.fixedReferenceMonth ?? null,
+      }).returning();
+      return inserted;
+    } catch (error) {
+      if (data.fixedEntryId && isUniqueViolation(error)) throw new DuplicateFixedLaunchError();
+      throw error;
+    }
   }
 
   async findById(id: string): Promise<Income | null> {

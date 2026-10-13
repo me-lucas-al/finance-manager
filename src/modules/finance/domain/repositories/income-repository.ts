@@ -23,6 +23,8 @@ export type NewIncome = {
   amount: number | string;
   category: string;
   receivedAt: Date;
+  fixedEntryId?: string;
+  fixedReferenceMonth?: string;
 };
 
 export type IncomeUpdate = Partial<Pick<NewIncome, 'description' | 'amount' | 'category' | 'receivedAt'>>;
