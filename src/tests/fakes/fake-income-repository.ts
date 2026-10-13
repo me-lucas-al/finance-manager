@@ -1,3 +1,4 @@
+import { definedOnly } from './defined-only';
 import {
   IncomeRepository,
   IncomePage,
@@ -34,7 +35,7 @@ export class FakeIncomeRepository implements IncomeRepository {
     const index = this.items.findIndex((i) => i.id === id);
     if (index === -1) throw new Error('Income not found');
     const { amount, ...rest } = data;
-    const updated = { ...this.items[index], ...rest, ...(amount === undefined ? {} : { amount: String(amount) }), updatedAt: new Date() };
+    const updated = { ...this.items[index], ...definedOnly(rest), ...(amount === undefined ? {} : { amount: String(amount) }), updatedAt: new Date() };
     this.items[index] = updated;
     return updated;
   }

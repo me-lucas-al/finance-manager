@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
 import { ENTRY_KIND_STYLE } from './entry-kind-style';

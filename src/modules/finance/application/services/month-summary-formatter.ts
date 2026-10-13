@@ -14,7 +14,8 @@ export function formatMonthSummary(snapshot: FinancialSnapshot, monthLabel: stri
   return `📊 Resumo Financeiro (${monthLabel}):
 💰 Entradas: R$ ${currentMonth.totalIncome.toFixed(2)}
 💸 Saídas: R$ ${currentMonth.totalExpenses.toFixed(2)}
-💵 Saldo Líquido: R$ ${currentMonth.netBalance.toFixed(2)}
+💵 Resultado do mês: R$ ${currentMonth.netBalance.toFixed(2)}
+🏧 Saldo total: R$ ${snapshot.balance.toFixed(2)}
 📈 Taxa de Poupança: ${currentMonth.savingsRate}%
 🏦 Total Investido: R$ ${totalInvested.toFixed(2)}${catSection}`;
 }

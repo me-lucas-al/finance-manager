@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 import { TransactionRow } from './TransactionRow';
 

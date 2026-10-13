@@ -1,4 +1,4 @@
-import { generateText, tool, jsonSchema, isStepCount, type Tool } from 'ai';
+import { generateText, streamText, tool, jsonSchema, isStepCount, type Tool } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import {
   ILanguageModel,
@@ -31,6 +31,25 @@ function mapTools(definitions?: ToolDefinition[]) {
   return toolsRecord;
 }
 
+function buildChatRequest(messages: LanguageModelMessage[], options?: ChatOptions) {
+  const systemParts = [
+    options?.systemPrompt,
+    ...messages.filter((m) => m.role === 'system').map((m) => m.content),
+  ].filter(Boolean);
+
+  return {
+    model: buildGoogleProvider()(getModelName(options?.tier ?? 'flash')),
+    instructions: systemParts.length > 0 ? systemParts.join('\n\n') : undefined,
+    messages: messages
+      .filter((m): m is typeof m & { role: 'user' | 'assistant' } => m.role !== 'system')
+      .map((m) => ({ role: m.role, content: m.content })),
+    tools: mapTools(options?.tools),
+    stopWhen: isStepCount(options?.tools ? 4 : 1),
+    maxOutputTokens: options?.maxTokens ?? 800,
+    temperature: options?.temperature ?? 0.3,
+  };
+}
+
 export class GeminiLanguageModel implements ILanguageModel {
   async generateText(prompt: string, options?: GenerateTextOptions): Promise<string> {
     const google = buildGoogleProvider();
@@ -53,27 +72,20 @@ export class GeminiLanguageModel implements ILanguageModel {
   }
 
   async chat(messages: LanguageModelMessage[], options?: ChatOptions): Promise<string> {
-    const google = buildGoogleProvider();
-    const model = google(getModelName(options?.tier ?? 'flash'));
-    const mappedTools = mapTools(options?.tools);
-
-    // ai v7 rejects system-role entries in `messages`; fold them (e.g. history summaries) into the instructions.
-    const systemParts = [
-      options?.systemPrompt,
-      ...messages.filter((m) => m.role === 'system').map((m) => m.content),
-    ].filter(Boolean);
-
-    const result = await generateText({
-      model,
-      instructions: systemParts.length > 0 ? systemParts.join('\n\n') : undefined,
-      messages: messages
-        .filter((m): m is typeof m & { role: 'user' | 'assistant' } => m.role !== 'system')
-        .map((m) => ({ role: m.role, content: m.content })),
-      tools: mappedTools,
-      stopWhen: isStepCount(options?.tools ? 4 : 1),
-      maxOutputTokens: options?.maxTokens ?? 800,
-      temperature: options?.temperature ?? 0.3,
-    });
+    const result = await generateText(buildChatRequest(messages, options));
     return result.text;
+  }
+
+  async *stream(messages: LanguageModelMessage[], options?: ChatOptions): AsyncIterable<string> {
+    let separatorPending = false;
+    let hasText = false;
+    for await (const part of streamText(buildChatRequest(messages, options)).fullStream) {
+      if (part.type === 'error') throw part.error instanceof Error ? part.error : new Error(String(part.error));
+      if (part.type === 'start-step') separatorPending = hasText;
+      if (part.type !== 'text-delta') continue;
+      yield separatorPending ? `\n\n${part.text}` : part.text;
+      separatorPending = false;
+      hasText = true;
+    }
   }
 }
