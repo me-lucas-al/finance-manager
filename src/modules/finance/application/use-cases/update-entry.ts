@@ -48,7 +48,7 @@ export class UpdateEntryUseCase {
       description: changes.description,
       category: changes.category,
       occurredAt: changes.date,
-      necessity: reclassify ? await this.classifyNecessity.execute(userId, category, description) : undefined,
+      necessity: changes.necessity ?? (reclassify ? await this.classifyNecessity.execute(userId, category, description) : undefined),
     });
   }
 }

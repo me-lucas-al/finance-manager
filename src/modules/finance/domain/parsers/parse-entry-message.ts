@@ -1,3 +1,4 @@
+import type { TransactionNecessity } from '@/modules/open-finance/domain/repositories/transaction-repository';
 import { parseCurrencyAmount } from './parse-currency-amount';
 
 export type EntryType = 'expense' | 'income' | 'investment';
@@ -8,6 +9,7 @@ export type ParsedEntry = {
   description: string;
   amount: number;
   date?: string;
+  necessity?: TransactionNecessity;
 };
 
 const EXPENSE_SYNONYMS = new Set(['saida', 'saída', 'gasto', 'despesa', 'debito', 'débito']);
