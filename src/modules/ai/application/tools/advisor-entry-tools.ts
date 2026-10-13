@@ -2,7 +2,7 @@ import { ToolDefinition } from '../../domain/models/language-model';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
-import { EntryNotFoundError, EntryValidationError } from '@/modules/finance/domain/models/entry-errors';
+import { reportFailure } from './advisor-failure-reporter';
 import { DeletionConfirmationService } from '../services/deletion-confirmation-service';
 import {
   REGISTRAR_LANCAMENTO_SCHEMA,
@@ -22,19 +22,8 @@ export type AdvisorEntryDeps = {
   turnId: string;
 };
 
-const GENERIC_FAILURE = "Não foi possível concluir a operação agora.";
 const INVALID_CONFIRMATION =
   "Confirmação inválida, expirada ou emitida nesta mesma mensagem. Peça ao usuário para confirmar a exclusão e tente de novo.";
-
-async function reportFailure<T>(action: () => Promise<T>): Promise<T | { erro: string }> {
-  try {
-    return await action();
-  } catch (error) {
-    if (error instanceof EntryNotFoundError || error instanceof EntryValidationError) return { erro: error.message };
-    console.error('Advisor entry tool failed:', error);
-    return { erro: GENERIC_FAILURE };
-  }
-}
 
 export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[] {
   return [
