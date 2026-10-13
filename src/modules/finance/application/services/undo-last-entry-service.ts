@@ -1,48 +1,20 @@
-import { TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
-import { IncomeRepository } from '../../domain/repositories/income-repository';
-import { InvestmentRepository } from '../../domain/repositories/investment-repository';
-import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
+import type { EntryRef } from '../../domain/models/entry-changes';
+import { LatestEntryFinder } from './latest-entry-finder';
+
+export type EntryRemover = { execute(userId: string, ref: EntryRef): Promise<void> };
 
 export class UndoLastEntryService {
   constructor(
-    private transactionRepo: TransactionRepository,
-    private incomeRepo: IncomeRepository,
-    private investmentRepo: InvestmentRepository,
-    private notifier: EntryChangeNotifier
+    private readonly latestEntryFinder: LatestEntryFinder,
+    private readonly deleteEntry: EntryRemover
   ) {}
 
   async execute(userId: string): Promise<string> {
-    const [latestTx, latestInc, latestInv] = await Promise.all([
-      this.transactionRepo.findLatestByUserId(userId),
-      this.incomeRepo.findLatestByUserId(userId),
-      this.investmentRepo.findLatestByUserId(userId),
-    ]);
+    const latest = await this.latestEntryFinder.find(userId);
+    if (!latest) return 'Nenhum lançamento encontrado para desfazer.';
 
-    const candidates = [
-      latestTx && latestTx.source === 'manual'
-        ? { type: 'expense' as const, id: latestTx.id, time: new Date(latestTx.createdAt).getTime(), desc: latestTx.description, amount: latestTx.amount }
-        : null,
-      latestInc ? { type: 'income' as const, id: latestInc.id, time: new Date(latestInc.createdAt).getTime(), desc: latestInc.description, amount: Number(latestInc.amount) } : null,
-      latestInv ? { type: 'investment' as const, id: latestInv.id, time: new Date(latestInv.createdAt).getTime(), desc: latestInv.description, amount: Number(latestInv.amount) } : null,
-    ].filter((c): c is NonNullable<typeof c> => c !== null);
+    await this.deleteEntry.execute(userId, latest.ref);
 
-    if (candidates.length === 0) {
-      return 'Nenhum lançamento encontrado para desfazer.';
-    }
-
-    candidates.sort((a, b) => b.time - a.time);
-    const newest = candidates[0];
-
-    if (newest.type === 'expense') {
-      await this.transactionRepo.delete(newest.id);
-    } else if (newest.type === 'income') {
-      await this.incomeRepo.delete(newest.id);
-    } else {
-      await this.investmentRepo.delete(newest.id);
-    }
-
-    await this.notifier.notifyEntriesChanged(userId);
-
-    return `🗑️ Lançamento desfeito com sucesso:\n${newest.type.toUpperCase()}: ${newest.desc} - R$ ${newest.amount.toFixed(2)}`;
+    return `🗑️ Lançamento desfeito com sucesso:\n${latest.ref.kind.toUpperCase()}: ${latest.description} - R$ ${latest.amount.toFixed(2)}`;
   }
 }

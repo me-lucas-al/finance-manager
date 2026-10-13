@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UndoLastEntryService } from '@/modules/finance/application/services/undo-last-entry-service';
+import { LatestEntryFinder } from '@/modules/finance/application/services/latest-entry-finder';
+import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
+import { OwnedEntryGuard } from '@/modules/finance/application/services/owned-entry-guard';
 import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
@@ -34,7 +37,11 @@ describe('entry date and change notification', () => {
       new ExpensePatternAnalyzer(transactionRepo),
       notifier
     );
-    undo = new UndoLastEntryService(transactionRepo, incomeRepo, investmentRepo, notifier);
+    const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
+    undo = new UndoLastEntryService(
+      new LatestEntryFinder(transactionRepo, incomeRepo, investmentRepo),
+      new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier)
+    );
   });
 
   it('stores an expense on the informed date', async () => {
