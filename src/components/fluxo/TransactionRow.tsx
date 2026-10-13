@@ -19,6 +19,11 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
           <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5">
             {transaction.isCreditCard && <CreditCard className="h-3 w-3 text-zinc-400" />}
             <span>{transaction.account} · {transaction.category}</span>
+            {transaction.fixed && (
+              <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 text-[10px] font-medium text-blue-400">
+                Fixo
+              </span>
+            )}
           </div>
         </div>
       </div>

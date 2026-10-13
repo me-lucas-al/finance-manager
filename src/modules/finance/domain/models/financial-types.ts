@@ -36,6 +36,7 @@ export interface LiveTransactionItem {
   amount: number;
   bank: string;
   isCreditCard: boolean;
+  fixed: boolean;
 }
 
 export interface LiveExpenseCategory {
