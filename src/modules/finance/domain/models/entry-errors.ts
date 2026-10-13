@@ -1,6 +1,6 @@
 export class EntryNotFoundError extends Error {
-  constructor() {
-    super('Lançamento não encontrado');
+  constructor(message = 'Lançamento não encontrado') {
+    super(message);
     this.name = 'EntryNotFoundError';
   }
 }
