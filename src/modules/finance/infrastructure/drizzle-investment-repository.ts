@@ -3,6 +3,7 @@ import {
   InvestmentRepository,
   InvestmentQuery,
   InvestmentPage,
+  InvestmentUpdate,
   NewInvestment,
   Investment,
 } from '../domain/repositories/investment-repository';
@@ -22,6 +23,22 @@ export class DrizzleInvestmentRepository implements InvestmentRepository {
       date: data.date,
     }).returning();
     return inserted;
+  }
+
+  async findById(id: string): Promise<Investment | null> {
+    const [found] = await db.select().from(investments).where(eq(investments.id, id)).limit(1);
+    return found ?? null;
+  }
+
+  async update(id: string, data: InvestmentUpdate): Promise<Investment> {
+    const { amount, ...rest } = data;
+    const [updated] = await db
+      .update(investments)
+      .set({ ...rest, ...(amount === undefined ? {} : { amount: String(amount) }), updatedAt: new Date() })
+      .where(eq(investments.id, id))
+      .returning();
+    if (!updated) throw new Error('Investment not found');
+    return updated;
   }
 
   async findLatestByUserId(userId: string): Promise<Investment | null> {

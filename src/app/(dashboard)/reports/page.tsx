@@ -1,4 +1,5 @@
 import { getEffectiveUserId } from '@/app/actions/require-session';
+import { getCurrentMonth } from '@/lib/month';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReportFilters } from './ReportFilters';
 import { SummaryCards } from './SummaryCards';
@@ -8,17 +9,14 @@ import { getReportData } from './get-report-data';
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; period?: string; bank?: string }>;
+  searchParams: Promise<{ range?: string; period?: string }>;
 }) {
   const userId = await getEffectiveUserId();
   const resolvedParams = await searchParams;
 
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const period = resolvedParams.period || resolvedParams.range || currentMonth;
-  const bank = resolvedParams.bank || 'all';
+  const period = resolvedParams.period || resolvedParams.range || getCurrentMonth();
 
-  const data = await getReportData(userId, { period, bank });
+  const data = await getReportData(userId, { period });
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans">
@@ -27,12 +25,12 @@ export default async function ReportsPage({
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Relatórios Financeiros</h1>
             <p className="text-xs text-zinc-400 mt-1">
-              Análise consolidada de receitas, despesas, investimentos e metas com dados do Open Finance
+              Análise consolidada de receitas, despesas, investimentos e metas dos seus lançamentos
             </p>
           </div>
         </div>
 
-        <ReportFilters period={data.selectedPeriod} bank={data.selectedBank} />
+        <ReportFilters period={data.selectedPeriod} />
 
         {data.noDataMessage ? (
           <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl">

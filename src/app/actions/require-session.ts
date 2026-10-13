@@ -1,9 +1,9 @@
 import { auth } from '@/auth';
+import { resolveOwnerUserId } from '@/modules/auth/domain/resolve-owner-user-id';
 
 export async function getEffectiveUserId(): Promise<string> {
   const session = await auth();
-  const userId = session?.user?.id ?? process.env.FINANCE_OWNER_USER_ID ?? '3dd11c4e-e3c6-4a97-adb4-431ca7f476f1';
-  return userId;
+  return resolveOwnerUserId(session?.user?.id, process.env.FINANCE_OWNER_USER_ID);
 }
 
 export async function requireUserId(): Promise<string> {

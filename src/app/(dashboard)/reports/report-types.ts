@@ -2,7 +2,6 @@ import type { CategoryDatum, EvolutionDatum, CategoryGoalDatum } from './charts'
 
 export type ReportFilterParams = {
   period?: string;
-  bank?: string;
 };
 
 export type ReportMetrics = {
@@ -23,5 +22,4 @@ export type ReportData = {
   minInvestmentPercentage: number;
   categoryVsGoalData: CategoryGoalDatum[];
   selectedPeriod: string;
-  selectedBank: string;
 };

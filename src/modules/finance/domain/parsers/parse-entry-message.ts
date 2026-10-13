@@ -7,6 +7,7 @@ export type ParsedEntry = {
   category: string;
   description: string;
   amount: number;
+  date?: string;
 };
 
 const EXPENSE_SYNONYMS = new Set(['saida', 'saída', 'gasto', 'despesa', 'debito', 'débito']);

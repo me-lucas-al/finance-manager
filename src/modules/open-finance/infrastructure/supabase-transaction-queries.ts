@@ -61,9 +61,10 @@ export async function fetchLatestTransaction(userId: string): Promise<Transactio
 export async function fetchTransactionsList(userId: string, filters?: TransactionFilters): Promise<Transaction[]> {
   let query = applyFilters(getSupabaseAdmin().from('transactions').select(), userId, filters);
   const sortColumn = filters?.sort ? SORT_COLUMN[filters.sort] : SORT_COLUMN.date;
-  query = query.order(sortColumn, { ascending: filters?.dir === 'asc' });
-  if (filters?.limit !== undefined && filters?.offset !== undefined) {
-    query = query.range(filters.offset, filters.offset + filters.limit - 1);
+  query = query.order(sortColumn, { ascending: filters?.dir === 'asc' }).order('id', { ascending: true });
+  if (filters?.limit !== undefined) {
+    const offset = filters.offset ?? 0;
+    query = query.range(offset, offset + filters.limit - 1);
   }
   const { data, error } = await query;
   if (error) throw new Error(error.message);

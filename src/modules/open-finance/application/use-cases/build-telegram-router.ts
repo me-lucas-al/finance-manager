@@ -8,6 +8,8 @@ import { UndoLastEntryService } from '@/modules/finance/application/services/und
 import { AdvisorChatService } from '@/modules/ai/application/services/advisor-chat-service';
 import { ChatMemoryService } from '@/modules/ai/application/services/chat-memory-service';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
+import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';
+import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-entry-change-notifier';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
 import { DrizzlePeriodRepository } from '@/modules/periods/infrastructure/repositories';
 import { DrizzleSettingRepository } from '@/modules/users/infrastructure/repositories';
@@ -38,6 +40,7 @@ export function buildTelegramRouter(): RouteTelegramMessageUseCase {
     new DrizzleSettingRepository()
   );
 
+  const entryNotifier = new NextEntryChangeNotifier();
   const classifyNecessity = new ClassifyNecessityService(transactionRepo, llm);
   const registerEntry = new RegisterManualEntryUseCase(
     transactionRepo,
@@ -45,10 +48,11 @@ export function buildTelegramRouter(): RouteTelegramMessageUseCase {
     investmentRepo,
     resolvePeriod,
     classifyNecessity,
-    goalRepo
+    new ExpensePatternAnalyzer(transactionRepo, goalRepo),
+    entryNotifier
   );
 
-  const undoService = new UndoLastEntryService(transactionRepo, incomeRepo, investmentRepo);
+  const undoService = new UndoLastEntryService(transactionRepo, incomeRepo, investmentRepo, entryNotifier);
   const handleBotCommand = new HandleBotCommandUseCase(
     undoService,
     transactionRepo,

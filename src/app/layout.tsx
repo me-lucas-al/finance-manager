@@ -7,6 +7,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PrivacyProvider } from '@/components/PrivacyProvider';
 import { AssistantChat } from '@/components/AssistantChat';
+import { LiveRefresh } from '@/components/LiveRefresh';
 
 const inter = Inter({
   variable: '--font-sans',
@@ -39,6 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col bg-[#09090b] text-[#fafafa] font-sans selection:bg-blue-600 selection:text-white">
         <ServiceWorkerRegister />
+        <Suspense fallback={null}>
+          <LiveRefresh />
+        </Suspense>
         <TooltipProvider>
           <PrivacyProvider>
             <Suspense fallback={null}>
