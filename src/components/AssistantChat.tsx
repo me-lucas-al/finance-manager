@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Sparkles, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -12,10 +13,13 @@ import { ChatInputForm } from './ChatInputForm';
 export function AssistantChat() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const router = useRouter();
+
   const { messages, status, sendMessage, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
+    onFinish: () => router.refresh(),
   });
 
   const [input, setInput] = useState('');
