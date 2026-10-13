@@ -24,21 +24,25 @@ const MAX_REPLY_TOKENS = 2048;
 export class AdvisorChatService {
   constructor(private deps: AdvisorChatDeps) {}
 
-  async respond(userId: string, userMessage: string, channel: ChatChannel = 'telegram'): Promise<string> {
+  async respond(userId: string, userMessage: string, channel: ChatChannel): Promise<string> {
     const { messages, options } = await this.prepare(userId, userMessage, channel);
     const reply = await this.deps.llm.chat(messages, options);
     await this.deps.chatRepo.create({ userId, role: 'assistant', content: reply, channel });
     return reply;
   }
 
-  async *stream(userId: string, userMessage: string, channel: ChatChannel = 'web'): AsyncIterable<string> {
+  async *stream(userId: string, userMessage: string, channel: ChatChannel): AsyncIterable<string> {
     const { messages, options } = await this.prepare(userId, userMessage, channel);
     let reply = '';
-    for await (const chunk of this.deps.llm.stream(messages, options)) {
-      reply += chunk;
-      yield chunk;
+    try {
+      for await (const chunk of this.deps.llm.stream(messages, options)) {
+        reply += chunk;
+        yield chunk;
+      }
+    } finally {
+      if (reply.trim()) await this.deps.chatRepo.create({ userId, role: 'assistant', content: reply, channel });
     }
-    if (reply.trim()) await this.deps.chatRepo.create({ userId, role: 'assistant', content: reply, channel });
+    if (!reply.trim()) throw new Error('Advisor returned an empty reply');
   }
 
   private async prepare(userId: string, userMessage: string, channel: ChatChannel): Promise<PreparedChat> {
@@ -58,11 +62,11 @@ export class AdvisorChatService {
       channel,
     });
 
-    await this.deps.chatRepo.create({ userId, role: 'user', content: userMessage, channel });
+    const storedMessage = await this.deps.chatRepo.create({ userId, role: 'user', content: userMessage, channel });
 
     return {
       messages: [...messages, { role: 'user', content: userMessage }],
-      options: { systemPrompt, tools: this.deps.buildTools(userId), tier: 'flash', maxTokens: MAX_REPLY_TOKENS },
+      options: { systemPrompt, tools: this.deps.buildTools({ userId, turnId: storedMessage.id }), tier: 'flash', maxTokens: MAX_REPLY_TOKENS },
     };
   }
 }

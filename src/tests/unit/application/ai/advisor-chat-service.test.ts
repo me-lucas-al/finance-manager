@@ -47,6 +47,52 @@ describe('AdvisorChatService', () => {
     expect(chatRepo.items.filter((m) => m.role === 'assistant')).toHaveLength(1);
   });
 
+  it('fails loudly on an empty reply and keeps the user message', async () => {
+    llm.nextTextResponse = '   ';
+
+    await expect(async () => {
+      for await (const chunk of service.stream('u', 'oi', 'web')) void chunk;
+    }).rejects.toThrow('empty reply');
+
+    expect(chatRepo.items.map((m) => m.role)).toEqual(['user']);
+  });
+
+  it('saves the partial reply when the model fails midway', async () => {
+    llm.stream = async function* () {
+      yield 'Resposta parcial';
+      throw new Error('quota exceeded');
+    };
+
+    await expect(async () => {
+      for await (const chunk of service.stream('u', 'oi', 'web')) void chunk;
+    }).rejects.toThrow('quota exceeded');
+
+    expect(chatRepo.items.map((m) => [m.role, m.content])).toEqual([
+      ['user', 'oi'],
+      ['assistant', 'Resposta parcial'],
+    ]);
+  });
+
+  it('gives each message its own turn id to the tools', async () => {
+    const turnIds: string[] = [];
+    const withTools = new AdvisorChatService({
+      chatMemory: new ChatMemoryService(chatRepo, new FakeAssistantMemoryRepository(), llm),
+      chatRepo,
+      llm,
+      ledger: new LedgerService(sampleLedgerSource),
+      goalRepo: new FakeGoalRepository(),
+      buildTools: ({ turnId }) => {
+        turnIds.push(turnId);
+        return [];
+      },
+    });
+
+    await withTools.respond('u', 'um', 'web');
+    await withTools.respond('u', 'dois', 'web');
+
+    expect(new Set(turnIds).size).toBe(2);
+  });
+
   it('remembers across channels: a web message sees the telegram history', async () => {
     await service.respond('u', 'meu salário é 5000', 'telegram');
     await service.respond('u', 'lembra do meu salário?', 'web');

@@ -59,6 +59,14 @@ describe('chat routes', () => {
     expect(streamMock).not.toHaveBeenCalled();
   });
 
+  it('rejects an unreadable body', async () => {
+    authMock.mockResolvedValue({ user: { id: 'u1' } });
+
+    const response = await POST(new Request('http://localhost/api/chat', { method: 'POST', body: 'not json' }));
+
+    expect(response.status).toBe(400);
+  });
+
   it('rejects an empty message', async () => {
     authMock.mockResolvedValue({ user: { id: 'u1' } });
 

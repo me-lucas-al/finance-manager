@@ -9,7 +9,8 @@ export async function POST(req: Request) {
   const authorization = await authorizeOwner();
   if (authorization.response) return authorization.response;
 
-  const { messages } = await req.json();
+  const payload = await req.json().catch(() => null);
+  const messages = payload?.messages;
   const userMessage = extractLastUserText(messages);
   if (!userMessage) return new Response('Mensagem vazia', { status: 400 });
 
