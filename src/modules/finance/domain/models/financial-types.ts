@@ -63,6 +63,7 @@ export interface LiveAssetItem {
   bankName: string;
   type: string;
   amount: number;
+  date?: string;
   percentage: number;
 }
 
