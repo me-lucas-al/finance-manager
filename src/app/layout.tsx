@@ -7,6 +7,8 @@ import { CurrentUserHeader } from '@/components/CurrentUserHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PrivacyProvider } from '@/providers/PrivacyProvider';
 import { AssistantChat } from '@/components/AssistantChat';
+import { NewEntryDialogProvider } from '@/components/entries/NewEntryDialogProvider';
+import { Toaster } from '@/components/ui/toast';
 
 const inter = Inter({
   variable: '--font-sans',
@@ -41,15 +43,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ServiceWorkerRegister />
         <TooltipProvider>
           <PrivacyProvider>
-            <Suspense fallback={null}>
-              <CurrentUserHeader />
-            </Suspense>
-            <main className="flex-1">
-              {children}
-            </main>
-            <Suspense fallback={null}>
-              <AssistantChat />
-            </Suspense>
+            <NewEntryDialogProvider>
+              <Suspense fallback={null}>
+                <CurrentUserHeader />
+              </Suspense>
+              <main className="flex-1">
+                {children}
+              </main>
+              <Suspense fallback={null}>
+                <AssistantChat />
+              </Suspense>
+            </NewEntryDialogProvider>
+            <Toaster />
           </PrivacyProvider>
         </TooltipProvider>
       </body>
