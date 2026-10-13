@@ -5,6 +5,7 @@ import type { TransactionRepository } from '../../domain/repositories/transactio
 import { aggregateMonthlySpending } from '../shared/monthly-spending';
 import { ILanguageModel } from '@/modules/ai/domain/models/language-model';
 import { buildDeterministicSummary } from './weekly-summary-formatter';
+import { getCurrentMonth } from '@/lib/month';
 
 export class SendWeeklyGoalsSummaryUseCase {
   constructor(
@@ -15,8 +16,7 @@ export class SendWeeklyGoalsSummaryUseCase {
   ) {}
 
   async execute(userId: string): Promise<void> {
-    const now = new Date();
-    const filterMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const filterMonth = getCurrentMonth();
     const goalMonth = `${filterMonth}-01`;
 
     const [transactions, goals, savingsGoals] = await Promise.all([
