@@ -76,7 +76,16 @@ export class GeminiLanguageModel implements ILanguageModel {
     return result.text;
   }
 
-  stream(messages: LanguageModelMessage[], options?: ChatOptions): AsyncIterable<string> {
-    return streamText(buildChatRequest(messages, options)).textStream;
+  async *stream(messages: LanguageModelMessage[], options?: ChatOptions): AsyncIterable<string> {
+    let separatorPending = false;
+    let hasText = false;
+    for await (const part of streamText(buildChatRequest(messages, options)).fullStream) {
+      if (part.type === 'error') throw part.error instanceof Error ? part.error : new Error(String(part.error));
+      if (part.type === 'start-step') separatorPending = hasText;
+      if (part.type !== 'text-delta') continue;
+      yield separatorPending ? `\n\n${part.text}` : part.text;
+      separatorPending = false;
+      hasText = true;
+    }
   }
 }
