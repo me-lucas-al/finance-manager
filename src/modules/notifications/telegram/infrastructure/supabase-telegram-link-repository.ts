@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
+import type { TelegramLinkRepository } from '../domain/telegram-link-repository';
 
 const CODE_TTL_MS = 15 * 60 * 1000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -10,7 +11,7 @@ function generateCode(): string {
   return code;
 }
 
-export class SupabaseTelegramLinkRepository {
+export class SupabaseTelegramLinkRepository implements TelegramLinkRepository {
   async findChatIdByUserId(userId: string): Promise<number | null> {
     const { data } = await getSupabaseAdmin()
       .from('telegram_links')

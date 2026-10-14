@@ -1,36 +1,49 @@
 import { markdownToTelegramHtml } from './markdown-to-telegram-html';
-import { SupabaseTelegramLinkRepository } from './infrastructure/supabase-telegram-link-repository';
+import type { TelegramLinkRepository } from './domain/telegram-link-repository';
+import type { TelegramMessenger } from './domain/telegram-messenger';
 
 type Target = { token: string; chatId: number | string };
 
-async function resolveTarget(userId: string): Promise<Target | null> {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return null;
-  const chatId = await new SupabaseTelegramLinkRepository().findChatIdByUserId(userId);
-  if (!chatId) return null;
-  return { token, chatId };
-}
+export class TelegramService implements TelegramMessenger {
+  constructor(private links: Pick<TelegramLinkRepository, 'findChatIdByUserId'>) {}
 
-export class TelegramService {
-  static async sendMessage(userId: string, text: string, replyToMessageId?: number): Promise<number | null> {
-    const target = await resolveTarget(userId);
+  async sendMessage(userId: string, text: string, replyToMessageId?: number): Promise<number | null> {
+    const target = await this.resolveTarget(userId);
     if (!target) return null;
-    return TelegramService.sendToChat(target.chatId, text, replyToMessageId);
+    return this.sendToChat(target.chatId, text, replyToMessageId);
   }
 
-  static async sendToChat(chatId: number | string, text: string, replyToMessageId?: number): Promise<number | null> {
+  async sendToChat(chatId: number | string, text: string, replyToMessageId?: number): Promise<number | null> {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     if (!token) return null;
     const target = { token, chatId };
 
-    const html = await TelegramService.post(target, markdownToTelegramHtml(text), replyToMessageId, 'HTML');
+    const html = await this.post(target, markdownToTelegramHtml(text), replyToMessageId, 'HTML');
     if (html !== null) return html;
 
-    // Telegram rejects malformed HTML entities; resend as plain text so the user still gets the reply.
-    return TelegramService.post(target, text, replyToMessageId);
+    return this.post(target, text, replyToMessageId);
   }
 
-  private static async post(
+  async sendTyping(userId: string): Promise<void> {
+    const target = await this.resolveTarget(userId);
+    if (!target) return;
+
+    await fetch(`https://api.telegram.org/bot${target.token}/sendChatAction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: target.chatId, action: 'typing' }),
+    }).catch(() => null);
+  }
+
+  private async resolveTarget(userId: string): Promise<Target | null> {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) return null;
+    const chatId = await this.links.findChatIdByUserId(userId);
+    if (!chatId) return null;
+    return { token, chatId };
+  }
+
+  private async post(
     target: Target,
     text: string,
     replyToMessageId?: number,
@@ -54,16 +67,5 @@ export class TelegramService {
     }
 
     return body.result.message_id;
-  }
-
-  static async sendTyping(userId: string): Promise<void> {
-    const target = await resolveTarget(userId);
-    if (!target) return;
-
-    await fetch(`https://api.telegram.org/bot${target.token}/sendChatAction`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: target.chatId, action: 'typing' }),
-    }).catch(() => null);
   }
 }
