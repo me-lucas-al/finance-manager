@@ -1,104 +1,37 @@
-import { User } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { getUserSettings } from '@/app/actions/users';
-import { getNotificationPreferences } from '@/app/actions/notification-preferences';
+import { Suspense } from 'react';
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { getOnboardingState } from '@/app/actions/onboarding';
-import { DataSourceCard } from './DataSourceCard';
-import { TelegramCard } from './TelegramCard';
-import { SettingsForm } from './SettingsForm';
-import { SettingsNotificationsCard } from './SettingsNotificationsCard';
-import { ProfileForm } from './ProfileForm';
-import { ChangePasswordForm } from './ChangePasswordForm';
+import { SectionSkeleton } from '@/components/shared/SectionSkeleton';
+import { IntegrationsSection } from './IntegrationsSection';
+import { NotificationsSection } from './NotificationsSection';
+import { ProfileCard } from './ProfileCard';
+import { RulesCard } from './RulesCard';
+import { SecurityCard } from './SecurityCard';
 
 export default async function SettingsPage() {
-  const [settings, preferences, userId] = await Promise.all([
-    getUserSettings(),
-    getNotificationPreferences(),
-    requireUserId(),
-  ]);
-
-  const [[dbUser], onboarding] = await Promise.all([
-    db
-      .select({ name: users.name, email: users.email, createdAt: users.createdAt })
-      .from(users)
-      .where(eq(users.id, userId)),
-    getOnboardingState(),
-  ]);
-
-  const userName = dbUser?.name ?? '';
-  const userEmail = dbUser?.email ?? '';
-  const userCreatedAt = dbUser?.createdAt?.toISOString();
-
-  if (!settings) {
-    return <div className="p-8 text-zinc-400">Configurações não encontradas.</div>;
-  }
+  const userId = await requireUserId();
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Meu Perfil & Configurações</h1>
-            <p className="text-xs text-zinc-400 mt-1">Gerencie suas informações pessoais e preferências</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Meu Perfil & Configurações</h1>
+          <p className="text-xs text-zinc-400 mt-1">Gerencie suas informações pessoais e preferências</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl md:col-span-2 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-500" />
-                <CardTitle className="text-lg font-semibold text-white">Perfil do Titular</CardTitle>
-              </div>
-              <CardDescription className="text-xs text-zinc-400">
-                Seus dados cadastrais vinculados à conta do Finance Manager.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ProfileForm
-                initialName={userName}
-                email={userEmail}
-                createdAt={userCreatedAt}
-              />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Regras Financeiras</CardTitle>
-              <CardDescription>Defina o ciclo do seu período e as metas de gastos e investimentos.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SettingsForm
-                periodStartDay={settings.periodStartDay}
-                periodEndDay={settings.periodEndDay}
-                maxExpensesPercentage={settings.maxExpensesPercentage}
-                minInvestmentPercentage={settings.minInvestmentPercentage}
-                initialBalance={settings.initialBalance}
-                expenseCategories={settings.expenseCategories ?? []}
-                investmentTypes={settings.investmentTypes ?? []}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Segurança e Senha</CardTitle>
-              <CardDescription>Altere a sua senha de acesso de forma segura.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChangePasswordForm />
-            </CardContent>
-          </Card>
-
-          <SettingsNotificationsCard preferences={preferences} />
-
-          <TelegramCard initiallyLinked={onboarding.telegramLinked} />
-
-          {onboarding.dataMode ? <DataSourceCard currentMode={onboarding.dataMode} /> : null}
+          <Suspense fallback={<SectionSkeleton height="h-64 md:col-span-2" />}>
+            <ProfileCard userId={userId} />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton height="h-96" />}>
+            <RulesCard />
+          </Suspense>
+          <SecurityCard />
+          <Suspense fallback={<SectionSkeleton height="h-48 md:col-span-2" />}>
+            <NotificationsSection />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton height="h-40" />}>
+            <IntegrationsSection />
+          </Suspense>
         </div>
       </div>
     </div>
