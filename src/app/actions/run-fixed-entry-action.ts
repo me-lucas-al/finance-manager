@@ -1,17 +1,13 @@
 import type { ZodType } from 'zod';
 import { EntryNotFoundError, EntryValidationError } from '@/modules/finance/domain/models/entry-errors';
-import {
-  createFixedEntryServices,
-} from '@/modules/finance/infrastructure/create-fixed-entry-services';
-import type { FixedEntryServices } from '@/modules/finance/infrastructure/build-fixed-entry-services';
-import { requireUserId } from './require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 
 export type FixedEntryActionResult = { ok: true } | { ok: false; error: string };
 
 const INVALID_INPUT = 'Dados inválidos. Confira os campos e tente de novo.';
 const GENERIC_FAILURE = 'Não foi possível concluir a operação agora.';
 
-type FixedEntryWork<T> = (userId: string, data: T, services: FixedEntryServices) => Promise<unknown>;
+type FixedEntryWork<T> = (userId: string, data: T) => Promise<unknown>;
 
 export async function runFixedEntryAction<T>(
   schema: ZodType<T>,
@@ -21,8 +17,7 @@ export async function runFixedEntryAction<T>(
   const parsed = schema.safeParse(input);
   if (!parsed.success) return { ok: false, error: INVALID_INPUT };
   try {
-    const userId = await requireUserId();
-    await work(userId, parsed.data, createFixedEntryServices());
+    await work(await requireUserId(), parsed.data);
     return { ok: true };
   } catch (error) {
     if (error instanceof EntryValidationError || error instanceof EntryNotFoundError) {
