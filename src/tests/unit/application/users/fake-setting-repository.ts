@@ -13,6 +13,7 @@ export class FakeSettingRepository implements SettingRepository {
       periodEndDay: 14,
       maxExpensesPercentage: 80,
       minInvestmentPercentage: 20,
+      initialBalance: '0',
       expenseCategories: [],
       investmentTypes: [],
       ...data,

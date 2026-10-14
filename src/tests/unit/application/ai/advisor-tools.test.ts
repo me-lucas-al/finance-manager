@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildAdvisorTools } from '@/modules/ai/application/tools/financial-advisor-tools';
+import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
+import { fakePortfolioSource } from '@/tests/fakes/fake-portfolio-source';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
@@ -39,6 +41,7 @@ describe('Advisor Tools', () => {
     tools = buildAdvisorTools({
       userId: 'user-1',
       ledger: new LedgerService(sampleLedgerSource),
+      portfolio: new PortfolioService(fakePortfolioSource()),
       goalRepo,
       savingsGoalRepo: new FakeSavingsGoalRepository(),
       memoryRepo,
