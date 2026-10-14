@@ -50,6 +50,13 @@
       "when": 1791656150466,
       "tag": "0006_pluggy_external_ids",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791949782144,
+      "tag": "0007_holdings_and_initial_balance",
+      "breakpoints": true
     }
   ]
 }
