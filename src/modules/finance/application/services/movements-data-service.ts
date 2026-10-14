@@ -1,7 +1,8 @@
 import type { LiveMovementsData } from '@/modules/finance/domain/models/financial-types';
 import { buildMovementsData } from '../../domain/services/build-movements-data';
-import { loadLedger } from './load-ledger';
+import type { LedgerLoader } from './data-loaders';
 
-export async function getLiveMovementsData(month: string, overrideUserId?: string): Promise<LiveMovementsData> {
-  return buildMovementsData(await loadLedger(overrideUserId), month);
+export function createMovementsDataService(loadLedger: LedgerLoader) {
+  return async (userId: string, month: string): Promise<LiveMovementsData> =>
+    buildMovementsData(await loadLedger(userId), month);
 }
