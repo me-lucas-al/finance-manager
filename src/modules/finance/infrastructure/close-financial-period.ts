@@ -6,43 +6,30 @@ import {
   incomes,
   investments,
   userSettings,
-  notifications,
   notificationPreferences,
 } from '@/db/schema';
 import { calculateMetrics } from '../domain/financial-metrics';
-import { getFinancialPeriod } from '@/modules/periods/domain/financial-period';
 import { NotificationFactory } from '@/modules/notifications/domain/NotificationFactory';
-import { NotificationPayload } from '@/modules/notifications/domain/NotificationTypes';
-import { PushService } from '@/modules/notifications/push/PushService';
-import { getExpenseBreakdown } from '@/modules/open-finance/application/shared/expense-totals';
+import type { ExpenseBreakdownReader } from '@/modules/open-finance/application/shared/expense-totals';
+import { notifyPeriodUser } from './notify-period-user';
+import { openNextPeriodIfMissing } from './open-next-period';
 
-async function notifyUser(payload: NotificationPayload, pushEnabled: boolean) {
-  await db.insert(notifications).values({
-    id: crypto.randomUUID(),
-    userId: payload.userId,
-    type: payload.type,
-    title: payload.title,
-    message: payload.message,
-  });
+export type ClosePeriodResult = { success: boolean; message: string; snapshotId?: string };
 
-  if (pushEnabled) {
-    await PushService.sendNotificationToUser(payload.userId, payload).catch((error) => {
-      console.error('Failed to send push notification:', error);
-    });
-  }
-}
+const ALREADY_CLOSED: ClosePeriodResult = { success: true, message: 'Period already closed' };
+const EMPTY_BREAKDOWN = { total: 0, byCategory: {} };
 
-// neon-http does not support transactions, so idempotency is guaranteed by a
-// conditional UPDATE (OPEN -> CLOSED) that acts as a single-winner lock instead.
-export async function closeFinancialPeriod(periodId: string, userId: string) {
+export async function closeFinancialPeriod(
+  periodId: string,
+  userId: string,
+  readExpenseBreakdown: ExpenseBreakdownReader
+): Promise<ClosePeriodResult> {
   const [period] = await db.select().from(financialPeriods).where(
     and(eq(financialPeriods.id, periodId), eq(financialPeriods.userId, userId))
   );
 
   if (!period) throw new Error('Period not found');
-  if (period.status === 'CLOSED') {
-    return { success: true, message: 'Period already closed' };
-  }
+  if (period.status === 'CLOSED') return ALREADY_CLOSED;
 
   const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
   const maxExpenses = settings?.maxExpensesPercentage ?? 80;
@@ -51,7 +38,7 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
   const [periodIncomes, periodInvestments, expenseBreakdown] = await Promise.all([
     db.select().from(incomes).where(and(eq(incomes.periodId, periodId), eq(incomes.userId, userId))),
     db.select().from(investments).where(and(eq(investments.periodId, periodId), eq(investments.userId, userId))),
-    getExpenseBreakdown(userId, period.startDate, period.endDate).catch(() => ({ total: 0, byCategory: {} })),
+    readExpenseBreakdown(userId, period.startDate, period.endDate).catch(() => EMPTY_BREAKDOWN),
   ]);
 
   const totalIncomes = periodIncomes.reduce((acc, curr) => acc + Number(curr.amount), 0);
@@ -66,16 +53,12 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
     minInvestments
   );
 
-  // Only one caller can win this conditional update; a concurrent/duplicate
-  // call sees 0 affected rows and returns early below.
   const [closedPeriod] = await db.update(financialPeriods)
     .set({ status: 'CLOSED', closedAt: new Date() })
     .where(and(eq(financialPeriods.id, periodId), eq(financialPeriods.status, 'OPEN')))
     .returning();
 
-  if (!closedPeriod) {
-    return { success: true, message: 'Period already closed' };
-  }
+  if (!closedPeriod) return ALREADY_CLOSED;
 
   const snapshotId = crypto.randomUUID();
   await db.insert(periodSnapshots).values({
@@ -96,34 +79,12 @@ export async function closeFinancialPeriod(periodId: string, userId: string) {
   const pushNotificationsEnabled = prefs?.pushNotificationsEnabled ?? false;
 
   if (closingNotificationsEnabled) {
-    await notifyUser(NotificationFactory.createPeriodClosed(userId), pushNotificationsEnabled);
+    await notifyPeriodUser(NotificationFactory.createPeriodClosed(userId), pushNotificationsEnabled);
   }
 
-  const existingOpenPeriods = await db.select().from(financialPeriods).where(
-    and(eq(financialPeriods.userId, userId), eq(financialPeriods.status, 'OPEN'))
-  );
-
-  if (existingOpenPeriods.length === 0) {
-    const nextReferenceDate = new Date(period.endDate);
-    nextReferenceDate.setDate(nextReferenceDate.getDate() + 1);
-
-    const { start: nextStart, end: nextEnd } = getFinancialPeriod(
-      nextReferenceDate,
-      settings?.periodStartDay ?? 15,
-      settings?.periodEndDay ?? 14
-    );
-
-    await db.insert(financialPeriods).values({
-      id: crypto.randomUUID(),
-      userId,
-      startDate: nextStart,
-      endDate: nextEnd,
-      status: 'OPEN',
-    });
-
-    if (closingNotificationsEnabled) {
-      await notifyUser(NotificationFactory.createNewPeriod(userId), pushNotificationsEnabled);
-    }
+  const openedNext = await openNextPeriodIfMissing(userId, period, settings);
+  if (openedNext && closingNotificationsEnabled) {
+    await notifyPeriodUser(NotificationFactory.createNewPeriod(userId), pushNotificationsEnabled);
   }
 
   return { success: true, message: 'Period closed and next period created', snapshotId };
