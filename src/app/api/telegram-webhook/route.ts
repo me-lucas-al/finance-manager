@@ -1,80 +1,82 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 import { buildTelegramRouter } from '@/modules/open-finance/application/use-cases/build-telegram-router';
+import { handleStartCommand, parseStartCommand } from '@/modules/notifications/telegram/application/handle-start-command';
+import { SupabaseTelegramLinkRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-link-repository';
 import { SupabaseTelegramUpdateRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-update-repository';
-
-function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (!secret) return false;
-  return req.headers.get('x-telegram-bot-api-secret-token') === secret;
-}
-
-function isChatAuthorized(chatId?: number | string): boolean {
-  if (!chatId) return false;
-  const allowed = process.env.TELEGRAM_ALLOWED_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-  if (!allowed) return true;
-  return String(chatId) === allowed;
-}
 
 type TelegramUpdate = {
   update_id: number;
   message?: {
     message_id: number;
-    chat?: { id: number };
+    chat?: { id: number; type?: string };
     text?: string;
     reply_to_message?: { message_id: number };
   };
 };
 
-export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+const acknowledged = () => NextResponse.json({ ok: true });
 
-  let update: TelegramUpdate;
+function hasValidSecret(req: NextRequest): boolean {
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!secret) return false;
+  return req.headers.get('x-telegram-bot-api-secret-token') === secret;
+}
+
+async function readUpdate(req: NextRequest): Promise<TelegramUpdate | null> {
   try {
-    update = await req.json();
+    return await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return null;
   }
+}
+
+async function routeToAssistant(update: TelegramUpdate, text: string, userId: string): Promise<void> {
+  try {
+    await buildTelegramRouter().execute(
+      {
+        messageId: update.message!.message_id,
+        text,
+        replyToMessageId: update.message!.reply_to_message?.message_id,
+      },
+      userId,
+    );
+  } catch (err) {
+    console.error('Error processing Telegram webhook asynchronously:', err);
+  }
+}
+
+async function runStartCommand(links: SupabaseTelegramLinkRepository, chatId: number, code?: string) {
+  try {
+    await handleStartCommand(links, chatId, code);
+  } catch (err) {
+    console.error('Error handling Telegram /start:', err);
+  }
+}
+
+export async function POST(req: NextRequest) {
+  if (!hasValidSecret(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const update = await readUpdate(req);
+  if (!update) return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
 
   const message = update.message;
-  if (!message?.text) {
-    return NextResponse.json({ ok: true });
+  const chatId = message?.chat?.id;
+  if (!message?.text || !chatId || message.chat?.type !== 'private') return acknowledged();
+
+  const updates = new SupabaseTelegramUpdateRepository();
+  if (update.update_id && !(await updates.claim(update.update_id))) return acknowledged();
+
+  const links = new SupabaseTelegramLinkRepository();
+  const startCommand = parseStartCommand(message.text);
+  if (startCommand) {
+    after(() => runStartCommand(links, chatId, startCommand.code));
+    return acknowledged();
   }
 
-  if (!isChatAuthorized(message.chat?.id)) {
-    return NextResponse.json({ ok: true });
-  }
+  const userId = await links.findUserIdByChatId(chatId);
+  if (!userId) return acknowledged();
 
-  const userId = process.env.FINANCE_OWNER_USER_ID;
-  if (!userId) {
-    return NextResponse.json({ ok: true });
-  }
-
-  const updateRepo = new SupabaseTelegramUpdateRepository();
-  if (update.update_id) {
-    const alreadyProcessed = await updateRepo.isProcessed(update.update_id);
-    if (alreadyProcessed) {
-      return NextResponse.json({ ok: true });
-    }
-    await updateRepo.markProcessed(update.update_id);
-  }
-
-  after(async () => {
-    try {
-      const router = buildTelegramRouter();
-      await router.execute(
-        {
-          messageId: message.message_id,
-          text: message.text!,
-          replyToMessageId: message.reply_to_message?.message_id,
-        },
-        userId
-      );
-    } catch (err) {
-      console.error('Error processing Telegram webhook asynchronously:', err);
-    }
-  });
-
-  return NextResponse.json({ ok: true });
+  const text = message.text;
+  after(() => routeToAssistant(update, text, userId));
+  return acknowledged();
 }

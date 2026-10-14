@@ -22,7 +22,6 @@ describe('GET /api/entries/version', () => {
   beforeEach(() => {
     authMock.mockReset();
     loadLedgerMock.mockReset();
-    delete process.env.FINANCE_OWNER_USER_ID;
   });
 
   it('returns 401 without a session', async () => {
@@ -32,15 +31,6 @@ describe('GET /api/entries/version', () => {
 
     expect(response.status).toBe(401);
     expect(loadLedgerMock).not.toHaveBeenCalled();
-  });
-
-  it('returns 403 when the session user is not the configured owner', async () => {
-    process.env.FINANCE_OWNER_USER_ID = 'owner';
-    authMock.mockResolvedValue({ user: { id: 'someone-else' } });
-
-    const response = await GET();
-
-    expect(response.status).toBe(403);
   });
 
   it('returns a version that changes when the ledger changes', async () => {

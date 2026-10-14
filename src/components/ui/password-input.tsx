@@ -1,19 +1,19 @@
 'use client';
 
-import * as React from 'react';
+import { type ComponentProps, forwardRef, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export interface PasswordInputProps extends Omit<React.ComponentProps<'input'>, 'type'> {
+export interface PasswordInputProps extends Omit<ComponentProps<'input'>, 'type'> {
   toggleLabelShow?: string;
   toggleLabelHide?: string;
 }
 
-const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
+const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, toggleLabelShow = 'Mostrar senha', toggleLabelHide = 'Ocultar senha', ...props }, ref) => {
-    const [showPassword, setShowPassword] = React.useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
       <div className="relative w-full flex items-center">

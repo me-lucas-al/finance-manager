@@ -41,7 +41,7 @@ export interface TransactionRepository {
   create(data: NewTransaction): Promise<Transaction>;
   findById(id: string): Promise<Transaction | null>;
   findByPluggyId(pluggyTransactionId: string): Promise<Transaction | null>;
-  findByTelegramQuestionMessageId(messageId: number): Promise<Transaction | null>;
+  findByTelegramQuestionMessageId(userId: string, messageId: number): Promise<Transaction | null>;
   findLatestPendingByUserId(userId: string): Promise<Transaction | null>;
   findLatestByUserId(userId: string): Promise<Transaction | null>;
   findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]>;

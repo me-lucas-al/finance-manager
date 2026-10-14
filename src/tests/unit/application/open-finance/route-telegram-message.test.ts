@@ -56,7 +56,7 @@ describe('RouteTelegramMessageUseCase', () => {
   it('routes /ajuda command to handleBotCommand and sends reply', async () => {
     await useCase.execute({ messageId: 2, text: '/ajuda' }, 'user-1');
     expect(handleBotCommand.execute).toHaveBeenCalledWith('user-1', '/ajuda');
-    expect(TelegramService.sendMessage).toHaveBeenCalledWith('Ajuda aqui', 2);
+    expect(TelegramService.sendMessage).toHaveBeenCalledWith('user-1', 'Ajuda aqui', 2);
   });
 
   it('routes deterministic pipe entry to registerManualEntry', async () => {
@@ -87,6 +87,6 @@ describe('RouteTelegramMessageUseCase', () => {
   it('routes to advisor chat when message is a general question', async () => {
     await useCase.execute({ messageId: 5, text: 'como está minha meta este mês?' }, 'user-1');
     expect(advisorChat.respond).toHaveBeenCalledWith('user-1', 'como está minha meta este mês?', 'telegram');
-    expect(TelegramService.sendMessage).toHaveBeenCalledWith('Conselho financeiro', 5);
+    expect(TelegramService.sendMessage).toHaveBeenCalledWith('user-1', 'Conselho financeiro', 5);
   });
 });

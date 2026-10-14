@@ -55,7 +55,7 @@ export class AskFinancialGoalsUseCase {
       this.savingsGoalRepository.findAllActiveByUserId(userId),
     ]);
 
-    const messageId = await TelegramService.sendMessage(buildPromptMessage(goals, savingsGoals));
+    const messageId = await TelegramService.sendMessage(userId, buildPromptMessage(goals, savingsGoals));
     if (messageId) {
       await this.goalPromptRepository.create({ userId, telegramMessageId: messageId });
     }

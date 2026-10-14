@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { authorizeOwner } from '@/app/api/authorize-owner';
+import { authorizeUser } from '@/app/api/authorize-user';
 import { SupabaseChatMessageRepository } from '@/modules/ai/infrastructure/supabase-chat-message-repository';
 
 const HISTORY_LIMIT = 40;
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
 export async function GET() {
-  const authorization = await authorizeOwner();
+  const authorization = await authorizeUser();
   if (authorization.response) return authorization.response;
 
   const recent = await new SupabaseChatMessageRepository().findRecentByUserId(authorization.userId, HISTORY_LIMIT);
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  const authorization = await authorizeOwner();
+  const authorization = await authorizeUser();
   if (authorization.response) return authorization.response;
 
   await new SupabaseChatMessageRepository().deleteAllByUserId(authorization.userId);

@@ -20,6 +20,7 @@ export class FakeIncomeRepository implements IncomeRepository {
       amount: String(data.amount),
       category: data.category,
       receivedAt: data.receivedAt,
+      externalId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

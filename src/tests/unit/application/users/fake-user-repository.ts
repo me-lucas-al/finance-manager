@@ -7,6 +7,8 @@ export class FakeUserRepository implements UserRepository {
   async create(data: Omit<NewUser, 'id'>): Promise<User> {
     const item: User = {
       id: String(this.idCounter++),
+      dataMode: null,
+      onboardingCompletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
       ...data,

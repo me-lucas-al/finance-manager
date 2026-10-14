@@ -30,8 +30,8 @@ export class FakeTransactionRepository implements TransactionRepository {
     return this.items.find((item) => item.pluggyTransactionId === pluggyTransactionId) ?? null;
   }
 
-  async findByTelegramQuestionMessageId(messageId: number): Promise<Transaction | null> {
-    return this.items.find((item) => item.telegramQuestionMessageId === messageId) ?? null;
+  async findByTelegramQuestionMessageId(userId: string, messageId: number): Promise<Transaction | null> {
+    return this.items.find((item) => item.userId === userId && item.telegramQuestionMessageId === messageId) ?? null;
   }
 
   async findLatestPendingByUserId(userId: string): Promise<Transaction | null> {

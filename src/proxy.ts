@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 
 const PUBLIC_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
+const ONBOARDING_PATH = '/onboarding';
 
 export const proxy = auth((req) => {
   const { pathname } = req.nextUrl;
@@ -14,6 +15,10 @@ export const proxy = auth((req) => {
 
   if (isLoggedIn && isPublicPath) {
     return NextResponse.redirect(new URL('/', req.nextUrl));
+  }
+
+  if (isLoggedIn && !req.auth?.user?.onboarded && pathname !== ONBOARDING_PATH) {
+    return NextResponse.redirect(new URL(ONBOARDING_PATH, req.nextUrl));
   }
 
   return NextResponse.next();

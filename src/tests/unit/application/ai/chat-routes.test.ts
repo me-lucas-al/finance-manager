@@ -47,7 +47,6 @@ describe('chat routes', () => {
     streamMock.mockReset();
     findRecentMock.mockReset();
     deleteAllMock.mockReset();
-    delete process.env.FINANCE_OWNER_USER_ID;
   });
 
   it('rejects requests without a session', async () => {

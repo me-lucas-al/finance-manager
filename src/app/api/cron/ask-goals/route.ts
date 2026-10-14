@@ -5,16 +5,12 @@ import {
   SupabaseGoalRepository,
   SupabaseSavingsGoalRepository,
 } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { SupabaseTelegramLinkRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-link-repository';
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const userId = process.env.FINANCE_OWNER_USER_ID;
-  if (!userId) {
-    return NextResponse.json({ error: 'FINANCE_OWNER_USER_ID is not configured' }, { status: 500 });
   }
 
   try {
@@ -23,8 +19,17 @@ export async function GET(req: NextRequest) {
       new SupabaseSavingsGoalRepository(),
       new SupabaseGoalPromptRepository(),
     );
-    await useCase.execute(userId);
-    return NextResponse.json({ ok: true });
+    const userIds = await new SupabaseTelegramLinkRepository().listLinkedUserIds();
+    let failed = 0;
+    for (const userId of userIds) {
+      try {
+        await useCase.execute(userId);
+      } catch (error) {
+        failed++;
+        console.error(`ask-goals failed for user ${userId}:`, error);
+      }
+    }
+    return NextResponse.json({ ok: failed === 0, users: userIds.length, failed });
   } catch (error) {
     console.error('Error executing ask-goals cron:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

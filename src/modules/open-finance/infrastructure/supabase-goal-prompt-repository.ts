@@ -30,10 +30,11 @@ export class SupabaseGoalPromptRepository implements GoalPromptRepository {
     return toGoalPrompt(unwrap<GoalPromptRow>(result));
   }
 
-  async findByTelegramMessageId(messageId: number): Promise<GoalPrompt | null> {
+  async findByTelegramMessageId(userId: string, messageId: number): Promise<GoalPrompt | null> {
     const { data, error } = await getSupabaseAdmin()
       .from('goal_prompts')
       .select()
+      .eq('user_id', userId)
       .eq('telegram_message_id', messageId)
       .maybeSingle();
     if (error) throw new Error(error.message);

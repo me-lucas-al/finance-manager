@@ -28,6 +28,6 @@ export class RecordGoalsReplyUseCase {
       await this.goalPromptRepository.markAnswered(goalPromptId);
     }
 
-    await TelegramService.sendMessage(confirmation, incomingMessageId);
+    await TelegramService.sendMessage(userId, confirmation, incomingMessageId);
   }
 }

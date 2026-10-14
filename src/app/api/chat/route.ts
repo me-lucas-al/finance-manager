@@ -1,4 +1,4 @@
-import { authorizeOwner } from '@/app/api/authorize-owner';
+import { authorizeUser } from '@/app/api/authorize-user';
 import { buildAdvisorServices } from '@/modules/ai/infrastructure/build-advisor-services';
 import { extractLastUserText } from './chat-request';
 import { textStreamToUIResponse } from './text-stream-response';
@@ -6,7 +6,7 @@ import { textStreamToUIResponse } from './text-stream-response';
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const authorization = await authorizeOwner();
+  const authorization = await authorizeUser();
   if (authorization.response) return authorization.response;
 
   const payload = await req.json().catch(() => null);

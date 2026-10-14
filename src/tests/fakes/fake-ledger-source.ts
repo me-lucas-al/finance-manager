@@ -30,6 +30,7 @@ export const income = (id: string, receivedAt: string, amount: string): Income =
   amount,
   category: 'Salário',
   receivedAt: new Date(receivedAt),
+  externalId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });
@@ -42,6 +43,7 @@ export const investment = (id: string, date: string, amount: string): Investment
   amount,
   type: 'CDB',
   date: new Date(date),
+  externalId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });

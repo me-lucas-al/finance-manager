@@ -23,10 +23,11 @@ export async function fetchTransactionByPluggyId(pluggyId: string): Promise<Tran
   return data ? toTransaction(data as TransactionRow) : null;
 }
 
-export async function fetchTransactionByTelegramMessageId(messageId: number): Promise<Transaction | null> {
+export async function fetchTransactionByTelegramMessageId(userId: string, messageId: number): Promise<Transaction | null> {
   const { data, error } = await getSupabaseAdmin()
     .from('transactions')
     .select()
+    .eq('user_id', userId)
     .eq('telegram_question_message_id', messageId)
     .maybeSingle();
   if (error) throw new Error(error.message);
