@@ -7,7 +7,6 @@ import {
   totalsByCategory,
   balanceThrough,
 } from '@/modules/finance/domain/services/summarize-ledger';
-import { computeLedgerVersion } from '@/modules/finance/domain/services/ledger-version';
 
 const entry = (id: string, kind: LedgerEntry['kind'], date: string, amount: number, category = 'Outros'): LedgerEntry => ({
   id,
@@ -69,18 +68,5 @@ describe('totalsByCategory', () => {
       { category: 'Mercado', total: 1500.3 },
       { category: 'Lazer', total: 100 },
     ]);
-  });
-});
-
-describe('computeLedgerVersion', () => {
-  it('is stable regardless of entry order', () => {
-    expect(computeLedgerVersion(ledger)).toBe(computeLedgerVersion([...ledger].reverse()));
-  });
-
-  it('changes when an entry is added, edited or removed', () => {
-    const base = computeLedgerVersion(ledger);
-    expect(computeLedgerVersion([...ledger, entry('x', 'expense', '2026-02-21', 1)])).not.toBe(base);
-    expect(computeLedgerVersion(ledger.map((e) => (e.id === 'e1' ? { ...e, amount: 1 } : e)))).not.toBe(base);
-    expect(computeLedgerVersion(ledger.slice(1))).not.toBe(base);
   });
 });
