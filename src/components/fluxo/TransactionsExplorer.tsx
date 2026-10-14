@@ -5,14 +5,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
+import type { StatementFilters } from '@/modules/finance/domain/models/statement-filters';
+import { signedAmount } from '@/modules/finance/domain/services/signed-amount';
 import { ExplorerFilters } from './ExplorerFilters';
 import { ExplorerHeader } from './ExplorerHeader';
 import { TransactionList } from './TransactionList';
-import { useTransactionFilters } from './useTransactionFilters';
+import { groupTransactionsByDate } from './group-transactions-by-date';
+import { buildStatementPdfHref } from './statement-pdf-href';
+import { useStatementFilters } from './useStatementFilters';
 
 interface TransactionsExplorerProps {
   month: string;
   monthLabel: string;
+  filters: StatementFilters;
+  categoryOptions: string[];
   initialTransactions?: LiveTransactionItem[];
   totalIncome?: number;
   totalExpenses?: number;
@@ -22,6 +28,8 @@ interface TransactionsExplorerProps {
 export function TransactionsExplorer({
   month,
   monthLabel,
+  filters,
+  categoryOptions,
   initialTransactions = [],
   totalIncome = 0,
   totalExpenses = 0,
@@ -30,7 +38,7 @@ export function TransactionsExplorer({
   const router = useRouter();
   const searchParams = useSearchParams();
   const formatAmount = useAmountFormatter();
-  const filters = useTransactionFilters(initialTransactions);
+  const filterControls = useStatementFilters(filters);
 
   function navigateToMonth(targetMonth: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -39,6 +47,7 @@ export function TransactionsExplorer({
   }
 
   const nextMonth = shiftMonth(month, 1);
+  const balance = initialTransactions.reduce((sum, tx) => sum + signedAmount(tx.type, tx.amount), 0);
 
   return (
     <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm overflow-hidden">
@@ -49,21 +58,23 @@ export function TransactionsExplorer({
           totalIncome={totalIncome}
           totalExpenses={totalExpenses}
           totalInvestments={totalInvestments}
+          pdfHref={buildStatementPdfHref(month, filters)}
           onPrevious={() => navigateToMonth(shiftMonth(month, -1))}
           onNext={() => navigateToMonth(nextMonth)}
         />
         <ExplorerFilters
-          search={filters.search}
-          onSearchChange={filters.setSearch}
-          selectedAccount={filters.selectedAccount}
-          onAccountChange={filters.setSelectedAccount}
-          typeFilter={filters.typeFilter}
-          onTypeChange={filters.setTypeFilter}
+          search={filterControls.search}
+          onSearchChange={filterControls.setSearch}
+          category={filters.category}
+          categoryOptions={categoryOptions}
+          onCategoryChange={filterControls.setCategory}
+          typeFilter={filters.type}
+          onTypeChange={filterControls.setType}
         />
-        <TransactionList grouped={filters.grouped} />
+        <TransactionList grouped={groupTransactionsByDate(initialTransactions)} />
         <div className="flex items-center justify-between border-t border-zinc-800/60 pt-4 text-xs">
-          <span className="text-zinc-500">{filters.filtered.length} transações</span>
-          <span className="text-zinc-400 font-semibold">Saldo: {formatAmount(filters.balance)}</span>
+          <span className="text-zinc-500">{initialTransactions.length} transações</span>
+          <span className="text-zinc-400 font-semibold">Saldo: {formatAmount(balance)}</span>
         </div>
       </CardContent>
     </Card>
