@@ -3,7 +3,7 @@ import {
   classifyTransaction,
   sanitizeTransactions,
   type RawTransactionLike,
-} from '@/lib/transaction-classifier';
+} from '@/modules/pluggy-sync/domain/classification';
 
 describe('Transaction Classifier & Sanitizer', () => {
   describe('classifyTransaction', () => {
