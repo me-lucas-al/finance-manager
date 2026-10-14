@@ -1,5 +1,3 @@
-'use client';
-
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
 import type { FixedEntryView } from '@/modules/finance/domain/models/fixed-entry';
 import { FixedEntryMenu, type FixedEntryMenuHandlers } from './FixedEntryMenu';

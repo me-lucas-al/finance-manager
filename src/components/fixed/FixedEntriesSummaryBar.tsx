@@ -1,5 +1,3 @@
-'use client';
-
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
 import type { FixedEntriesSummary } from '@/modules/finance/domain/services/summarize-fixed-entries';
 

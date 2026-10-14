@@ -1,5 +1,3 @@
-'use client';
-
 import { createFixedEntryAction, deleteFixedEntryAction, updateFixedEntryAction } from '@/app/actions/fixed-entries';
 import { FixedEntryDeleteDialog } from './FixedEntryDeleteDialog';
 import { FixedEntryDialog, type FixedEntrySubmission } from './FixedEntryDialog';

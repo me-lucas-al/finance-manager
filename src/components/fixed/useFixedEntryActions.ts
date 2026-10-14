@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { FixedEntryActionResult } from '@/app/actions/run-fixed-entry-action';

@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import type { FixedEntryKind, FixedEntryView } from '@/modules/finance/domain/models/fixed-entry';
 
