@@ -1,3 +1,4 @@
+import type { ChangeEvent, FormEvent } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,8 +6,8 @@ import { Input } from '@/components/ui/input';
 interface ChatInputFormProps {
   input: string;
   isLoading: boolean;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
 export function ChatInputForm({ input, isLoading, handleInputChange, handleSubmit }: ChatInputFormProps) {
