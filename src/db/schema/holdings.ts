@@ -4,6 +4,7 @@ import { users } from './users';
 export const holdings = pgTable('holdings', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  itemId: text('item_id').notNull(),
   externalId: text('external_id').notNull(),
   name: text('name').notNull(),
   type: text('type').notNull(),

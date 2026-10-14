@@ -1,6 +1,7 @@
 CREATE TABLE "holdings" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
+	"item_id" text NOT NULL,
 	"external_id" text NOT NULL,
 	"name" text NOT NULL,
 	"type" text NOT NULL,
