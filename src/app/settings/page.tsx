@@ -3,7 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { getUserSettings } from '@/app/actions/users';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
 import { getEffectiveUserId } from '@/app/actions/require-session';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { getOnboardingState } from '@/app/actions/onboarding';
+import { DataSourceCard } from './DataSourceCard';
+import { TelegramCard } from './TelegramCard';
 import { SettingsForm } from './SettingsForm';
 import { SettingsNotificationsCard } from './SettingsNotificationsCard';
 import { ProfileForm } from './ProfileForm';
@@ -16,15 +21,17 @@ export default async function SettingsPage() {
     getEffectiveUserId(),
   ]);
 
-  const { data: dbUser } = await getSupabaseAdmin()
-    .from('users')
-    .select('id, name, email, created_at')
-    .eq('id', userId)
-    .maybeSingle();
+  const [[dbUser], onboarding] = await Promise.all([
+    db
+      .select({ name: users.name, email: users.email, createdAt: users.createdAt })
+      .from(users)
+      .where(eq(users.id, userId)),
+    getOnboardingState(),
+  ]);
 
-  const userName = dbUser?.name || 'Lucas Almeida de Souza';
-  const userEmail = dbUser?.email || 'lucasalsouza2006@gmail.com';
-  const userCreatedAt = dbUser?.created_at;
+  const userName = dbUser?.name ?? '';
+  const userEmail = dbUser?.email ?? '';
+  const userCreatedAt = dbUser?.createdAt?.toISOString();
 
   if (!settings) {
     return <div className="p-8 text-zinc-400">Configurações não encontradas.</div>;
@@ -87,6 +94,10 @@ export default async function SettingsPage() {
           </Card>
 
           <SettingsNotificationsCard preferences={preferences} />
+
+          <TelegramCard initiallyLinked={onboarding.telegramLinked} />
+
+          {onboarding.dataMode ? <DataSourceCard currentMode={onboarding.dataMode} /> : null}
         </div>
       </div>
     </div>
