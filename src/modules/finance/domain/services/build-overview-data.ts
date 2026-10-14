@@ -6,7 +6,8 @@ import { buildCardSummary } from './build-card-summary';
 import { computeBankBalance } from './compute-bank-balance';
 import { computeInvestmentTotal } from './compute-investment-total';
 import { groupInvestments } from './group-investments';
-import { balanceThrough, entriesOfKind, monthlyEvolution } from './summarize-ledger';
+import { investmentEntriesOf } from './investment-entries';
+import { balanceThrough, monthlyEvolution } from './summarize-ledger';
 
 const EVOLUTION_MONTHS = 6;
 
@@ -16,7 +17,7 @@ export function buildOverviewData(
   portfolio: Portfolio = EMPTY_PORTFOLIO,
 ): LiveOverviewData {
   const bankTotal = computeBankBalance(entries, portfolio);
-  const manualInvestments = entriesOfKind(entries, 'investment');
+  const manualInvestments = investmentEntriesOf(entries, portfolio);
   const activeCount =
     manualInvestments.filter((investment) => investment.amount > 0).length +
     portfolio.holdings.filter((holding) => holding.balance > 0).length;

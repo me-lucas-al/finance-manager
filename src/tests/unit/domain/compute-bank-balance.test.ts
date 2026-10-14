@@ -46,8 +46,8 @@ describe('buildOverviewData with portfolio', () => {
   it('separates the holding value from the bank balance', () => {
     const data = buildOverviewData(entries, '2026-03', { holdings: [holding], accounts: [], initialBalance: 0 });
     expect(data.bankTotal).toBe(500);
-    expect(data.investmentTotal).toBe(23100);
-    expect(data.investmentCount).toBe(2);
+    expect(data.investmentTotal).toBe(23000);
+    expect(data.investmentCount).toBe(1);
   });
 
   it('ends the evolution line at the real bank balance and reports card usage', () => {

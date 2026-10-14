@@ -1,10 +1,11 @@
 import type { LedgerEntry } from '../models/ledger-entry';
 import type { Portfolio } from '../models/portfolio';
-import { totalsOf } from './summarize-ledger';
+import { investmentEntriesOf } from './investment-entries';
 
 const roundCents = (value: number): number => Math.round(value * 100) / 100;
 
 export function computeInvestmentTotal(entries: LedgerEntry[], portfolio: Portfolio): number {
   const holdingsTotal = portfolio.holdings.reduce((sum, holding) => sum + holding.balance, 0);
-  return roundCents(holdingsTotal + totalsOf(entries).investments);
+  const contributionsTotal = investmentEntriesOf(entries, portfolio).reduce((sum, entry) => sum + entry.amount, 0);
+  return roundCents(holdingsTotal + contributionsTotal);
 }

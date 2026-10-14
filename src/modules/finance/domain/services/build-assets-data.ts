@@ -2,14 +2,14 @@ import type { LedgerEntry } from '../models/ledger-entry';
 import type { LiveAssetItem, LiveInvestmentsData } from '../models/financial-types';
 import { EMPTY_PORTFOLIO, type Portfolio } from '../models/portfolio';
 import { computeInvestmentTotal } from './compute-investment-total';
-import { entriesOfKind } from './summarize-ledger';
+import { investmentEntriesOf } from './investment-entries';
 
 const percentageOf = (amount: number, total: number): number => (total > 0 ? Math.round((amount / total) * 100) : 0);
 
 export function buildAssetsData(entries: LedgerEntry[], portfolio: Portfolio = EMPTY_PORTFOLIO): LiveInvestmentsData {
   const total = computeInvestmentTotal(entries, portfolio);
 
-  const manualAssets: LiveAssetItem[] = entriesOfKind(entries, 'investment').map((investment) => ({
+  const manualAssets: LiveAssetItem[] = investmentEntriesOf(entries, portfolio).map((investment) => ({
     id: investment.id,
     name: investment.description,
     bank: 'manual',
