@@ -38,6 +38,15 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    rules: {
+      "max-lines": ["error", { max: 100, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ["src/components/ui/**", "src/db/migrations/**"],
+    rules: { "max-lines": "off" },
+  },
+  {
     files: EFFECT_ALLOWLIST,
     rules: { "no-restricted-imports": "off" },
   },
