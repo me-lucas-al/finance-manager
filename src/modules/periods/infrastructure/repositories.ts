@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, lt, sql } from 'drizzle-orm';
 import { PeriodRepository, NewPeriod } from '../domain/repositories/period-repository';
 import { db } from '../../../db';
 import { financialPeriods } from '../../../db/schema';
@@ -17,6 +17,11 @@ export class DrizzlePeriodRepository implements PeriodRepository {
       and(eq(financialPeriods.userId, userId), eq(financialPeriods.status, 'OPEN'))
     );
     return result ?? null;
+  }
+  async findOpenEndedBefore(date: Date) {
+    return db.select().from(financialPeriods).where(
+      and(eq(financialPeriods.status, 'OPEN'), lt(financialPeriods.endDate, date))
+    );
   }
   async findOrCreateOpenPeriod(data: Omit<NewPeriod, 'id' | 'status'>) {
     const [inserted] = await db.insert(financialPeriods)
