@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { UserRepository } from '../../users/domain/repositories/user-repository';
 import { hashPassword, verifyPassword } from '../domain/password';
-import { EmailService } from '../../notifications/email/EmailService';
+import { EmailService } from '../../notifications/email/email-service';
 import { systemClock, type Clock } from '@/shared/clock';
 import type {
   PasswordResetTokenRecord,

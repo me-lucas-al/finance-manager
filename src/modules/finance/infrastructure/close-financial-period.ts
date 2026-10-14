@@ -9,7 +9,7 @@ import {
   notificationPreferences,
 } from '@/db/schema';
 import { calculateMetrics } from '../domain/financial-metrics';
-import { NotificationFactory } from '@/modules/notifications/domain/NotificationFactory';
+import { NotificationFactory } from '@/modules/notifications/domain/notification-factory';
 import type { ExpenseBreakdownReader } from '@/modules/open-finance/application/shared/expense-totals';
 import { notifyPeriodUser } from './notify-period-user';
 import { openNextPeriodIfMissing } from './open-next-period';

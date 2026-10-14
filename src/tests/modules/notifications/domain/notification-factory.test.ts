@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { NotificationFactory } from '../../../../modules/notifications/domain/NotificationFactory';
-import { NotificationType } from '../../../../modules/notifications/domain/NotificationTypes';
+import { NotificationFactory } from '../../../../modules/notifications/domain/notification-factory';
+import { NotificationType } from '../../../../modules/notifications/domain/notification-types';
 
 describe('NotificationFactory', () => {
   it('should create an expense warning notification', () => {

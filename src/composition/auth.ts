@@ -1,6 +1,6 @@
 import { authorizeCredentials } from '@/modules/auth/application/authorize-credentials';
 import { DrizzlePasswordResetTokenRepository } from '@/modules/auth/infrastructure/password-reset-repository';
-import { emailService } from '@/modules/notifications/email/EmailService';
+import { emailService } from '@/modules/notifications/email/email-service';
 import { userRepository } from './users';
 
 export const passwordResetTokenRepository = new DrizzlePasswordResetTokenRepository();

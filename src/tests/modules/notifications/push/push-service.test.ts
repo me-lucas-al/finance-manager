@@ -29,8 +29,8 @@ vi.mock('web-push', () => ({
   },
 }));
 
-const { PushService } = await import('../../../../modules/notifications/push/PushService');
-const { NotificationType } = await import('../../../../modules/notifications/domain/NotificationTypes');
+const { PushService } = await import('../../../../modules/notifications/push/push-service');
+const { NotificationType } = await import('../../../../modules/notifications/domain/notification-types');
 
 const ORIGINAL_ENV = { ...process.env };
 

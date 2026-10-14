@@ -1,4 +1,4 @@
-import { NotificationPayload, NotificationTriggerParams, NotificationType } from './NotificationTypes';
+import { NotificationPayload, NotificationTriggerParams, NotificationType } from './notification-types';
 
 export class NotificationFactory {
   static createExpenseWarning(params: NotificationTriggerParams): NotificationPayload {

@@ -1,4 +1,4 @@
-import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
+import { TelegramService } from '@/modules/notifications/telegram/telegram-service';
 import { SupabaseTelegramLinkRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-link-repository';
 import { SupabaseTelegramUpdateRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-update-repository';
 
