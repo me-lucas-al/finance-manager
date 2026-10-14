@@ -3,20 +3,20 @@
 import { createEntryAction, updateEntryAction } from '@/app/actions/entries';
 import { toLocalDateString } from '@/lib/month';
 import type { EntryType } from '@/modules/finance/domain/parsers/parse-entry-message';
+import type { CategoriesByType } from './entry-category-options';
 import { toCreateInput, toUpdateInput } from './entry-form-payload';
 import { createEmptyEntryValues, valuesFromEntry, type EditableEntry, type EntryFormValues } from './entry-form-values';
 import { EntryForm } from './EntryForm';
 import { useEntryAction } from './useEntryAction';
-import { useEntryCategories } from './useEntryCategories';
 
 type EntryDialogFormProps = {
+  categoriesByType: CategoriesByType;
   entry?: EditableEntry;
   initialType: EntryType;
   onClose: () => void;
 };
 
-export function EntryDialogForm({ entry, initialType, onClose }: EntryDialogFormProps) {
-  const categoriesByType = useEntryCategories();
+export function EntryDialogForm({ categoriesByType, entry, initialType, onClose }: EntryDialogFormProps) {
   const action = useEntryAction(onClose);
 
   function handleSubmit(values: EntryFormValues) {

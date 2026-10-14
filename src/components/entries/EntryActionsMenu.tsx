@@ -6,10 +6,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DeleteEntryAlert } from './DeleteEntryAlert';
 import { EntryDialog } from './EntryDialog';
 import type { EditableEntry } from './entry-form-values';
+import { useEntryCategories } from './useEntryCategories';
 
 export function EntryActionsMenu({ entry }: { entry: EditableEntry }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const { categoriesByType, loadCategories } = useEntryCategories();
+
+  function openEdit() {
+    loadCategories();
+    setIsEditOpen(true);
+  }
 
   return (
     <>
@@ -26,7 +33,7 @@ export function EntryActionsMenu({ entry }: { entry: EditableEntry }) {
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+          <DropdownMenuItem onClick={openEdit}>
             <Pencil />
             Editar
           </DropdownMenuItem>
@@ -36,7 +43,7 @@ export function EntryActionsMenu({ entry }: { entry: EditableEntry }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <EntryDialog open={isEditOpen} onOpenChange={setIsEditOpen} entry={entry} />
+      <EntryDialog open={isEditOpen} onOpenChange={setIsEditOpen} categoriesByType={categoriesByType} entry={entry} />
       <DeleteEntryAlert open={isDeleteOpen} onOpenChange={setIsDeleteOpen} entry={entry} />
     </>
   );

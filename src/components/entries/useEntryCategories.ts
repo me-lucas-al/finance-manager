@@ -1,21 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { listExpenseCategoriesAction } from '@/app/actions/entry-categories';
 import { buildCategoriesByType, type CategoriesByType } from './entry-category-options';
 
-export function useEntryCategories(): CategoriesByType {
+export function useEntryCategories(): { categoriesByType: CategoriesByType; loadCategories: () => void } {
   const [expenseCategories, setExpenseCategories] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    let active = true;
+  function loadCategories() {
+    if (isLoaded) return;
     listExpenseCategoriesAction()
-      .then((categories) => active && setExpenseCategories(categories))
+      .then((categories) => {
+        setExpenseCategories(categories);
+        setIsLoaded(categories.length > 0);
+      })
       .catch(() => undefined);
-    return () => {
-      active = false;
-    };
-  }, []);
+  }
 
-  return buildCategoriesByType(expenseCategories);
+  return { categoriesByType: buildCategoriesByType(expenseCategories), loadCategories };
 }
