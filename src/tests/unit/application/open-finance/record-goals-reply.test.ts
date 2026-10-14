@@ -12,9 +12,9 @@ const getExpenseCategoriesMock = vi.fn();
 const { RecordGoalsReplyUseCase } = await import(
   '../../../../modules/open-finance/application/use-cases/record-goals-reply'
 );
-const { FakeGoalRepository } = await import('./fake-goal-repository');
-const { FakeSavingsGoalRepository } = await import('./fake-savings-goal-repository');
-const { FakeGoalPromptRepository } = await import('./fake-goal-prompt-repository');
+const { FakeGoalRepository } = await import('@/tests/fakes/fake-goal-repository');
+const { FakeSavingsGoalRepository } = await import('@/tests/fakes/fake-savings-goal-repository');
+const { FakeGoalPromptRepository } = await import('@/tests/fakes/fake-goal-prompt-repository');
 
 function currentMonth(): string {
   const now = new Date();

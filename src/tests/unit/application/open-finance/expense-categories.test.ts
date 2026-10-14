@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createExpenseCategoriesLister } from '@/modules/open-finance/application/shared/expense-categories';
-import { FakeSettingRepository } from '../users/fake-setting-repository';
+import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 
 describe('createExpenseCategoriesLister', () => {
   it('returns the categories configured in the user settings', async () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ResolveCurrentPeriodUseCase } from '../../../../modules/periods/application/use-cases/resolve-current-period';
-import { FakePeriodRepository } from './fake-period-repository';
-import { FakeSettingRepository } from '../users/fake-setting-repository';
+import { FakePeriodRepository } from '@/tests/fakes/fake-period-repository';
+import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 
 describe('ResolveCurrentPeriodUseCase', () => {
   let periodRepo: FakePeriodRepository;
@@ -15,7 +15,7 @@ describe('ResolveCurrentPeriodUseCase', () => {
   });
 
   it('should create a new OPEN period when none exists', async () => {
-    const date = new Date(2026, 9, 20); // Oct 20, 2026
+    const date = new Date(2026, 9, 20);
     const period = await useCase.execute('user-1', date);
 
     expect(period.status).toBe('OPEN');

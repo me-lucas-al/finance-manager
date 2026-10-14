@@ -2,7 +2,7 @@ import type {
   GoalPrompt,
   GoalPromptRepository,
   NewGoalPrompt,
-} from '../../../../modules/open-finance/domain/repositories/goal-prompt-repository';
+} from '@/modules/open-finance/domain/repositories/goal-prompt-repository';
 
 export class FakeGoalPromptRepository implements GoalPromptRepository {
   private items: GoalPrompt[] = [];

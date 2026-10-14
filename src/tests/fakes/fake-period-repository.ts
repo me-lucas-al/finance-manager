@@ -1,4 +1,4 @@
-import { Period, NewPeriod, PeriodRepository } from '../../../../modules/periods/domain/repositories/period-repository';
+import { Period, NewPeriod, PeriodRepository } from '@/modules/periods/domain/repositories/period-repository';
 
 export class FakePeriodRepository implements PeriodRepository {
   private items: Period[] = [];

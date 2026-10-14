@@ -10,9 +10,9 @@ const sendMessageMock = messenger.sendMessage;
 const { SendWeeklyGoalsSummaryUseCase } = await import(
   '../../../../modules/open-finance/application/use-cases/send-weekly-goals-summary'
 );
-const { FakeGoalRepository } = await import('./fake-goal-repository');
-const { FakeSavingsGoalRepository } = await import('./fake-savings-goal-repository');
-const { FakeTransactionRepository } = await import('./fake-transaction-repository');
+const { FakeGoalRepository } = await import('@/tests/fakes/fake-goal-repository');
+const { FakeSavingsGoalRepository } = await import('@/tests/fakes/fake-savings-goal-repository');
+const { FakeTransactionRepository } = await import('@/tests/fakes/fake-transaction-repository');
 
 function currentMonth(): { filterMonth: string; goalMonth: string } {
   const now = new Date();

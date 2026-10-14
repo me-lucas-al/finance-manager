@@ -6,7 +6,7 @@ import {
   type PasswordResetTokenRepository,
 } from '@/modules/auth/application/password-reset';
 import type { Clock } from '@/shared/clock';
-import { FakeUserRepository } from '../users/fake-user-repository';
+import { FakeUserRepository } from '@/tests/fakes/fake-user-repository';
 
 class InMemoryTokenRepository implements PasswordResetTokenRepository {
   records: PasswordResetTokenRecord[] = [];

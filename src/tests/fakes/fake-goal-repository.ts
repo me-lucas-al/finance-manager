@@ -2,7 +2,7 @@ import type {
   Goal,
   GoalRepository,
   NewGoal,
-} from '../../../../modules/open-finance/domain/repositories/goal-repository';
+} from '@/modules/open-finance/domain/repositories/goal-repository';
 
 export class FakeGoalRepository implements GoalRepository {
   private items: Goal[] = [];

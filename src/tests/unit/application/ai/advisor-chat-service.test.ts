@@ -8,7 +8,7 @@ import { FakeChatMessageRepository } from '@/tests/fakes/fake-chat-message-repos
 import { FakeAssistantMemoryRepository } from '@/tests/fakes/fake-assistant-memory-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
 import { sampleLedgerSource } from '@/tests/fakes/fake-ledger-source';
-import { FakeGoalRepository } from '../open-finance/fake-goal-repository';
+import { FakeGoalRepository } from '@/tests/fakes/fake-goal-repository';
 
 describe('AdvisorChatService', () => {
   let chatRepo: FakeChatMessageRepository;

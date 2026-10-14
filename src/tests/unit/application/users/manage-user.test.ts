@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CreateUserUseCase, GetUserUseCase, UpdateUserUseCase, DeleteUserUseCase } from '../../../../modules/users/application/use-cases/manage-user';
-import { FakeUserRepository } from './fake-user-repository';
+import { FakeUserRepository } from '@/tests/fakes/fake-user-repository';
 
 const baseUser = { name: 'Test', email: 'test@example.com', passwordHash: 'hash' };
 

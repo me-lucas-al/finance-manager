@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { authorizeCredentials } from '../../../../modules/auth/application/authorize-credentials';
 import { hashPassword } from '../../../../modules/auth/domain/password';
-import { FakeUserRepository } from '../users/fake-user-repository';
+import { FakeUserRepository } from '@/tests/fakes/fake-user-repository';
 
 describe('authorizeCredentials', () => {
   let userRepo: FakeUserRepository;

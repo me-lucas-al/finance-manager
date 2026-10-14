@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
-import { FakeTransactionRepository } from '../open-finance/fake-transaction-repository';
+import { FakeTransactionRepository } from '@/tests/fakes/fake-transaction-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';
 import { FakeInvestmentRepository } from '@/tests/fakes/fake-investment-repository';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
-import { FakePeriodRepository } from '../periods/fake-period-repository';
-import { FakeSettingRepository } from '../users/fake-setting-repository';
+import { FakePeriodRepository } from '@/tests/fakes/fake-period-repository';
+import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
 import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';

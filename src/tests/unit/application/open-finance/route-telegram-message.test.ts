@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RouteTelegramMessageUseCase } from '@/modules/open-finance/application/use-cases/route-telegram-message';
 import { createFakeTelegramMessenger } from '@/tests/fakes/fake-telegram-messenger';
-import { FakeGoalPromptRepository } from './fake-goal-prompt-repository';
+import { FakeGoalPromptRepository } from '@/tests/fakes/fake-goal-prompt-repository';
 
 const messenger = createFakeTelegramMessenger();
 

@@ -1,4 +1,4 @@
-import { Setting, NewSetting, SettingRepository } from '../../../../modules/users/domain/repositories/setting-repository';
+import { Setting, NewSetting, SettingRepository } from '@/modules/users/domain/repositories/setting-repository';
 
 export class FakeSettingRepository implements SettingRepository {
   private items: Setting[] = [];

@@ -9,8 +9,8 @@ const getExpenseCategoriesMock = vi.fn();
 const { UpdateGoalsFromMessageUseCase } = await import(
   '../../../../modules/open-finance/application/use-cases/update-goals-from-message'
 );
-const { FakeGoalRepository } = await import('./fake-goal-repository');
-const { FakeSavingsGoalRepository } = await import('./fake-savings-goal-repository');
+const { FakeGoalRepository } = await import('@/tests/fakes/fake-goal-repository');
+const { FakeSavingsGoalRepository } = await import('@/tests/fakes/fake-savings-goal-repository');
 
 function emptyInterpretation(): GoalsReplyInterpretation {
   return { monthlyGeneralTarget: null, monthlyCategoryTargets: [], savingsGoalUpdates: [] };

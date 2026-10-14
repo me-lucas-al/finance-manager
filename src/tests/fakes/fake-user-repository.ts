@@ -1,4 +1,4 @@
-import { User, NewUser, UserRepository } from '../../../../modules/users/domain/repositories/user-repository';
+import { User, NewUser, UserRepository } from '@/modules/users/domain/repositories/user-repository';
 
 export class FakeUserRepository implements UserRepository {
   private items: User[] = [];

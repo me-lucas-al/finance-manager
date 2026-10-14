@@ -4,7 +4,7 @@ import type {
   Transaction,
   TransactionFilters,
   TransactionRepository,
-} from '../../../../modules/open-finance/domain/repositories/transaction-repository';
+} from '@/modules/open-finance/domain/repositories/transaction-repository';
 
 export class FakeTransactionRepository implements TransactionRepository {
   private items: Transaction[] = [];
