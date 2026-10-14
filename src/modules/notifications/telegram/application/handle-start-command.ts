@@ -1,5 +1,5 @@
-import { TelegramService } from '../TelegramService';
-import type { SupabaseTelegramLinkRepository } from '../infrastructure/supabase-telegram-link-repository';
+import type { TelegramLinkRepository } from '../domain/telegram-link-repository';
+import type { TelegramMessenger } from '../domain/telegram-messenger';
 
 const START_PATTERN = /^\/start(?:@\w+)?(?:\s+(\S+))?$/i;
 
@@ -12,7 +12,8 @@ export function parseStartCommand(text: string): { code: string | undefined } | 
 }
 
 export async function handleStartCommand(
-  links: SupabaseTelegramLinkRepository,
+  links: Pick<TelegramLinkRepository, 'consumeLinkCode' | 'findUserIdByChatId'>,
+  messenger: Pick<TelegramMessenger, 'sendToChat'>,
   chatId: number,
   code: string | undefined,
 ): Promise<void> {
@@ -21,11 +22,11 @@ export async function handleStartCommand(
     const reply = linkedUserId
       ? '✅ Telegram vinculado! Agora você pode registrar gastos e conversar com o assistente por aqui.'
       : '❌ Código inválido ou expirado. Gere um novo código no app (Configurações → Telegram).';
-    await TelegramService.sendToChat(chatId, reply);
+    await messenger.sendToChat(chatId, reply);
     return;
   }
 
   const alreadyLinked = await links.findUserIdByChatId(chatId);
   const reply = alreadyLinked ? 'Você já está vinculado. É só me mandar seus gastos!' : `Olá! ${LINK_INSTRUCTIONS}`;
-  await TelegramService.sendToChat(chatId, reply);
+  await messenger.sendToChat(chatId, reply);
 }
