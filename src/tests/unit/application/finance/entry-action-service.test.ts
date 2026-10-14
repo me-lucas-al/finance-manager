@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EntryActionService, type EntryActionPorts } from '@/modules/finance/application/services/entry-action-service';
-import { OwnerResolutionError } from '@/modules/auth/domain/resolve-owner-user-id';
 import {
   SESSION_EXPIRED_MESSAGE,
   UNEXPECTED_FAILURE_MESSAGE,
@@ -76,7 +75,7 @@ describe('EntryActionService', () => {
 
   it('returns a session message when there is no authenticated owner', async () => {
     ports.resolveUserId = vi.fn(async () => {
-      throw new OwnerResolutionError('unauthenticated');
+      throw new Error('Unauthorized');
     });
 
     const result = await new EntryActionService(ports).create(validExpense);
