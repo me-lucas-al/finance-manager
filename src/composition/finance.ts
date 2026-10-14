@@ -7,7 +7,8 @@ import { UndoLastEntryService } from '@/modules/finance/application/services/und
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
-import { DrizzleIncomeRepository, DrizzleInvestmentRepository } from '@/modules/finance/infrastructure/repositories';
+import { DrizzleIncomeRepository } from '@/modules/finance/infrastructure/drizzle-income-repository';
+import { DrizzleInvestmentRepository } from '@/modules/finance/infrastructure/drizzle-investment-repository';
 import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-entry-change-notifier';
 import { PersistenceLedgerSource } from '@/modules/finance/infrastructure/persistence-ledger-source';
 import { PersistencePortfolioSource } from '@/modules/finance/infrastructure/persistence-portfolio-source';

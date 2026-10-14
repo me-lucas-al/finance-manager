@@ -1,5 +1,5 @@
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
-import { DrizzlePeriodRepository } from '@/modules/periods/infrastructure/repositories';
+import { DrizzlePeriodRepository } from '@/modules/periods/infrastructure/drizzle-period-repository';
 import { DrizzlePeriodSnapshotRepository } from '@/modules/periods/infrastructure/drizzle-period-snapshot-repository';
 import { settingRepository } from './users';
 
