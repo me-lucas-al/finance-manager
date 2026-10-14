@@ -21,7 +21,9 @@ export function EntryDialogForm({ categoriesByType, entry, initialType, onClose 
 
   function handleSubmit(values: EntryFormValues) {
     if (entry) {
-      void action.run(() => updateEntryAction(toUpdateInput(entry, values)), 'Lançamento atualizado');
+      const update = toUpdateInput(entry, values);
+      if (Object.keys(update.changes).length === 0) return onClose();
+      void action.run(() => updateEntryAction(update), 'Lançamento atualizado');
       return;
     }
     void action.run(() => createEntryAction(toCreateInput(values)), 'Lançamento salvo');

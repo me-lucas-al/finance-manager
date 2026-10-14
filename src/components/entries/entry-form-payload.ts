@@ -25,12 +25,15 @@ export function toUpdateInput(entry: EditableEntry, values: EntryFormValues): Up
   const amount = parseCurrencyAmount(values.amount) ?? 0;
   const description = values.description.trim();
   const category = values.category.trim();
-  const changes: EntryChanges = {
+  const changedFields: EntryChanges = {
     ...(amount !== entry.amount && { amount }),
     ...(description !== entry.description && { description }),
     ...(category !== entry.category && { category }),
     ...(values.date !== entry.date && { date: values.date }),
-    ...informedNecessity(values),
   };
+  const necessity = informedNecessity(values);
+  const hasFieldChanges = Object.keys(changedFields).length > 0;
+  const necessityChanged = necessity.necessity !== undefined && necessity.necessity !== entry.necessity;
+  const changes = hasFieldChanges || necessityChanged ? { ...changedFields, ...necessity } : {};
   return { kind: entry.kind, id: entry.id, changes };
 }
