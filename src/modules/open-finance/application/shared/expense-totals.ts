@@ -11,7 +11,6 @@ export async function getExpenseBreakdown(
 
   const byCategory: Record<string, number> = {};
   for (const transaction of transactions) {
-    if (transaction.amount >= 0) continue;
     const category = transaction.category ?? transaction.categorySuggested ?? 'Sem categoria';
     byCategory[category] = (byCategory[category] ?? 0) + Math.abs(transaction.amount);
   }
