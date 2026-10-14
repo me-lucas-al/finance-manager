@@ -5,16 +5,10 @@ import { Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPushPublicKey } from '@/app/actions/push';
 import { usePushPermission } from '@/hooks/usePushPermission';
+import { subscribeToPush } from '@/services/push-service';
 
 type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied' | 'subscribed';
 type StatusOverride = PermissionState | null;
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
-}
 
 export function PushNotificationButton() {
   const browserPermission = usePushPermission();
@@ -37,18 +31,7 @@ export function PushNotificationButton() {
       setStatus(permission === 'granted' ? 'granted' : 'denied');
       if (permission !== 'granted') return;
 
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
-      });
-
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription),
-      });
-      if (!response.ok) throw new Error('Falha ao salvar inscrição');
+      await subscribeToPush(publicKey);
 
       setStatus('subscribed');
     } catch {
