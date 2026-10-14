@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { expenses, financialPeriods, incomes, investments, periodSnapshots } from '@/db/schema';
-import { getSupabaseAdmin } from '@/lib/supabase';
-import { deletePluggyItem } from '@/lib/pluggy-items';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
+import { deletePluggyItem } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import type { FinancialDataResetter } from '../application/choose-data-mode';
 
 export class LedgerResetter implements FinancialDataResetter {

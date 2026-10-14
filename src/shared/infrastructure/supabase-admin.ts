@@ -2,9 +2,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 let client: SupabaseClient | null = null;
 
-// Lazy, service-role-only client for the Open Finance data (Supabase project is
-// separate from the app's Neon/Drizzle database — see plano_migracao.xml, tarefa 1).
-// Never import this from client components: it holds the secret service role key.
 export function getSupabaseAdmin(): SupabaseClient {
   if (client) return client;
 
