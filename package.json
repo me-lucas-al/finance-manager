@@ -16,7 +16,10 @@
     "db:seed": "tsx src/db/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:size": "node scripts/check-size.mjs",
+    "check:comments": "node scripts/check-no-comments.mjs",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.74",
