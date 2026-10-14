@@ -2,14 +2,11 @@
 
 import { z } from 'zod';
 import { updateTag, revalidatePath } from 'next/cache';
-import { requireUserId } from './require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { ledgerCacheTag } from '@/modules/finance/application/services/ledger-cache-tag';
-import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
-import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
-import type { NewSetting } from '../../modules/users/domain/repositories/setting-repository';
+import { settingRepository, updateSetting } from '@/composition/users';
+import type { NewSetting } from '@/modules/users/domain/models/setting';
 
-// Arrays arrive as a JSON-encoded string in FormData; parse and validate the
-// shape so a malformed payload fails loudly instead of being persisted as-is.
 const jsonStringArray = z.string().transform((val, ctx) => {
   try {
     return JSON.parse(val);
@@ -45,15 +42,13 @@ export async function updateUserSettings(formData: FormData) {
   if (parsedData.expenseCategories) dataToUpdate.expenseCategories = parsedData.expenseCategories;
   if (parsedData.investmentTypes) dataToUpdate.investmentTypes = parsedData.investmentTypes;
 
-  const repo = new DrizzleSettingRepository();
-  const existing = await repo.findByUserId(userId);
+  const existing = await settingRepository.findByUserId(userId);
 
   if (!existing) {
     throw new Error('Settings not found');
   }
 
-  const useCase = new UpdateSettingUseCase(repo);
-  await useCase.execute(existing.id, dataToUpdate);
+  await updateSetting.execute(existing.id, dataToUpdate);
 
   updateTag(`settings-${userId}`);
   updateTag(ledgerCacheTag(userId));
@@ -63,9 +58,8 @@ async function fetchUserSettingsCached(userId: string) {
   'use cache';
   const { cacheTag } = await import('next/cache');
   cacheTag(`settings-${userId}`);
-  
-  const repo = new DrizzleSettingRepository();
-  return await repo.findByUserId(userId);
+
+  return settingRepository.findByUserId(userId);
 }
 
 export async function getUserSettings() {
@@ -75,7 +69,7 @@ export async function getUserSettings() {
 
 export async function updateUserProfile(name: string) {
   const userId = await requireUserId();
-  const { getSupabaseAdmin } = await import('@/lib/supabase');
+  const { getSupabaseAdmin } = await import('@/shared/infrastructure/supabase-admin');
   const { error } = await getSupabaseAdmin()
     .from('users')
     .update({ name, updated_at: new Date().toISOString() })
