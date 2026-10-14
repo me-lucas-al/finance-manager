@@ -1,7 +1,7 @@
 import type { LedgerEntry } from '@/modules/finance/domain/models/ledger-entry';
 import { monthlyEvolution } from '@/modules/finance/domain/services/summarize-ledger';
 import { monthLabel } from '@/lib/month';
-import type { EvolutionDatum } from './charts';
+import type { EvolutionDatum } from '@/types/report';
 
 const TIMELINE_MONTHS = 6;
 

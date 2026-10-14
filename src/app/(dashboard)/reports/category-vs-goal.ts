@@ -2,7 +2,7 @@ import { toMonthStart } from '@/lib/month';
 import type { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import type { LedgerEntry } from '@/modules/finance/domain/models/ledger-entry';
 import { entriesInMonth, totalsByCategory } from '@/modules/finance/domain/services/summarize-ledger';
-import type { CategoryGoalDatum } from './charts';
+import type { CategoryGoalDatum } from '@/types/report';
 
 type GoalTarget = { category: string | null; targetAmount: number };
 
