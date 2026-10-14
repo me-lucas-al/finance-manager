@@ -1,5 +1,5 @@
 import { toLocalDateString } from '@/lib/month';
-import { NotificationFactory } from '@/modules/notifications/domain/NotificationFactory';
+import { NotificationFactory } from '@/modules/notifications/domain/notification-factory';
 import type { FixedEntry } from '../../domain/models/fixed-entry';
 import type {
   FixedReminderDelivery,

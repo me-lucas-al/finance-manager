@@ -1,7 +1,7 @@
 import { and, eq, isNotNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { incomes } from '@/db/schema';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 import type { EntryRef } from '../domain/models/entry-changes';
 import type { FixedLaunchLookup } from '../domain/ports/fixed-launch-lookup';
 

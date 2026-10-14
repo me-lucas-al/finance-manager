@@ -1,4 +1,4 @@
-import type { NotificationPayload } from '@/modules/notifications/domain/NotificationTypes';
+import type { NotificationPayload } from '@/modules/notifications/domain/notification-types';
 import type { FixedEntry } from '../models/fixed-entry';
 
 export interface FixedLaunchAnnouncer {
