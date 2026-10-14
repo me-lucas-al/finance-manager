@@ -7,6 +7,7 @@ import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import type { DataMode } from '@/modules/onboarding/application/choose-data-mode';
 import { chooseDataModeUseCase, dataModeStore } from '@/composition/onboarding';
 import { telegramLinkRepository } from '@/composition/telegram';
+import { resolveBotUsername } from '@/modules/notifications/telegram/resolve-bot-username';
 
 function parseMode(value: unknown): DataMode {
   if (value !== 'manual' && value !== 'pluggy') throw new Error('Modo inválido');
@@ -53,7 +54,7 @@ export async function switchDataMode(mode: DataMode, confirmation: string): Prom
 export async function generateTelegramLinkCode(): Promise<{ code: string; botUsername: string | null }> {
   const userId = await requireUserId();
   const code = await telegramLinkRepository.createLinkCode(userId);
-  return { code, botUsername: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? null };
+  return { code, botUsername: await resolveBotUsername() };
 }
 
 export async function getTelegramLinkStatus(): Promise<{ linked: boolean }> {
