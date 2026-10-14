@@ -1,5 +1,5 @@
-import { getSupabaseAdmin } from '@/lib/supabase';
-import { Account, NewAccount, AccountRepository } from '../domain/repositories/account-repository';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
+import { Account, ItemOwner, NewAccount, AccountRepository } from '../domain/repositories/account-repository';
 import { unwrap } from './supabase-common';
 
 type AccountRow = {
@@ -70,6 +70,12 @@ export class SupabaseAccountRepository implements AccountRepository {
       .eq('user_id', userId);
     if (error) throw new Error(error.message);
     return (data as AccountRow[]).map(toAccount);
+  }
+
+  async listItemOwners(): Promise<ItemOwner[]> {
+    const { data, error } = await getSupabaseAdmin().from('accounts').select('user_id, pluggy_item_id');
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => ({ pluggyItemId: row.pluggy_item_id as string, userId: row.user_id as string }));
   }
 
   async upsert(data: NewAccount): Promise<Account> {

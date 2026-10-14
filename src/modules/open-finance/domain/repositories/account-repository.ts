@@ -5,8 +5,6 @@ export type Account = {
   pluggyItemId: string;
   bank: string;
   accountType: string;
-  // Pluggy Item status (UPDATED, LOGIN_ERROR, OUTDATED, ...) as of the last time
-  // we asked Pluggy about this item — either at connect time or on ingestion.
   itemStatus: string | null;
   lastSyncedAt: string | null;
   balance: number | null;
@@ -17,9 +15,12 @@ export type Account = {
 export type NewAccount = Omit<Account, 'id' | 'createdAt' | 'balance' | 'creditLimit'> &
   Partial<Pick<Account, 'balance' | 'creditLimit'>>;
 
+export type ItemOwner = { pluggyItemId: string; userId: string };
+
 export interface AccountRepository {
   findByPluggyAccountId(pluggyAccountId: string): Promise<Account | null>;
   findAllByPluggyItemId(pluggyItemId: string): Promise<Account[]>;
   findAllByUserId(userId: string): Promise<Account[]>;
+  listItemOwners(): Promise<ItemOwner[]>;
   upsert(data: NewAccount): Promise<Account>;
 }
