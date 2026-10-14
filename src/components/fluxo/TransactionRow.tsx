@@ -7,6 +7,7 @@ import { toEditableEntry } from './to-editable-entry';
 
 export function TransactionRow({ transaction }: { transaction: LiveTransactionItem }) {
   const { Icon, boxClass, iconClass, amountClass } = ENTRY_KIND_STYLE[transaction.type];
+  const editableEntry = toEditableEntry(transaction);
 
   return (
     <div className="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-800/40 transition-colors group">
@@ -29,7 +30,7 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
           value={signedAmount(transaction.type, transaction.amount)}
           className={`text-sm font-semibold tabular-nums ${amountClass}`}
         />
-        <EntryActionsMenu entry={toEditableEntry(transaction)} />
+        {editableEntry && <EntryActionsMenu entry={editableEntry} />}
       </div>
     </div>
   );

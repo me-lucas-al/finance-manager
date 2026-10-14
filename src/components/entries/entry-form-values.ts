@@ -18,6 +18,7 @@ export type EditableEntry = {
   description: string;
   category: string;
   date: string;
+  necessity?: TransactionNecessity;
 };
 
 export function createEmptyEntryValues(type: EntryType, today: string): EntryFormValues {
@@ -31,6 +32,6 @@ export function valuesFromEntry(entry: EditableEntry): EntryFormValues {
     description: entry.description,
     category: entry.category,
     date: entry.date,
-    necessity: '',
+    necessity: entry.necessity ?? '',
   };
 }

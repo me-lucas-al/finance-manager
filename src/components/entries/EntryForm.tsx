@@ -76,7 +76,6 @@ export function EntryForm({ mode, initialValues, categoriesByType, isPending, er
       {values.type === 'expense' && (
         <NecessityField
           value={values.necessity}
-          emptyLabel={isEditing ? 'Manter atual' : 'Automática'}
           onChange={(necessity) => changeField('necessity', necessity)}
         />
       )}

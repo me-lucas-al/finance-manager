@@ -7,16 +7,15 @@ import { FormField } from './FormField';
 
 type NecessityFieldProps = {
   value: EntryFormValues['necessity'];
-  emptyLabel: string;
   onChange: (value: EntryFormValues['necessity']) => void;
 };
 
 const EMPTY_OPTION = 'automatic';
 const NECESSITY_LABELS = { essencial: 'Essencial', importante: 'Importante', superfluo: 'Supérfluo' } as const;
 
-export function NecessityField({ value, emptyLabel, onChange }: NecessityFieldProps) {
+export function NecessityField({ value, onChange }: NecessityFieldProps) {
   const items = [
-    { value: EMPTY_OPTION, label: emptyLabel },
+    { value: EMPTY_OPTION, label: 'Automática' },
     ...ENTRY_NECESSITIES.map((necessity) => ({ value: necessity, label: NECESSITY_LABELS[necessity] })),
   ];
 
