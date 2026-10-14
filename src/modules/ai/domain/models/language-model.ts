@@ -31,4 +31,5 @@ export interface ILanguageModel {
   generateText(prompt: string, options?: GenerateTextOptions): Promise<string>;
   generateStructured<T>(prompt: string, schemaPrompt: string, options?: GenerateTextOptions): Promise<T>;
   chat(messages: LanguageModelMessage[], options?: ChatOptions): Promise<string>;
+  stream(messages: LanguageModelMessage[], options?: ChatOptions): AsyncIterable<string>;
 }

@@ -1,3 +1,4 @@
+import { definedOnly } from '@/tests/fakes/defined-only';
 import type {
   NewTransaction,
   Transaction,
@@ -68,7 +69,7 @@ export class FakeTransactionRepository implements TransactionRepository {
   async update(id: string, data: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>): Promise<Transaction> {
     const index = this.items.findIndex((item) => item.id === id);
     if (index === -1) throw new Error('Not found');
-    this.items[index] = { ...this.items[index], ...data };
+    this.items[index] = { ...this.items[index], ...definedOnly(data) };
     return this.items[index];
   }
 

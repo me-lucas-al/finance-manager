@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { IncomeRepository, IncomeQuery, IncomePage, NewIncome, Income } from '../domain/repositories/income-repository';
+import { IncomeRepository, IncomeQuery, IncomePage, IncomeUpdate, NewIncome, Income } from '../domain/repositories/income-repository';
 import { db } from '../../../db';
 import { incomes } from '../../../db/schema';
 import { and, asc, count, desc, eq, ilike } from 'drizzle-orm';
@@ -16,6 +16,22 @@ export class DrizzleIncomeRepository implements IncomeRepository {
       receivedAt: data.receivedAt,
     }).returning();
     return inserted;
+  }
+
+  async findById(id: string): Promise<Income | null> {
+    const [found] = await db.select().from(incomes).where(eq(incomes.id, id)).limit(1);
+    return found ?? null;
+  }
+
+  async update(id: string, data: IncomeUpdate): Promise<Income> {
+    const { amount, ...rest } = data;
+    const [updated] = await db
+      .update(incomes)
+      .set({ ...rest, ...(amount === undefined ? {} : { amount: String(amount) }), updatedAt: new Date() })
+      .where(eq(incomes.id, id))
+      .returning();
+    if (!updated) throw new Error('Income not found');
+    return updated;
   }
 
   async findLatestByUserId(userId: string): Promise<Income | null> {

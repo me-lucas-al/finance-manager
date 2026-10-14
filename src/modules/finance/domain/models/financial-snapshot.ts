@@ -7,6 +7,7 @@ export type CategoryMetric = {
 };
 
 export type FinancialSnapshot = {
+  balance: number;
   currentMonth: {
     totalIncome: number;
     totalExpenses: number;

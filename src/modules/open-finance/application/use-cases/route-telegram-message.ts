@@ -79,7 +79,7 @@ export class RouteTelegramMessageUseCase {
     await TelegramService.sendTyping(userId);
     let reply: string;
     try {
-      reply = (await this.deps.advisorChat.respond(userId, trimmed)).trim();
+      reply = (await this.deps.advisorChat.respond(userId, trimmed, 'telegram')).trim();
     } catch (err) {
       console.error('Advisor chat failed:', err);
       reply = 'Tive um problema ao processar sua mensagem. Tente novamente em instantes.';

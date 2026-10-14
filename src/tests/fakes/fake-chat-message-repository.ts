@@ -14,6 +14,7 @@ export class FakeChatMessageRepository implements ChatMessageRepository {
       userId: data.userId,
       role: data.role,
       content: data.content,
+      channel: data.channel ?? 'telegram',
       createdAt: new Date().toISOString(),
     };
     this.items.push(item);
@@ -28,6 +29,10 @@ export class FakeChatMessageRepository implements ChatMessageRepository {
   async deleteByIds(ids: string[]): Promise<void> {
     const set = new Set(ids);
     this.items = this.items.filter((m) => !set.has(m.id));
+  }
+
+  async deleteAllByUserId(userId: string): Promise<void> {
+    this.items = this.items.filter((m) => m.userId !== userId);
   }
 
   async countByUserId(userId: string): Promise<number> {

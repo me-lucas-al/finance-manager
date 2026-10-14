@@ -3,10 +3,10 @@ import { TelegramService } from '@/modules/notifications/telegram/TelegramServic
 import type { Goal, GoalRepository } from '../../domain/repositories/goal-repository';
 import type { SavingsGoal, SavingsGoalRepository } from '../../domain/repositories/savings-goal-repository';
 import type { GoalPromptRepository } from '../../domain/repositories/goal-prompt-repository';
+import { getCurrentMonth } from '@/lib/month';
 
 function currentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  return `${getCurrentMonth()}-01`;
 }
 
 function buildPromptMessage(goals: Goal[], savingsGoals: SavingsGoal[]): string {

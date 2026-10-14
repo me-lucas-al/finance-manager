@@ -86,7 +86,7 @@ describe('RouteTelegramMessageUseCase', () => {
 
   it('routes to advisor chat when message is a general question', async () => {
     await useCase.execute({ messageId: 5, text: 'como está minha meta este mês?' }, 'user-1');
-    expect(advisorChat.respond).toHaveBeenCalledWith('user-1', 'como está minha meta este mês?');
+    expect(advisorChat.respond).toHaveBeenCalledWith('user-1', 'como está minha meta este mês?', 'telegram');
     expect(TelegramService.sendMessage).toHaveBeenCalledWith('user-1', 'Conselho financeiro', 5);
   });
 });

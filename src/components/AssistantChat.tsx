@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Sparkles, Trash2 } from 'lucide-react';
-import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { useAssistantChat } from '@/hooks/useAssistantChat';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ChatMessageList } from './ChatMessageList';
@@ -12,29 +11,22 @@ import { ChatInputForm } from './ChatInputForm';
 export function AssistantChat() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { messages, status, sendMessage, setMessages } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-    }),
-  });
+  const { messages, status, sendMessage, loadHistory, clearHistory } = useAssistantChat();
+
+  useEffect(() => {
+    if (isOpen) loadHistory();
+  }, [isOpen, loadHistory]);
 
   const [input, setInput] = useState('');
   const isLoading = status === 'submitted' || status === 'streaming';
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value);
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => setInput(e.target.value);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim()) return;
     sendMessage({ text: input });
     setInput('');
-  };
-
-  const handleClearChat = () => setMessages([]);
-
-  const handleEditMessage = (index: number, text: string) => {
-    setMessages((prev) => prev.slice(0, index));
-    setInput(text);
   };
 
   return (
@@ -64,7 +56,7 @@ export function AssistantChat() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleClearChat}
+                onClick={clearHistory}
                 className="h-8 w-8 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
                 aria-label="Limpar conversa"
               >
@@ -78,7 +70,6 @@ export function AssistantChat() {
           <ChatMessageList
             messages={messages}
             isLoading={isLoading}
-            onEditMessage={handleEditMessage}
           />
         </div>
 
