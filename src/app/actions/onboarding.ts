@@ -1,6 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
+import { ledgerCacheTag } from '@/modules/finance/application/services/ledger-cache-tag';
 import { unstable_update } from '@/auth';
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import type { DataMode } from '@/modules/onboarding/application/choose-data-mode';
@@ -14,6 +15,7 @@ function parseMode(value: unknown): DataMode {
 
 async function applyDataMode(userId: string, mode: DataMode): Promise<{ wiped: boolean }> {
   const result = await chooseDataModeUseCase.execute(userId, mode);
+  updateTag(ledgerCacheTag(userId));
   revalidatePath('/', 'layout');
   if (result.changed) await unstable_update({});
   return { wiped: result.wiped };
