@@ -60,7 +60,6 @@ describe('notification preferences actions', () => {
   });
 
   it('turns an unchecked checkbox into false instead of leaving the previous value', async () => {
-    // "generalNotificationsEnabled" is intentionally omitted, simulating an unchecked checkbox.
     const formData = formDataWith({
       expenseNotificationsEnabled: 'true',
       investmentNotificationsEnabled: 'true',

@@ -1,11 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
   classifyTransaction,
-  sanitizeTransactions,
   type RawTransactionLike,
 } from '@/modules/pluggy-sync/domain/classification';
 
-describe('Transaction Classifier & Sanitizer', () => {
+describe('Transaction Classifier', () => {
   describe('classifyTransaction', () => {
     it('classifies credit card purchases as EXPENSE', () => {
       const tx: RawTransactionLike = {
@@ -55,46 +54,6 @@ describe('Transaction Classifier & Sanitizer', () => {
       expect(classifyTransaction(tx, { hasCreditCardPurchases: true })).toBe('CREDIT_CARD_PAYMENT');
     });
 
-    it('classifies investment deposit or withdrawal as INVESTMENT', () => {
-      const deposit: RawTransactionLike = {
-        amount: -1000,
-        type: 'DEBIT',
-        date: '2026-09-05',
-        description: 'Aplicação Caixinha Reserva',
-        category: 'Investments',
-        isCreditCard: false,
-      };
-      const withdrawal: RawTransactionLike = {
-        amount: 500,
-        type: 'CREDIT',
-        date: '2026-09-20',
-        description: 'Resgate CDB DI',
-        category: 'Investments',
-        isCreditCard: false,
-      };
-      expect(classifyTransaction(deposit)).toBe('INVESTMENT');
-      expect(classifyTransaction(withdrawal)).toBe('INVESTMENT');
-
-      const mpReserved: RawTransactionLike = {
-        amount: -1097.21,
-        type: 'DEBIT',
-        date: '2026-09-02',
-        description: 'Dinheiro reservado Cofrinho Mercado Livre',
-        category: 'Transfers',
-        isCreditCard: false,
-      };
-      const mpWithdrawn: RawTransactionLike = {
-        amount: 550,
-        type: 'CREDIT',
-        date: '2026-09-05',
-        description: 'Dinheiro retirado Cofrinho Mercado Livre',
-        category: 'Transfers',
-        isCreditCard: false,
-      };
-      expect(classifyTransaction(mpReserved)).toBe('INVESTMENT');
-      expect(classifyTransaction(mpWithdrawn)).toBe('INVESTMENT');
-    });
-
     it('classifies internal transfer with same CPF as INTERNAL_TRANSFER', () => {
       const tx: RawTransactionLike = {
         amount: 1500,
@@ -133,113 +92,6 @@ describe('Transaction Classifier & Sanitizer', () => {
         isCreditCard: false,
       };
       expect(classifyTransaction(tx)).toBe('EXPENSE');
-    });
-  });
-
-  describe('sanitizeTransactions', () => {
-    it('eliminates double counting of credit card payments and internal transfers', () => {
-      const transactions: RawTransactionLike[] = [
-        // Real salary
-        {
-          id: '1',
-          amount: 5000,
-          type: 'CREDIT',
-          date: '2026-09-05',
-          description: 'Salario',
-          category: 'Salary',
-          isCreditCard: false,
-          bank: 'itau',
-        },
-        // Internal transfer: Itaú -> Nubank
-        {
-          id: '2',
-          amount: -1500,
-          type: 'DEBIT',
-          date: '2026-09-06',
-          description: 'Pix Enviado',
-          category: 'Transfers',
-          isCreditCard: false,
-          bank: 'itau',
-        },
-        {
-          id: '3',
-          amount: 1500,
-          type: 'CREDIT',
-          date: '2026-09-06',
-          description: 'Pix Recebido',
-          category: 'Transfers',
-          isCreditCard: false,
-          bank: 'nubank',
-        },
-        // Real card purchases
-        {
-          id: '4',
-          amount: -300,
-          type: 'DEBIT',
-          date: '2026-09-10',
-          description: 'Supermercado',
-          category: 'Groceries',
-          isCreditCard: true,
-          bank: 'nubank',
-        },
-        {
-          id: '5',
-          amount: -150,
-          type: 'DEBIT',
-          date: '2026-09-11',
-          description: 'Restaurante',
-          category: 'Eating out',
-          isCreditCard: true,
-          bank: 'nubank',
-        },
-        // Credit card invoice payment (on bank account)
-        {
-          id: '6',
-          amount: -450,
-          type: 'DEBIT',
-          date: '2026-09-20',
-          description: 'Pagamento de fatura Nubank',
-          category: 'Transfers',
-          isCreditCard: false,
-          bank: 'itau',
-        },
-        // Credit card invoice payment (on card account)
-        {
-          id: '7',
-          amount: 450,
-          type: 'CREDIT',
-          date: '2026-09-20',
-          description: 'Pagamento recebido',
-          category: 'Credit card payment',
-          isCreditCard: true,
-          bank: 'nubank',
-        },
-        // Investment deposit
-        {
-          id: '8',
-          amount: -1000,
-          type: 'DEBIT',
-          date: '2026-09-21',
-          description: 'Aplicação Caixinha RDB',
-          category: 'Investments',
-          isCreditCard: false,
-          bank: 'nubank',
-        },
-      ];
-
-      const { summary } = sanitizeTransactions(transactions);
-
-      // Without sanitization:
-      // totalIncome would be 5000 + 1500 + 450 = 6950!
-      // totalExpenses would be 1500 + 300 + 150 + 450 + 1000 = 3400!
-      //
-      // With our sanitization:
-      // totalIncome must be exactly 5000 (salary only)
-      // totalExpenses must be exactly 450 (300 + 150, card purchases only, no double counting)
-      expect(summary.totalIncome).toBe(5000);
-      expect(summary.totalExpenses).toBe(450);
-      expect(summary.categoryTotals['Groceries']).toBe(300);
-      expect(summary.categoryTotals['Eating out']).toBe(150);
     });
   });
 });

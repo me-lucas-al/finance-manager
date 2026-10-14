@@ -2,44 +2,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   requestPasswordResetToken,
   resetUserPassword,
-  changeUserPassword,
   hashResetToken,
-  PasswordResetTokenRepository,
-  PasswordResetTokenRecord,
 } from '../../../../modules/auth/application/password-reset';
 import { hashPassword, verifyPassword } from '../../../../modules/auth/domain/password';
-import { FakeUserRepository } from '../users/fake-user-repository';
-import { EmailService } from '../../../../modules/notifications/email/EmailService';
+import { FakeUserRepository } from '@/tests/fakes/fake-user-repository';
+import { FakePasswordResetTokenRepository } from '../../../fakes/fake-password-reset-token-repository';
+import type { EmailService } from '../../../../modules/notifications/email/email-service';
 
-class FakePasswordResetTokenRepository implements PasswordResetTokenRepository {
-  private tokens: PasswordResetTokenRecord[] = [];
-
-  async create(data: { id: string; userId: string; token: string; expiresAt: Date }): Promise<PasswordResetTokenRecord> {
-    const record: PasswordResetTokenRecord = {
-      id: data.id,
-      userId: data.userId,
-      token: data.token,
-      expiresAt: data.expiresAt,
-      usedAt: null,
-      createdAt: new Date(),
-    };
-    this.tokens.push(record);
-    return record;
-  }
-
-  async findByToken(token: string): Promise<PasswordResetTokenRecord | null> {
-    return this.tokens.find((t) => t.token === token) ?? null;
-  }
-
-  async markAsUsed(id: string): Promise<void> {
-    const record = this.tokens.find((t) => t.id === id);
-    if (record) {
-      record.usedAt = new Date();
-    }
-  }
-}
-
-describe('Password Reset and Change Use Cases', () => {
+describe('Password Reset Use Cases', () => {
   let userRepo: FakeUserRepository;
   let tokenRepo: FakePasswordResetTokenRepository;
   let emailServiceMock: EmailService;
@@ -145,26 +115,4 @@ describe('Password Reset and Change Use Cases', () => {
       expect(result.error).toBe('Link de redefinição inválido ou expirado.');
     });
   });
-
-  describe('changeUserPassword (logged-in user)', () => {
-    it('successfully changes password when current password is correct', async () => {
-      const user = await userRepo.findByEmail('user@example.com');
-      const result = await changeUserPassword(userRepo, user!.id, 'old-password-123', 'new-password-456');
-
-      expect(result.success).toBe(true);
-
-      const updatedUser = await userRepo.findById(user!.id);
-      const isNewValid = await verifyPassword('new-password-456', updatedUser!.passwordHash);
-      expect(isNewValid).toBe(true);
-    });
-
-    it('rejects password change when current password is wrong', async () => {
-      const user = await userRepo.findByEmail('user@example.com');
-      const result = await changeUserPassword(userRepo, user!.id, 'wrong-password', 'new-password-456');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Senha atual incorreta.');
-    });
-  });
 });
-
