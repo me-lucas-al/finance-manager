@@ -54,6 +54,7 @@ export interface LiveMovementsData {
   categorizedExpenses: LiveExpenseCategory[];
   pendingExpenses: LiveExpenseCategory[];
   transactions: LiveTransactionItem[];
+  categoryOptions: string[];
 }
 
 export interface LiveAssetItem {

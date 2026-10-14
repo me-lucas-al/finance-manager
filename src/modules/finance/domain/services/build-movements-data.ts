@@ -2,6 +2,9 @@ import { dateAtNoon } from '@/lib/month';
 import type { LedgerEntry } from '../models/ledger-entry';
 import type { LiveMovementsData, LiveTransactionItem } from '../models/financial-types';
 import { getCategoryColor } from '../models/category-colors';
+import { DEFAULT_STATEMENT_FILTERS, type StatementFilters } from '../models/statement-filters';
+import { categoriesOf } from './filter-ledger-entries';
+import { selectStatementEntries } from './select-statement-entries';
 import { entriesInMonth, totalsByCategory, totalsOf } from './summarize-ledger';
 
 function toTransactionItem(entry: LedgerEntry): LiveTransactionItem {
@@ -19,7 +22,11 @@ function toTransactionItem(entry: LedgerEntry): LiveTransactionItem {
   };
 }
 
-export function buildMovementsData(entries: LedgerEntry[], month: string): LiveMovementsData {
+export function buildMovementsData(
+  entries: LedgerEntry[],
+  month: string,
+  filters: StatementFilters = DEFAULT_STATEMENT_FILTERS
+): LiveMovementsData {
   const monthEntries = entriesInMonth(entries, month);
   const totals = totalsOf(monthEntries);
 
@@ -36,6 +43,7 @@ export function buildMovementsData(entries: LedgerEntry[], month: string): LiveM
       color: getCategoryColor(category),
     })),
     pendingExpenses: [],
-    transactions: monthEntries.map(toTransactionItem),
+    transactions: selectStatementEntries(entries, month, filters).map(toTransactionItem),
+    categoryOptions: categoriesOf(monthEntries),
   };
 }
