@@ -1,8 +1,13 @@
-export type DataMode = 'manual' | 'pluggy';
+import type { DataMode } from '@/modules/users/domain/models/user';
+
+export type { DataMode };
+
+export type DataModeState = { dataMode: DataMode | null; completed: boolean };
 
 export interface DataModeStore {
-  getState(userId: string): Promise<{ dataMode: DataMode | null; completed: boolean }>;
+  getState(userId: string): Promise<DataModeState>;
   setState(userId: string, dataMode: DataMode, completed: boolean): Promise<void>;
+  complete(userId: string): Promise<void>;
 }
 
 export interface FinancialDataResetter {

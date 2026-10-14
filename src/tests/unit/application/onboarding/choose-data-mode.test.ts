@@ -16,6 +16,11 @@ class FakeStore implements DataModeStore {
   async setState(userId: string, dataMode: DataMode, completed: boolean) {
     this.state.set(userId, { dataMode, completed });
   }
+
+  async complete(userId: string) {
+    const current = await this.getState(userId);
+    this.state.set(userId, { ...current, completed: true });
+  }
 }
 
 class FakeResetter implements FinancialDataResetter {
