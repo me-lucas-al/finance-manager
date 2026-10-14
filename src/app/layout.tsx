@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
-import { AppHeader } from '@/components/AppHeader';
+import { CurrentUserHeader } from '@/components/CurrentUserHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PrivacyProvider } from '@/providers/PrivacyProvider';
 import { AssistantChat } from '@/components/AssistantChat';
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <TooltipProvider>
           <PrivacyProvider>
             <Suspense fallback={null}>
-              <AppHeader />
+              <CurrentUserHeader />
             </Suspense>
             <main className="flex-1">
               {children}
