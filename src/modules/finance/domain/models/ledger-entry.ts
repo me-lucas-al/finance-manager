@@ -1,3 +1,5 @@
+import type { TransactionNecessity } from '@/modules/open-finance/domain/repositories/transaction-repository';
+
 export type LedgerKind = 'expense' | 'income' | 'investment';
 
 export type LedgerEntry = {
@@ -8,4 +10,6 @@ export type LedgerEntry = {
   category: string;
   amount: number;
   account: string;
+  necessity?: TransactionNecessity;
+  imported?: true;
 };

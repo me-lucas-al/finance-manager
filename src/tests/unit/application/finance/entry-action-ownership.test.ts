@@ -60,6 +60,20 @@ describe('entry actions on real use cases', () => {
     expect(result).toEqual({ ok: false, error: 'Nenhuma alteração informada' });
   });
 
+  it('refuses to alter expenses imported from the bank', async () => {
+    const service = buildServiceFor('owner', services);
+    await service.create(expense);
+    const [stored] = await services.transactionRepo.findAllByUserId('owner');
+    await services.transactionRepo.update(stored.id, { source: 'pluggy' });
+
+    const updated = await service.update({ kind: 'expense', id: stored.id, changes: { amount: 1 } });
+    const removed = await service.remove({ kind: 'expense', id: stored.id });
+
+    expect(updated).toEqual({ ok: false, error: 'Lançamentos importados do banco não podem ser alterados' });
+    expect(removed.ok).toBe(false);
+    expect(await services.transactionRepo.findById(stored.id)).not.toBeNull();
+  });
+
   it('deletes the entry for its owner', async () => {
     const service = buildServiceFor('owner', services);
     await service.create(expense);
