@@ -1,60 +1,42 @@
-import { interpretGoalsReply } from '@/lib/gemini';
 import { formatCurrency } from '@/lib/format';
-import type { GoalRepository } from '../../domain/repositories/goal-repository';
-import type { SavingsGoal, SavingsGoalRepository } from '../../domain/repositories/savings-goal-repository';
 import { getCurrentMonth } from '@/lib/month';
-import { getExpenseCategories } from './expense-categories';
+import type { GoalsReplyInterpreter } from '../../domain/ports/goals-reply-interpreter';
+import type { GoalRepository } from '../../domain/repositories/goal-repository';
+import type { SavingsGoalRepository } from '../../domain/repositories/savings-goal-repository';
+import { applySavingsGoalUpdate } from './apply-savings-goal-update';
+import type { ListExpenseCategories } from './expense-categories';
 
-function currentMonth(): string {
-  return `${getCurrentMonth()}-01`;
-}
-
-// Case-insensitive/contains match: robust enough for "Viagem" vs "viagem para
-// a praia" without requiring an exact title.
-function findMatchingSavingsGoal(title: string, existing: SavingsGoal[]): SavingsGoal | null {
-  const normalized = title.trim().toLowerCase();
-  return (
-    existing.find((goal) => {
-      const goalTitle = goal.title.toLowerCase();
-      return goalTitle === normalized || goalTitle.includes(normalized) || normalized.includes(goalTitle);
-    }) ?? null
-  );
-}
-
-// Core "interpret free text about financial goals and apply it" logic, shared
-// by the Telegram flow (RecordGoalsReplyUseCase, which also notifies via
-// Telegram) and the website chat flow (which only needs the confirmation
-// text back to render in the UI) — keeps the Gemini interpretation and the
-// goal/savings-goal upsert logic in one place.
-export async function applyGoalsReply(params: {
-  userId: string;
-  replyText: string;
+export type ApplyGoalsReplyDeps = {
   goalRepository: GoalRepository;
   savingsGoalRepository: SavingsGoalRepository;
-}): Promise<string> {
-  const { userId, replyText, goalRepository, savingsGoalRepository } = params;
+  interpreter: GoalsReplyInterpreter;
+  listCategories: ListExpenseCategories;
+};
+
+export type GoalsReplyRequest = { userId: string; replyText: string };
+
+const NOTHING_FOUND = 'ℹ️ Não encontrei nenhum objetivo financeiro novo na sua mensagem.';
+
+export async function applyGoalsReply(deps: ApplyGoalsReplyDeps, request: GoalsReplyRequest): Promise<string> {
+  const { goalRepository, savingsGoalRepository, interpreter, listCategories } = deps;
+  const { userId, replyText } = request;
 
   const [categories, existingSavingsGoals] = await Promise.all([
-    getExpenseCategories(userId),
+    listCategories(userId),
     savingsGoalRepository.findAllActiveByUserId(userId),
   ]);
 
-  const interpretation = await interpretGoalsReply({
+  const interpretation = await interpreter.interpret({
     replyText,
     categories,
     existingSavingsGoals: existingSavingsGoals.map((goal) => goal.title),
   });
 
   const confirmationLines: string[] = [];
-  const month = currentMonth();
+  const month = `${getCurrentMonth()}-01`;
 
   if (interpretation.monthlyGeneralTarget !== null) {
-    await goalRepository.upsert({
-      userId,
-      month,
-      category: null,
-      targetAmount: interpretation.monthlyGeneralTarget,
-    });
+    await goalRepository.upsert({ userId, month, category: null, targetAmount: interpretation.monthlyGeneralTarget });
     confirmationLines.push(`🎯 Meta geral do mês: ${formatCurrency(interpretation.monthlyGeneralTarget)}`);
   }
 
@@ -64,35 +46,10 @@ export async function applyGoalsReply(params: {
   }
 
   for (const update of interpretation.savingsGoalUpdates) {
-    const matching = findMatchingSavingsGoal(update.title, existingSavingsGoals);
-
-    if (matching) {
-      const patch: Partial<Omit<SavingsGoal, 'id' | 'userId' | 'createdAt' | 'updatedAt'>> = {};
-      if (update.targetAmount !== null) patch.targetAmount = update.targetAmount;
-      if (update.targetDate !== null) patch.targetDate = update.targetDate;
-      if (update.contributionAmount !== null) patch.currentAmount = matching.currentAmount + update.contributionAmount;
-
-      const updated = await savingsGoalRepository.update(matching.id, patch);
-      const deadline = updated.targetDate ? ` até ${updated.targetDate}` : '';
-      confirmationLines.push(
-        `💰 ${updated.title}: ${formatCurrency(updated.currentAmount)} de ${formatCurrency(updated.targetAmount)}${deadline}`,
-      );
-    } else if (update.targetAmount !== null) {
-      const created = await savingsGoalRepository.create({
-        userId,
-        title: update.title,
-        targetAmount: update.targetAmount,
-        targetDate: update.targetDate,
-        currentAmount: update.contributionAmount ?? 0,
-      });
-      const deadline = created.targetDate ? ` até ${created.targetDate}` : '';
-      confirmationLines.push(
-        `💰 Novo objetivo "${created.title}": ${formatCurrency(created.currentAmount)} de ${formatCurrency(created.targetAmount)}${deadline}`,
-      );
-    }
+    const line = await applySavingsGoalUpdate(savingsGoalRepository, userId, update, existingSavingsGoals);
+    if (line) confirmationLines.push(line);
   }
 
-  return confirmationLines.length > 0
-    ? ['✅ Objetivos atualizados!', ...confirmationLines].join('\n')
-    : 'ℹ️ Não encontrei nenhum objetivo financeiro novo na sua mensagem.';
+  if (confirmationLines.length === 0) return NOTHING_FOUND;
+  return ['✅ Objetivos atualizados!', ...confirmationLines].join('\n');
 }

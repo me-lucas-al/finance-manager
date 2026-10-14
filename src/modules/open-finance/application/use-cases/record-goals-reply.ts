@@ -1,14 +1,12 @@
-import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
-import type { GoalRepository } from '../../domain/repositories/goal-repository';
-import type { SavingsGoalRepository } from '../../domain/repositories/savings-goal-repository';
+import type { TelegramMessenger } from '@/modules/notifications/telegram/domain/telegram-messenger';
 import type { GoalPromptRepository } from '../../domain/repositories/goal-prompt-repository';
-import { applyGoalsReply } from '../shared/apply-goals-reply';
+import { applyGoalsReply, type ApplyGoalsReplyDeps } from '../shared/apply-goals-reply';
 
 export class RecordGoalsReplyUseCase {
   constructor(
-    private goalRepository: GoalRepository,
-    private savingsGoalRepository: SavingsGoalRepository,
+    private applyDeps: ApplyGoalsReplyDeps,
     private goalPromptRepository: GoalPromptRepository,
+    private messenger: TelegramMessenger,
   ) {}
 
   async execute(
@@ -17,17 +15,12 @@ export class RecordGoalsReplyUseCase {
     goalPromptId?: string,
     incomingMessageId?: number,
   ): Promise<void> {
-    const confirmation = await applyGoalsReply({
-      userId,
-      replyText,
-      goalRepository: this.goalRepository,
-      savingsGoalRepository: this.savingsGoalRepository,
-    });
+    const confirmation = await applyGoalsReply(this.applyDeps, { userId, replyText });
 
     if (goalPromptId) {
       await this.goalPromptRepository.markAnswered(goalPromptId);
     }
 
-    await TelegramService.sendMessage(userId, confirmation, incomingMessageId);
+    await this.messenger.sendMessage(userId, confirmation, incomingMessageId);
   }
 }
