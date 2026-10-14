@@ -32,7 +32,7 @@ export class RouteTelegramMessageUseCase {
     const trimmed = message.text.trim();
 
     if (message.replyToMessageId) {
-      const prompt = await this.deps.goalPromptRepo.findByTelegramMessageId(message.replyToMessageId);
+      const prompt = await this.deps.goalPromptRepo.findByTelegramMessageId(userId, message.replyToMessageId);
       if (prompt && !prompt.answeredAt) {
         await this.deps.recordGoalsReply.execute(userId, trimmed, prompt.id, message.messageId);
         return;
@@ -51,7 +51,7 @@ export class RouteTelegramMessageUseCase {
 
     if (trimmed.startsWith('/')) {
       const commandReply = await this.deps.handleBotCommand.execute(userId, trimmed);
-      await TelegramService.sendMessage(commandReply, message.messageId);
+      await TelegramService.sendMessage(userId, commandReply, message.messageId);
       return;
     }
 
@@ -59,7 +59,7 @@ export class RouteTelegramMessageUseCase {
     if (parsed) {
       const res = await this.deps.registerManualEntry.execute(userId, parsed);
       const conf = formatEntryConfirmation(res);
-      await TelegramService.sendMessage(conf, message.messageId);
+      await TelegramService.sendMessage(userId, conf, message.messageId);
       return;
     }
 
@@ -67,16 +67,16 @@ export class RouteTelegramMessageUseCase {
     if (aiExtraction.success) {
       const res = await this.deps.registerManualEntry.execute(userId, aiExtraction.entry);
       const conf = formatEntryConfirmation(res);
-      await TelegramService.sendMessage(conf, message.messageId);
+      await TelegramService.sendMessage(userId, conf, message.messageId);
       return;
     }
 
     if (aiExtraction.needsClarification) {
-      await TelegramService.sendMessage(aiExtraction.question, message.messageId);
+      await TelegramService.sendMessage(userId, aiExtraction.question, message.messageId);
       return;
     }
 
-    await TelegramService.sendTyping();
+    await TelegramService.sendTyping(userId);
     let reply: string;
     try {
       reply = (await this.deps.advisorChat.respond(userId, trimmed)).trim();
@@ -88,6 +88,6 @@ export class RouteTelegramMessageUseCase {
       console.error('Advisor chat returned an empty reply');
       reply = 'Não consegui gerar uma resposta agora. Pode reformular a pergunta?';
     }
-    await TelegramService.sendMessage(reply, message.messageId);
+    await TelegramService.sendMessage(userId, reply, message.messageId);
   }
 }

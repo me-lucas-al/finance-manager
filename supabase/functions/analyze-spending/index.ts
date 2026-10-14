@@ -8,8 +8,7 @@
 // Deploy manually after reviewing this file:
 //   supabase functions deploy analyze-spending --no-verify-jwt
 // and set its secrets (Project Settings > Edge Functions > analyze-spending):
-//   GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ANALYZE_SPENDING_SECRET,
-//   FINANCE_OWNER_USER_ID (same value as the Next.js app's own env var)
+//   GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, ANALYZE_SPENDING_SECRET
 // (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically.)
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -61,10 +60,9 @@ async function generateSummary(prompt: string): Promise<string> {
   return body?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || prompt;
 }
 
-async function sendTelegramMessage(text: string): Promise<void> {
+async function sendTelegramMessage(chatId: number, text: string): Promise<void> {
   const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
-  const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
-  if (!token || !chatId) {
+  if (!token) {
     console.warn('Telegram is not configured; skipping alert.');
     return;
   }
@@ -86,16 +84,12 @@ function isAuthorized(req: Request): boolean {
   return req.headers.get('x-analyze-spending-secret') === secret;
 }
 
-Deno.serve(async (req) => {
-  if (!isAuthorized(req)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-  }
-
-  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+async function analyzeUser(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  chatId: number | null,
+): Promise<{ alertSent: boolean; reason?: string }> {
   const { from, to, monthDate } = currentMonthRange();
-  // Same user_id every other Open Finance access point filters by (see
-  // FINANCE_OWNER_USER_ID in /api/webhook-pluggy) — kept consistent here too.
-  const userId = Deno.env.get('FINANCE_OWNER_USER_ID')!;
 
   const [{ data: transactions, error: transactionsError }, { data: goals, error: goalsError }] = await Promise.all([
     supabase
@@ -111,8 +105,6 @@ Deno.serve(async (req) => {
   if (transactionsError) throw new Error(transactionsError.message);
   if (goalsError) throw new Error(goalsError.message);
 
-  // Only DEBIT transactions are ever stored (see ingestPluggyTransaction), as a
-  // positive "amount spent" — so every row here is spend, no sign filtering needed.
   const spendByCategory = new Map<string, number>();
   let totalSpent = 0;
   for (const transaction of (transactions ?? []) as Transaction[]) {
@@ -147,28 +139,58 @@ Deno.serve(async (req) => {
   ].join('\n');
 
   const summary = await generateSummary(summaryPrompt);
-  await supabase.from('alerts_log').insert({ alert_type: 'monthly_summary', message: summary });
+  await supabase.from('alerts_log').insert({ user_id: userId, alert_type: 'monthly_summary', message: summary });
 
-  if (overBudget.length === 0) {
-    return new Response(JSON.stringify({ ok: true, alertSent: false }), { status: 200 });
-  }
+  if (overBudget.length === 0) return { alertSent: false };
+  if (!chatId) return { alertSent: false, reason: 'telegram_not_linked' };
 
   const since = new Date();
   since.setHours(0, 0, 0, 0);
   const { count, error: countError } = await supabase
     .from('alerts_log')
     .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
     .eq('alert_type', 'budget_alert')
     .gte('sent_at', since.toISOString());
   if (countError) throw new Error(countError.message);
-
-  if ((count ?? 0) > 0) {
-    return new Response(JSON.stringify({ ok: true, alertSent: false, reason: 'already_sent_today' }), { status: 200 });
-  }
+  if ((count ?? 0) > 0) return { alertSent: false, reason: 'already_sent_today' };
 
   const alertMessage = `⚠️ Atenção com o orçamento do mês:\n${overBudget.join('\n')}`;
-  await sendTelegramMessage(alertMessage);
-  await supabase.from('alerts_log').insert({ alert_type: 'budget_alert', message: alertMessage });
+  await sendTelegramMessage(chatId, alertMessage);
+  await supabase.from('alerts_log').insert({ user_id: userId, alert_type: 'budget_alert', message: alertMessage });
+  return { alertSent: true };
+}
 
-  return new Response(JSON.stringify({ ok: true, alertSent: true }), { status: 200 });
+Deno.serve(async (req) => {
+  if (!isAuthorized(req)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { from, to } = currentMonthRange();
+
+  const [{ data: links }, { data: monthTransactions }] = await Promise.all([
+    supabase.from('telegram_links').select('user_id, chat_id'),
+    supabase.from('transactions').select('user_id').gte('occurred_at', from).lt('occurred_at', to),
+  ]);
+
+  const chatByUser = new Map<string, number>(
+    ((links ?? []) as { user_id: string; chat_id: number }[]).map((l) => [l.user_id, Number(l.chat_id)]),
+  );
+  const userIds = new Set<string>(chatByUser.keys());
+  for (const row of (monthTransactions ?? []) as { user_id: string }[]) userIds.add(row.user_id);
+
+  let alertsSent = 0;
+  let failed = 0;
+  for (const userId of userIds) {
+    try {
+      const result = await analyzeUser(supabase, userId, chatByUser.get(userId) ?? null);
+      if (result.alertSent) alertsSent++;
+    } catch (error) {
+      failed++;
+      console.error(`analyze-spending failed for user ${userId}:`, error);
+    }
+  }
+
+  return new Response(JSON.stringify({ ok: failed === 0, users: userIds.size, alertsSent, failed }), { status: 200 });
 });

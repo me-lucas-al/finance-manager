@@ -38,7 +38,7 @@ describe('AskFinancialGoalsUseCase', () => {
     await useCase.execute('user-1');
 
     expect(sendMessageMock).toHaveBeenCalled();
-    const prompt = await goalPromptRepository.findByTelegramMessageId(777);
+    const prompt = await goalPromptRepository.findByTelegramMessageId('user-1', 777);
     expect(prompt?.userId).toBe('user-1');
     expect(prompt?.answeredAt).toBeNull();
   });
@@ -56,7 +56,7 @@ describe('AskFinancialGoalsUseCase', () => {
 
     await useCase.execute('user-1');
 
-    const [message] = sendMessageMock.mock.calls[0];
+    const [, message] = sendMessageMock.mock.calls[0];
     expect(message).toContain('Viagem');
     expect(message).toContain('3.000');
   });

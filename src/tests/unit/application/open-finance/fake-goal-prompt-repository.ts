@@ -20,8 +20,8 @@ export class FakeGoalPromptRepository implements GoalPromptRepository {
     return item;
   }
 
-  async findByTelegramMessageId(messageId: number): Promise<GoalPrompt | null> {
-    return this.items.find((item) => item.telegramMessageId === messageId) ?? null;
+  async findByTelegramMessageId(userId: string, messageId: number): Promise<GoalPrompt | null> {
+    return this.items.find((item) => item.userId === userId && item.telegramMessageId === messageId) ?? null;
   }
 
   async findLatestPendingByUserId(userId: string): Promise<GoalPrompt | null> {

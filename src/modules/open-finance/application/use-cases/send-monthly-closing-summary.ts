@@ -28,7 +28,7 @@ Instruções:
 Seja direto e honesto. Dê a nota (ex: "Nota: A") e resuma o desempenho. Dê 2 conselhos curtos.`;
 
       const message = await this.llm.generateText(prompt, { tier: 'pro', maxTokens: 800 });
-      await TelegramService.sendMessage(message);
+      await TelegramService.sendMessage(userId, message);
     } catch (error) {
       console.error('Failed to send monthly closing summary via AI', error);
       const fallback = `📊 Fechamento Mensal
@@ -36,7 +36,7 @@ Receitas: R$ ${snapshot.totalIncomes}
 Despesas: R$ ${snapshot.totalExpenses}
 Investimentos: R$ ${snapshot.totalInvestments}
 Saldo: R$ ${snapshot.balance}`;
-      await TelegramService.sendMessage(fallback);
+      await TelegramService.sendMessage(userId, fallback);
     }
   }
 }

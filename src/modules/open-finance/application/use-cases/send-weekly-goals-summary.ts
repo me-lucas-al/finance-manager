@@ -69,6 +69,6 @@ Destaque o total, as maiores categorias, os supérfluos ('bobeiras') e forneça 
       });
     }
 
-    await TelegramService.sendMessage(message);
+    await TelegramService.sendMessage(userId, message);
   }
 }

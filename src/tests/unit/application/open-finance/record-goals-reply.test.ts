@@ -58,7 +58,7 @@ describe('RecordGoalsReplyUseCase', () => {
 
     const goals = await goalRepository.findAllByUserIdAndMonth('user-1', currentMonth());
     expect(goals).toHaveLength(2);
-    expect(sendMessageMock).toHaveBeenCalledWith(expect.stringContaining('Alimentação'), undefined);
+    expect(sendMessageMock).toHaveBeenCalledWith('user-1', expect.stringContaining('Alimentação'), undefined);
   });
 
   it('creates a new savings goal when none matches', async () => {
@@ -107,7 +107,7 @@ describe('RecordGoalsReplyUseCase', () => {
 
     await useCase.execute('user-1', 'nada específico', prompt.id, 99);
 
-    const updated = await goalPromptRepository.findByTelegramMessageId(42);
+    const updated = await goalPromptRepository.findByTelegramMessageId('user-1', 42);
     expect(updated?.answeredAt).not.toBeNull();
   });
 
@@ -117,6 +117,6 @@ describe('RecordGoalsReplyUseCase', () => {
 
     await useCase.execute('user-1', 'oi tudo bem?');
 
-    expect(sendMessageMock).toHaveBeenCalledWith(expect.stringContaining('Não encontrei'), undefined);
+    expect(sendMessageMock).toHaveBeenCalledWith('user-1', expect.stringContaining('Não encontrei'), undefined);
   });
 });

@@ -73,7 +73,7 @@ describe('SendWeeklyGoalsSummaryUseCase', () => {
     await useCase.execute('user-1');
 
     expect(sendMessageMock).toHaveBeenCalledTimes(1);
-    const [message] = sendMessageMock.mock.calls[0];
+    const [, message] = sendMessageMock.mock.calls[0];
     expect(message).toContain('Alimentação');
     expect(message).toContain('Viagem');
   });
@@ -85,6 +85,6 @@ describe('SendWeeklyGoalsSummaryUseCase', () => {
 
     await aiUseCase.execute('user-1');
 
-    expect(sendMessageMock).toHaveBeenCalledWith('Relatório Semanal Gerado pela IA Pro');
+    expect(sendMessageMock).toHaveBeenCalledWith('user-1', 'Relatório Semanal Gerado pela IA Pro');
   });
 });

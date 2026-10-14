@@ -60,8 +60,8 @@ export class SupabaseTransactionRepository implements TransactionRepository {
     return fetchTransactionByPluggyId(pluggyTransactionId);
   }
 
-  async findByTelegramQuestionMessageId(messageId: number): Promise<Transaction | null> {
-    return fetchTransactionByTelegramMessageId(messageId);
+  async findByTelegramQuestionMessageId(userId: string, messageId: number): Promise<Transaction | null> {
+    return fetchTransactionByTelegramMessageId(userId, messageId);
   }
 
   async findLatestPendingByUserId(userId: string): Promise<Transaction | null> {
