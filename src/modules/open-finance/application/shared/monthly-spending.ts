@@ -5,9 +5,6 @@ export type MonthlySpending = {
   spendByCategory: Map<string, number>;
 };
 
-// Reimplements the aggregation from supabase/functions/analyze-spending (a
-// Deno Edge Function that can't import from src/) so the weekly Telegram
-// goals summary can reuse the same "spend so far this month" logic.
 export function aggregateMonthlySpending(transactions: Transaction[]): MonthlySpending {
   const spendByCategory = new Map<string, number>();
   let totalSpent = 0;

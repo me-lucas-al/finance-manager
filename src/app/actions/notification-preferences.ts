@@ -7,18 +7,24 @@ import { db } from '@/db';
 import { notificationPreferences } from '@/db/schema';
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 
-// z.coerce.boolean() would turn the string "false" into `true` (any non-empty
-// string is truthy), so checkboxes could never be turned off. Parse the exact
-// "true"/"false" strings we send instead.
-const booleanField = z.enum(['true', 'false']).transform((value) => value === 'true');
+const exactBooleanString = z.enum(['true', 'false']).transform((value) => value === 'true');
+
+const UNCHECKED_PREFERENCES = {
+  expenseNotificationsEnabled: 'false',
+  investmentNotificationsEnabled: 'false',
+  goalNotificationsEnabled: 'false',
+  closingNotificationsEnabled: 'false',
+  generalNotificationsEnabled: 'false',
+  pushNotificationsEnabled: 'false',
+};
 
 const updatePreferencesSchema = z.object({
-  expenseNotificationsEnabled: booleanField,
-  investmentNotificationsEnabled: booleanField,
-  goalNotificationsEnabled: booleanField,
-  closingNotificationsEnabled: booleanField,
-  generalNotificationsEnabled: booleanField,
-  pushNotificationsEnabled: booleanField,
+  expenseNotificationsEnabled: exactBooleanString,
+  investmentNotificationsEnabled: exactBooleanString,
+  goalNotificationsEnabled: exactBooleanString,
+  closingNotificationsEnabled: exactBooleanString,
+  generalNotificationsEnabled: exactBooleanString,
+  pushNotificationsEnabled: exactBooleanString,
 });
 
 async function fetchPreferencesCached(userId: string) {
@@ -38,17 +44,10 @@ export async function getNotificationPreferences() {
 export async function updateNotificationPreferences(formData: FormData) {
   const userId = await requireUserId();
 
-  // Checkboxes only appear in FormData when checked, so default every field to "false" first.
-  const rawData = {
-    expenseNotificationsEnabled: 'false',
-    investmentNotificationsEnabled: 'false',
-    goalNotificationsEnabled: 'false',
-    closingNotificationsEnabled: 'false',
-    generalNotificationsEnabled: 'false',
-    pushNotificationsEnabled: 'false',
+  const parsedData = updatePreferencesSchema.parse({
+    ...UNCHECKED_PREFERENCES,
     ...Object.fromEntries(formData.entries()),
-  };
-  const parsedData = updatePreferencesSchema.parse(rawData);
+  });
 
   await db.update(notificationPreferences)
     .set(parsedData)
