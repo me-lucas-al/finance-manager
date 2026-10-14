@@ -1,6 +1,7 @@
 import { ShieldCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatMemberSince, toInitials } from './profile-format';
+import { toInitials } from '@/lib/format';
+import { formatMemberSince } from './profile-format';
 
 interface ProfileHeaderProps {
   name: string;
