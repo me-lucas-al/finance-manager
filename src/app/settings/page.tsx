@@ -77,6 +77,7 @@ export default async function SettingsPage() {
                 periodEndDay={settings.periodEndDay}
                 maxExpensesPercentage={settings.maxExpensesPercentage}
                 minInvestmentPercentage={settings.minInvestmentPercentage}
+                initialBalance={settings.initialBalance}
                 expenseCategories={settings.expenseCategories ?? []}
                 investmentTypes={settings.investmentTypes ?? []}
               />

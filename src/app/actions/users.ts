@@ -23,6 +23,7 @@ const updateSettingsSchema = z.object({
   periodEndDay: z.coerce.number().min(1).max(31).optional(),
   maxExpensesPercentage: z.coerce.number().min(0).max(100).optional(),
   minInvestmentPercentage: z.coerce.number().min(0).max(100).optional(),
+  initialBalance: z.coerce.number().optional(),
   expenseCategories: jsonStringArray.optional(),
   investmentTypes: jsonStringArray.optional(),
 });
@@ -39,6 +40,7 @@ export async function updateUserSettings(formData: FormData) {
     maxExpensesPercentage: parsedData.maxExpensesPercentage,
     minInvestmentPercentage: parsedData.minInvestmentPercentage,
   };
+  if (parsedData.initialBalance !== undefined) dataToUpdate.initialBalance = parsedData.initialBalance.toFixed(2);
   if (parsedData.expenseCategories) dataToUpdate.expenseCategories = parsedData.expenseCategories;
   if (parsedData.investmentTypes) dataToUpdate.investmentTypes = parsedData.investmentTypes;
 

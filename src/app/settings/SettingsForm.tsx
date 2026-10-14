@@ -11,6 +11,7 @@ interface SettingsFormProps {
   periodEndDay: number;
   maxExpensesPercentage: number;
   minInvestmentPercentage: number;
+  initialBalance: string;
   expenseCategories: string[];
   investmentTypes: string[];
 }
@@ -55,6 +56,11 @@ export function SettingsForm(props: SettingsFormProps) {
           <Label htmlFor="minInvestmentPercentage">Mínimo de investimento (%)</Label>
           <Input id="minInvestmentPercentage" name="minInvestmentPercentage" type="number" min={0} max={100} defaultValue={props.minInvestmentPercentage} required />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="initialBalance">Saldo inicial (modo manual)</Label>
+        <Input id="initialBalance" name="initialBalance" type="number" step="0.01" defaultValue={props.initialBalance} />
       </div>
 
       <div className="space-y-2">
