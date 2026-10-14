@@ -15,6 +15,7 @@ import { UpdateEntryUseCase } from '../application/use-cases/update-entry';
 import { DrizzleIncomeRepository, DrizzleInvestmentRepository } from './repositories';
 import { NextEntryChangeNotifier } from './next-entry-change-notifier';
 import { PersistenceLedgerSource } from './persistence-ledger-source';
+import { createPortfolioService } from './portfolio-factory';
 
 export type EntryServicesDeps = {
   llm: ILanguageModel;
@@ -41,6 +42,7 @@ export function buildEntryServices({ llm, goalRepo }: EntryServicesDeps) {
 
   return {
     ledger: new LedgerService(new PersistenceLedgerSource(transactionRepo)),
+    portfolio: createPortfolioService(),
     registerEntry,
     updateEntry: new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classifyNecessity, notifier),
     deleteEntry: new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier),
