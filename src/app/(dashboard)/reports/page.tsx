@@ -1,4 +1,4 @@
-import { getEffectiveUserId } from '@/app/actions/require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { getCurrentMonth } from '@/lib/month';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReportFilters } from './ReportFilters';
@@ -11,7 +11,7 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ range?: string; period?: string }>;
 }) {
-  const userId = await getEffectiveUserId();
+  const userId = await requireUserId();
   const resolvedParams = await searchParams;
 
   const period = resolvedParams.period || resolvedParams.range || getCurrentMonth();

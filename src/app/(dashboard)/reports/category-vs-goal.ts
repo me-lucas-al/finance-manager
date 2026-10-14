@@ -1,4 +1,4 @@
-import { SupabaseGoalRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import type { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import type { LedgerEntry } from '@/modules/finance/domain/models/ledger-entry';
 import { entriesInMonth, totalsByCategory } from '@/modules/finance/domain/services/summarize-ledger';
 import type { CategoryGoalDatum } from './charts';
@@ -21,9 +21,13 @@ export function buildCategoryVsGoal(entries: LedgerEntry[], month: string, goals
   }));
 }
 
-export async function loadGoalTargets(userId: string, month: string): Promise<GoalTarget[]> {
+export async function loadGoalTargets(
+  goals: Pick<GoalRepository, 'findAllByUserIdAndMonth'>,
+  userId: string,
+  month: string
+): Promise<GoalTarget[]> {
   try {
-    return await new SupabaseGoalRepository().findAllByUserIdAndMonth(userId, `${month}-01`);
+    return await goals.findAllByUserIdAndMonth(userId, `${month}-01`);
   } catch {
     return [];
   }

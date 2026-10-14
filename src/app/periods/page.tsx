@@ -1,4 +1,4 @@
-import { getEffectiveUserId } from '@/app/actions/require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { db } from '../../db';
 import { financialPeriods, userSettings } from '../../db/schema';
 import { eq, desc } from 'drizzle-orm';
@@ -10,7 +10,7 @@ import { ptBR } from 'date-fns/locale';
 import { getFinancialPeriod } from '../../modules/periods/domain/financial-period';
 
 export default async function PeriodsPage() {
-  const userId = await getEffectiveUserId();
+  const userId = await requireUserId();
 
   const [periods, settingsResult] = await Promise.all([
     db.select().from(financialPeriods).where(eq(financialPeriods.userId, userId)).orderBy(desc(financialPeriods.startDate)),

@@ -2,8 +2,8 @@ import { Navigation } from '@/components/Navigation';
 import { Logo } from '@/components/Logo';
 import { HeaderControls } from '@/components/HeaderControls';
 import { auth } from '@/auth';
-import { getEffectiveUserId } from '@/app/actions/require-session';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 
 export async function AppHeader() {
   const session = await auth();
@@ -13,7 +13,7 @@ export async function AppHeader() {
 
   if (!userEmail) {
     try {
-      const effectiveId = await getEffectiveUserId();
+      const effectiveId = await requireUserId();
       const { data } = await getSupabaseAdmin()
         .from('users')
         .select('name, email')

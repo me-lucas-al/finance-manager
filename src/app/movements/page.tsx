@@ -1,4 +1,5 @@
-import { getLiveMovementsData } from '@/modules/finance/application/services/movements-data-service';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
+import { getLiveMovementsData } from '@/composition/finance-views';
 import { getCurrentMonth } from '@/lib/month';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
 import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
@@ -32,7 +33,7 @@ export default async function MovementsPage({
   const defaultMonth = getCurrentMonth();
   const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
 
-  const data = await getLiveMovementsData(month);
+  const data = await getLiveMovementsData(await requireUserId(), month);
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">

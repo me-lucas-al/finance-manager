@@ -2,7 +2,7 @@ import { User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { getUserSettings } from '@/app/actions/users';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
-import { getEffectiveUserId } from '@/app/actions/require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   const [settings, preferences, userId] = await Promise.all([
     getUserSettings(),
     getNotificationPreferences(),
-    getEffectiveUserId(),
+    requireUserId(),
   ]);
 
   const [[dbUser], onboarding] = await Promise.all([

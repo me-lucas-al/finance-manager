@@ -1,8 +1,7 @@
-import { eq } from 'drizzle-orm';
-import { db } from '@/db';
-import { userSettings } from '@/db/schema';
 import { getCurrentMonth } from '@/lib/month';
-import { createLedgerService } from '@/modules/finance/infrastructure/ledger-factory';
+import { ledgerService } from '@/composition/finance';
+import { goalRepository } from '@/composition/open-finance';
+import { settingRepository } from '@/composition/users';
 import { entriesInMonth, totalsByCategory, totalsOf } from '@/modules/finance/domain/services/summarize-ledger';
 import { buildCategoryVsGoal, loadGoalTargets } from './category-vs-goal';
 import { buildEvolutionTimeline } from './report-timeline-builder';
@@ -22,10 +21,10 @@ export async function getReportData(userId: string, params: ReportFilterParams):
   const isAllTime = period === 'all';
   const referenceMonth = isAllTime ? currentMonth : period;
 
-  const [entries, [settings], goals] = await Promise.all([
-    createLedgerService().load(userId),
-    db.select().from(userSettings).where(eq(userSettings.userId, userId)),
-    loadGoalTargets(userId, referenceMonth),
+  const [entries, settings, goals] = await Promise.all([
+    ledgerService.load(userId),
+    settingRepository.findByUserId(userId),
+    loadGoalTargets(goalRepository, userId, referenceMonth),
   ]);
 
   const scoped = isAllTime ? entries : entriesInMonth(entries, period);

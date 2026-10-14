@@ -1,29 +1,23 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getEffectiveUserId } from '@/app/actions/require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { dateAtNoon, getCurrentMonth } from '@/lib/month';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/lib/format';
-import {
-  SupabaseGoalRepository,
-  SupabaseSavingsGoalRepository,
-} from '@/modules/open-finance/infrastructure/supabase-repositories';
-import { getExpenseCategories } from '@/modules/open-finance/application/shared/expense-categories';
+import { goalRepository, listExpenseCategories, savingsGoalRepository } from '@/composition/open-finance';
 import { GoalsChat, GoalsForm } from './components';
 
 export default async function GoalsPage() {
-  const userId = await getEffectiveUserId();
+  const userId = await requireUserId();
 
   const currentMonth = getCurrentMonth();
   const month = `${currentMonth}-01`;
   const monthLabel = format(dateAtNoon(month), "MMMM 'de' yyyy", { locale: ptBR });
 
-  const goalRepository = new SupabaseGoalRepository();
-  const savingsGoalRepository = new SupabaseSavingsGoalRepository();
   const [goals, categories, savingsGoals] = await Promise.all([
     goalRepository.findAllByUserIdAndMonth(userId, month).catch(() => []),
-    getExpenseCategories(userId),
+    listExpenseCategories(userId),
     savingsGoalRepository.findAllActiveByUserId(userId).catch(() => []),
   ]);
 
