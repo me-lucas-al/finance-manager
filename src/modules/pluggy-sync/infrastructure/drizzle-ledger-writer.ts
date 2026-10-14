@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { and, eq, notInArray, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { holdings, incomes, investments } from '@/db/schema';
 import type { HoldingInput, LedgerWriter } from '../domain/ledger-writer';
@@ -43,20 +43,29 @@ export class DrizzleLedgerWriter implements LedgerWriter {
     return inserted.length > 0;
   }
 
-  async upsertHolding(data: HoldingInput): Promise<void> {
-    await db
-      .insert(holdings)
-      .values({
-        id: crypto.randomUUID(),
-        userId: data.userId,
-        externalId: data.externalId,
-        name: data.name,
-        type: data.type,
-        balance: data.balance.toFixed(2),
-      })
-      .onConflictDoUpdate({
-        target: [holdings.userId, holdings.externalId],
-        set: { name: data.name, type: data.type, balance: data.balance.toFixed(2), syncedAt: sql`now()` },
-      });
+  async replaceItemHoldings(userId: string, itemId: string, positions: HoldingInput[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (const data of positions) {
+        await tx
+          .insert(holdings)
+          .values({
+            id: crypto.randomUUID(),
+            userId,
+            itemId,
+            externalId: data.externalId,
+            name: data.name,
+            type: data.type,
+            balance: data.balance.toFixed(2),
+          })
+          .onConflictDoUpdate({
+            target: [holdings.userId, holdings.externalId],
+            set: { itemId, name: data.name, type: data.type, balance: data.balance.toFixed(2), syncedAt: sql`now()` },
+          });
+      }
+      const ofItem = and(eq(holdings.userId, userId), eq(holdings.itemId, itemId));
+      const keptIds = positions.map((position) => position.externalId);
+      const stale = keptIds.length > 0 ? and(ofItem, notInArray(holdings.externalId, keptIds)) : ofItem;
+      await tx.delete(holdings).where(stale);
+    });
   }
 }

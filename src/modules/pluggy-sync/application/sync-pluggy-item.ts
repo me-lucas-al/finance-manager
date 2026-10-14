@@ -28,11 +28,14 @@ export class SyncPluggyItemUseCase {
     if (itemAccounts.length === 0) return { imported: 0 };
 
     const period = await this.resolvePeriod.execute(userId);
-    const imported = await this.importTransactions(userId, itemAccounts, period);
-    await this.syncHoldings.execute(userId, itemId);
-    await this.syncBalances.execute(itemId, await this.accounts.findAllByPluggyItemId(itemId));
-    await this.notifier.notifyEntriesChanged(userId);
-    return { imported };
+    try {
+      const imported = await this.importTransactions(userId, itemAccounts, period);
+      await this.syncHoldings.execute(userId, itemId);
+      await this.syncBalances.execute(itemId, await this.accounts.findAllByPluggyItemId(itemId));
+      return { imported };
+    } finally {
+      await this.notifier.notifyEntriesChanged(userId);
+    }
   }
 
   private async collectSources(accounts: Account[], period: SyncPeriod): Promise<TransactionSource<Account>[]> {

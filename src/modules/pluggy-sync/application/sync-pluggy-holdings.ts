@@ -5,17 +5,17 @@ export class SyncPluggyHoldings {
   constructor(private ledger: LedgerWriter) {}
 
   async execute(userId: string, itemId: string): Promise<void> {
-    const holdings = await fetchItemInvestments(itemId);
-
-    for (const holding of holdings) {
-      if (!holding.balance || holding.balance <= 0) continue;
-      await this.ledger.upsertHolding({
+    const fetched = await fetchItemInvestments(itemId);
+    const positions = fetched
+      .filter((holding) => holding.balance && holding.balance > 0)
+      .map((holding) => ({
         userId,
+        itemId,
         externalId: `pluggy-investment:${holding.id}`,
         name: holding.name,
         type: String(holding.type),
         balance: holding.balance,
-      });
-    }
+      }));
+    await this.ledger.replaceItemHoldings(userId, itemId, positions);
   }
 }

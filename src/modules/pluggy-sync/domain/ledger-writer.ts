@@ -8,6 +8,7 @@ type EntryBase = {
 
 export type HoldingInput = {
   userId: string;
+  itemId: string;
   externalId: string;
   name: string;
   type: string;
@@ -17,5 +18,5 @@ export type HoldingInput = {
 export interface LedgerWriter {
   addIncome(data: EntryBase & { category: string; receivedAt: Date }): Promise<boolean>;
   addInvestment(data: EntryBase & { type: string; date: Date }): Promise<boolean>;
-  upsertHolding(data: HoldingInput): Promise<void>;
+  replaceItemHoldings(userId: string, itemId: string, holdings: HoldingInput[]): Promise<void>;
 }

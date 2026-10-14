@@ -5,6 +5,9 @@ import type { LedgerWriter } from '../domain/ledger-writer';
 import type { PluggyLedgerEntry } from '../domain/map-pluggy-transaction';
 import type { SyncPeriod } from '../domain/sync-period';
 
+const isDuplicateKeyError = (error: unknown): boolean =>
+  error instanceof Error && /duplicate key|23505/i.test(error.message);
+
 export class PersistLedgerEntry {
   constructor(
     private ledger: LedgerWriter,
@@ -45,22 +48,27 @@ export class PersistLedgerEntry {
     const alreadyStored = await this.transactions.findByPluggyId(entry.externalId);
     if (alreadyStored) return false;
 
-    await this.transactions.create({
-      userId,
-      pluggyTransactionId: entry.externalId,
-      accountId: account.id,
-      bank: account.bank,
-      amount: entry.amount,
-      description: entry.description,
-      occurredAt: toLocalDateString(entry.date),
-      category: entry.category,
-      categorySuggested: null,
-      reason: null,
-      status: 'categorized',
-      source: 'pluggy',
-      necessity: null,
-      telegramQuestionMessageId: null,
-    });
-    return true;
+    try {
+      await this.transactions.create({
+        userId,
+        pluggyTransactionId: entry.externalId,
+        accountId: account.id,
+        bank: account.bank,
+        amount: entry.amount,
+        description: entry.description,
+        occurredAt: toLocalDateString(entry.date),
+        category: entry.category,
+        categorySuggested: null,
+        reason: null,
+        status: 'categorized',
+        source: 'pluggy',
+        necessity: null,
+        telegramQuestionMessageId: null,
+      });
+      return true;
+    } catch (error) {
+      if (isDuplicateKeyError(error)) return false;
+      throw error;
+    }
   }
 }
