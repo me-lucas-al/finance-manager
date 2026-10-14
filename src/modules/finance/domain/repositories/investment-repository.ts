@@ -1,7 +1,6 @@
-import type { InferSelectModel } from 'drizzle-orm';
-import type { investments } from '@/db/schema';
+import type { Investment } from '../models/investment';
 
-export type Investment = InferSelectModel<typeof investments>;
+export type { Investment };
 
 export type InvestmentSortField = 'date' | 'description' | 'amount';
 

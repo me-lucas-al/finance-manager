@@ -1,39 +1,40 @@
 import type { LedgerEntry } from '../models/ledger-entry';
 import type { LiveOverviewData } from '../models/financial-types';
-import { entriesOfKind, monthlyEvolution, totalsOf } from './summarize-ledger';
+import { EMPTY_PORTFOLIO, type Portfolio } from '../models/portfolio';
+import { buildBankAccounts } from './build-bank-accounts';
+import { buildCardSummary } from './build-card-summary';
+import { computeBankBalance } from './compute-bank-balance';
+import { computeInvestmentTotal } from './compute-investment-total';
+import { groupInvestments } from './group-investments';
+import { investmentEntriesOf } from './investment-entries';
+import { balanceThrough, monthlyEvolution } from './summarize-ledger';
 
 const EVOLUTION_MONTHS = 6;
 
-function groupInvestmentsByCategory(investments: LedgerEntry[]) {
-  const groups = new Map<string, { count: number; amount: number }>();
-  for (const investment of investments) {
-    const current = groups.get(investment.category) ?? { count: 0, amount: 0 };
-    groups.set(investment.category, { count: current.count + 1, amount: current.amount + investment.amount });
-  }
-  return Array.from(groups, ([name, group]) => ({ name, count: group.count, amount: group.amount }));
-}
-
-export function buildOverviewData(entries: LedgerEntry[], currentMonth: string): LiveOverviewData {
-  const totals = totalsOf(entries);
-  const investments = entriesOfKind(entries, 'investment');
-  const activeCount = investments.filter((investment) => investment.amount > 0).length;
+export function buildOverviewData(
+  entries: LedgerEntry[],
+  currentMonth: string,
+  portfolio: Portfolio = EMPTY_PORTFOLIO,
+): LiveOverviewData {
+  const bankTotal = computeBankBalance(entries, portfolio);
+  const manualInvestments = investmentEntriesOf(entries, portfolio);
+  const activeCount =
+    manualInvestments.filter((investment) => investment.amount > 0).length +
+    portfolio.holdings.filter((holding) => holding.balance > 0).length;
+  const totalCount = manualInvestments.length + portfolio.holdings.length;
+  const balanceOffset = bankTotal - balanceThrough(entries, currentMonth);
   const evolution = monthlyEvolution(entries, currentMonth, EVOLUTION_MONTHS);
 
   return {
-    bankTotal: totals.balance,
-    bankAccounts: [
-      { id: 'primary', bank: 'manual', name: 'Saldo Disponível', countText: 'Principal', amount: totals.balance },
-    ],
-    cardTotal: 0,
-    cardLimit: 0,
-    cardUsedPercentage: 0,
-    cards: [],
-    investmentTotal: totals.investments,
-    investmentCount: investments.length,
+    bankTotal,
+    bankAccounts: buildBankAccounts(portfolio, bankTotal),
+    ...buildCardSummary(portfolio),
+    investmentTotal: computeInvestmentTotal(entries, portfolio),
+    investmentCount: totalCount,
     activeInvestmentCount: activeCount,
-    inactiveInvestmentCount: investments.length - activeCount,
-    evolutionBalance: totals.balance,
-    evolutionData: evolution.map((point) => ({ date: point.month, value: point.cumulativeBalance })),
-    investmentInstitutions: groupInvestmentsByCategory(investments),
+    inactiveInvestmentCount: totalCount - activeCount,
+    evolutionBalance: bankTotal,
+    evolutionData: evolution.map((point) => ({ date: point.month, value: point.cumulativeBalance + balanceOffset })),
+    investmentInstitutions: groupInvestments(manualInvestments, portfolio),
   };
 }

@@ -1,8 +1,6 @@
-import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import type { userSettings } from '@/db/schema';
+import type { NewSetting, Setting } from '../models/setting';
 
-export type Setting = InferSelectModel<typeof userSettings>;
-export type NewSetting = InferInsertModel<typeof userSettings>;
+export type { NewSetting, Setting };
 
 export interface SettingRepository {
   create(data: Omit<NewSetting, 'id'>): Promise<Setting>;

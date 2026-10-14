@@ -1,5 +1,6 @@
 import { UndoLastEntryService } from '../services/undo-last-entry-service';
 import { LedgerService } from '../services/ledger-service';
+import { PortfolioService } from '../services/portfolio-service';
 import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { calculateFinancialSnapshot } from '../../domain/services/calculate-financial-snapshot';
 import { formatMonthSummary } from '../services/month-summary-formatter';
@@ -26,6 +27,7 @@ export class HandleBotCommandUseCase {
   constructor(
     private undoService: UndoLastEntryService,
     private ledger: LedgerService,
+    private portfolio: PortfolioService,
     private goalRepo: GoalRepository
   ) {}
 
@@ -46,12 +48,13 @@ export class HandleBotCommandUseCase {
 
     if (norm === '/resumo') {
       const curMonth = getCurrentMonth();
-      const [entries, goals] = await Promise.all([
+      const [entries, portfolio, goals] = await Promise.all([
         this.ledger.load(userId),
+        this.portfolio.load(userId),
         this.goalRepo.findAllByUserIdAndMonth(userId, `${curMonth}-01`),
       ]);
 
-      const snapshot = calculateFinancialSnapshot({ entries, goals, referenceMonth: curMonth });
+      const snapshot = calculateFinancialSnapshot({ entries, goals, portfolio, referenceMonth: curMonth });
 
       return formatMonthSummary(snapshot, curMonth);
     }

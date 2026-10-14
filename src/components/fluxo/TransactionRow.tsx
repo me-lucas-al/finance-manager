@@ -1,12 +1,9 @@
-'use client';
-
 import { CreditCard } from 'lucide-react';
-import { useAmountFormatter } from '@/hooks/useAmountFormatter';
+import { Amount } from '@/components/shared/Amount';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 import { ENTRY_KIND_STYLE, signedAmount } from './entry-kind-style';
 
 export function TransactionRow({ transaction }: { transaction: LiveTransactionItem }) {
-  const formatAmount = useAmountFormatter();
   const { Icon, boxClass, iconClass, amountClass } = ENTRY_KIND_STYLE[transaction.type];
 
   return (
@@ -25,9 +22,10 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
           </div>
         </div>
       </div>
-      <span className={`text-sm font-semibold tabular-nums ${amountClass}`}>
-        {formatAmount(signedAmount(transaction.type, transaction.amount))}
-      </span>
+      <Amount
+        value={signedAmount(transaction.type, transaction.amount)}
+        className={`text-sm font-semibold tabular-nums ${amountClass}`}
+      />
     </div>
   );
 }

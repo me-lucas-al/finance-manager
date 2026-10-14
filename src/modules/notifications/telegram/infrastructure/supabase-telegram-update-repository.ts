@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 import { TelegramUpdateRepository } from '../domain/telegram-update-repository';
 
 const UNIQUE_VIOLATION = '23505';

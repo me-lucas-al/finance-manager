@@ -1,22 +1,14 @@
 import crypto from 'node:crypto';
 import { UserRepository } from '../../users/domain/repositories/user-repository';
 import { hashPassword, verifyPassword } from '../domain/password';
-import { EmailService } from '../../notifications/email/EmailService';
+import { EmailService } from '../../notifications/email/email-service';
+import { systemClock, type Clock } from '@/shared/clock';
+import type {
+  PasswordResetTokenRecord,
+  PasswordResetTokenRepository,
+} from '../domain/repositories/password-reset-token-repository';
 
-export interface PasswordResetTokenRecord {
-  id: string;
-  userId: string;
-  token: string;
-  expiresAt: Date;
-  usedAt: Date | null;
-  createdAt: Date;
-}
-
-export interface PasswordResetTokenRepository {
-  create(data: { id: string; userId: string; token: string; expiresAt: Date }): Promise<PasswordResetTokenRecord>;
-  findByToken(token: string): Promise<PasswordResetTokenRecord | null>;
-  markAsUsed(id: string): Promise<void>;
-}
+export type { PasswordResetTokenRecord, PasswordResetTokenRepository };
 
 export function hashResetToken(rawToken: string): string {
   return crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -27,7 +19,8 @@ export async function requestPasswordResetToken(
   tokenRepo: PasswordResetTokenRepository,
   email: string,
   appUrl: string = 'http://localhost:3000',
-  emailService?: EmailService
+  emailService?: EmailService,
+  clock: Clock = systemClock
 ): Promise<{ success: boolean; token?: string; message: string }> {
   const user = await userRepo.findByEmail(email);
   if (!user) {
@@ -39,7 +32,7 @@ export async function requestPasswordResetToken(
 
   const rawToken = crypto.randomUUID();
   const tokenHash = hashResetToken(rawToken);
-  const expiresAt = new Date(Date.now() + 3600 * 1000);
+  const expiresAt = new Date(clock.now().getTime() + 3600 * 1000);
 
   await tokenRepo.create({
     id: crypto.randomUUID(),
@@ -65,11 +58,12 @@ export async function resetUserPassword(
   userRepo: UserRepository,
   tokenRepo: PasswordResetTokenRepository,
   token: string,
-  newPassword: string
+  newPassword: string,
+  clock: Clock = systemClock
 ): Promise<{ success: boolean; error?: string }> {
   const tokenHash = hashResetToken(token);
   const tokenRecord = await tokenRepo.findByToken(tokenHash);
-  if (!tokenRecord || tokenRecord.usedAt || new Date(tokenRecord.expiresAt) < new Date()) {
+  if (!tokenRecord || tokenRecord.usedAt || new Date(tokenRecord.expiresAt) < clock.now()) {
     return { success: false, error: 'Link de redefinição inválido ou expirado.' };
   }
 

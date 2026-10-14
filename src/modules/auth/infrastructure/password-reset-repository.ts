@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../../../db';
 import { passwordResetTokens } from '../../../db/schema';
-import {
+import type {
   PasswordResetTokenRepository,
   PasswordResetTokenRecord,
-} from '../application/password-reset';
+} from '../domain/repositories/password-reset-token-repository';
 
 export class DrizzlePasswordResetTokenRepository implements PasswordResetTokenRepository {
   async create(data: { id: string; userId: string; token: string; expiresAt: Date }): Promise<PasswordResetTokenRecord> {

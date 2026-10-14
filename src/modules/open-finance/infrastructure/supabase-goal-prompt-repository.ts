@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 import { GoalPrompt, NewGoalPrompt, GoalPromptRepository } from '../domain/repositories/goal-prompt-repository';
 import { unwrap } from './supabase-common';
 

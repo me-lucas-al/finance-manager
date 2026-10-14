@@ -18,28 +18,12 @@ export function getFinancialPeriod(date: Date, startDay: number = 15, endDay: nu
   const currentMonth = date.getMonth();
   const currentYear = date.getFullYear();
 
-  let start: Date;
-  let end: Date;
+  const spansTwoMonths = endDay < startDay;
+  const startMonthOffset = currentDay >= startDay ? 0 : -1;
+  const endMonthOffset = startMonthOffset + (spansTwoMonths ? 1 : 0);
 
-  if (endDay >= startDay) {
-    // Period fits within a single month (e.g., 1st -> 30th).
-    if (currentDay >= startDay) {
-      start = dayInMonth(currentYear, currentMonth, startDay);
-      end = dayInMonth(currentYear, currentMonth, endDay);
-    } else {
-      start = dayInMonth(currentYear, currentMonth - 1, startDay);
-      end = dayInMonth(currentYear, currentMonth - 1, endDay);
-    }
-  } else {
-    // Period spans two months (e.g., 15th -> 14th of the next month).
-    if (currentDay >= startDay) {
-      start = dayInMonth(currentYear, currentMonth, startDay);
-      end = dayInMonth(currentYear, currentMonth + 1, endDay);
-    } else {
-      start = dayInMonth(currentYear, currentMonth - 1, startDay);
-      end = dayInMonth(currentYear, currentMonth, endDay);
-    }
-  }
+  const start = dayInMonth(currentYear, currentMonth + startMonthOffset, startDay);
+  const end = dayInMonth(currentYear, currentMonth + endMonthOffset, endDay);
 
   return { start, end: endOfDay(end) };
 }

@@ -29,3 +29,29 @@ export function shiftMonth(month: string, delta: number): string {
   const date = new Date(year, mon - 1 + delta, 1);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
+
+const MONTH_KEY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+const LONG_MONTH_NAMES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
+const SHORT_MONTH_NAMES = [
+  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+];
+
+export function isValidMonthKey(value: string): boolean {
+  return MONTH_KEY_PATTERN.test(value);
+}
+
+export function toMonthStart(month: string): string {
+  return `${month}-01`;
+}
+
+export function monthLabel(month: string, variant: 'long' | 'short' = 'long'): string {
+  const [year, monthNumber] = month.split('-').map(Number);
+  if (variant === 'short') return `${SHORT_MONTH_NAMES[monthNumber - 1]}/${String(year).slice(2)}`;
+  return `${LONG_MONTH_NAMES[monthNumber - 1]} de ${year}`;
+}

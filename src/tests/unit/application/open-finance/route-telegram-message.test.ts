@@ -1,14 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RouteTelegramMessageUseCase } from '@/modules/open-finance/application/use-cases/route-telegram-message';
-import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
-import { FakeGoalPromptRepository } from './fake-goal-prompt-repository';
+import { createFakeTelegramMessenger } from '@/tests/fakes/fake-telegram-messenger';
+import { FakeGoalPromptRepository } from '@/tests/fakes/fake-goal-prompt-repository';
 
-vi.mock('@/modules/notifications/telegram/TelegramService', () => ({
-  TelegramService: {
-    sendMessage: vi.fn(),
-    sendTyping: vi.fn(),
-  },
-}));
+const messenger = createFakeTelegramMessenger();
 
 import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
@@ -45,6 +40,7 @@ describe('RouteTelegramMessageUseCase', () => {
       askFinancialGoals: askFinancialGoals as unknown as AskFinancialGoalsUseCase,
       recordGoalsReply: recordGoalsReply as unknown as RecordGoalsReplyUseCase,
       goalPromptRepo,
+      messenger,
     });
   });
 
@@ -56,7 +52,7 @@ describe('RouteTelegramMessageUseCase', () => {
   it('routes /ajuda command to handleBotCommand and sends reply', async () => {
     await useCase.execute({ messageId: 2, text: '/ajuda' }, 'user-1');
     expect(handleBotCommand.execute).toHaveBeenCalledWith('user-1', '/ajuda');
-    expect(TelegramService.sendMessage).toHaveBeenCalledWith('user-1', 'Ajuda aqui', 2);
+    expect(messenger.sendMessage).toHaveBeenCalledWith('user-1', 'Ajuda aqui', 2);
   });
 
   it('routes deterministic pipe entry to registerManualEntry', async () => {
@@ -67,7 +63,7 @@ describe('RouteTelegramMessageUseCase', () => {
       description: 'arroz',
       amount: 25.9,
     });
-    expect(TelegramService.sendMessage).toHaveBeenCalled();
+    expect(messenger.sendMessage).toHaveBeenCalled();
   });
 
   it('routes to AI extraction fallback when pipe format is missing', async () => {
@@ -87,6 +83,6 @@ describe('RouteTelegramMessageUseCase', () => {
   it('routes to advisor chat when message is a general question', async () => {
     await useCase.execute({ messageId: 5, text: 'como está minha meta este mês?' }, 'user-1');
     expect(advisorChat.respond).toHaveBeenCalledWith('user-1', 'como está minha meta este mês?', 'telegram');
-    expect(TelegramService.sendMessage).toHaveBeenCalledWith('user-1', 'Conselho financeiro', 5);
+    expect(messenger.sendMessage).toHaveBeenCalledWith('user-1', 'Conselho financeiro', 5);
   });
 });

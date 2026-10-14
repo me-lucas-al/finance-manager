@@ -1,5 +1,3 @@
-'use client';
-
 import { PencilLine, Rocket, ShieldCheck, Wallet } from 'lucide-react';
 import { StepCarousel, type CarouselStep } from './StepCarousel';
 

@@ -9,8 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getCurrentMonth, shiftMonth } from '@/lib/month';
-import { formatMonthLabel } from './month-format';
+import { getCurrentMonth, monthLabel, shiftMonth } from '@/lib/month';
 
 function buildPeriodOptions() {
   return [
@@ -18,7 +17,7 @@ function buildPeriodOptions() {
       const month = shiftMonth(getCurrentMonth(), -i);
       return {
         value: month,
-        label: i === 0 ? `${formatMonthLabel(month)} (Atual)` : formatMonthLabel(month),
+        label: i === 0 ? `${monthLabel(month, 'short')} (Atual)` : monthLabel(month, 'short'),
       };
     }),
     { value: 'all', label: 'Todo o Histórico' },

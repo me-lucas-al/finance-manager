@@ -2,12 +2,16 @@ import { FinancialSnapshot, CategoryMetric } from '../models/financial-snapshot'
 import type { LedgerEntry } from '../models/ledger-entry';
 import { Goal } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
+import { EMPTY_PORTFOLIO, type Portfolio } from '../models/portfolio';
+import { computeBankBalance } from './compute-bank-balance';
+import { computeInvestmentTotal } from './compute-investment-total';
 import { entriesInMonth, totalsByCategory, totalsOf } from './summarize-ledger';
 
 export type SnapshotInput = {
   entries: LedgerEntry[];
   goals: Goal[];
   referenceMonth?: string;
+  portfolio?: Portfolio;
 };
 
 const SAVINGS_RATE_PERCENT = 100;
@@ -45,14 +49,14 @@ export function calculateFinancialSnapshot(input: SnapshotInput): FinancialSnaps
   const current = totalsOf(currentEntries);
   const previous = totalsOf(previousEntries);
   const twoMonthsAgo = totalsOf(entriesInMonth(input.entries, twoMonthsAgoKey));
-  const all = totalsOf(input.entries);
+  const portfolio = input.portfolio ?? EMPTY_PORTFOLIO;
 
   const currentCategories = categoryMap(currentEntries);
   const savingsRate = current.income > 0 ? Math.round(((current.income - current.expenses) / current.income) * SAVINGS_RATE_PERCENT) : 0;
   const averageExpenses = (current.expenses + previous.expenses + twoMonthsAgo.expenses) / 3;
 
   return {
-    balance: all.balance,
+    balance: computeBankBalance(input.entries, portfolio),
     currentMonth: {
       totalIncome: current.income,
       totalExpenses: current.expenses,
@@ -67,7 +71,7 @@ export function calculateFinancialSnapshot(input: SnapshotInput): FinancialSnaps
       netBalance: previous.balance,
     },
     threeMonthsAverageExpenses: Math.round(averageExpenses * 100) / 100,
-    totalInvested: all.investments,
+    totalInvested: computeInvestmentTotal(input.entries, portfolio),
     categoryMetrics: buildCategoryMetrics(currentCategories, categoryMap(previousEntries), input.goals),
   };
 }

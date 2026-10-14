@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
+import { matchesTextSearch } from '@/modules/finance/domain/services/match-text-search';
 import { signedAmount } from './entry-kind-style';
 
 export type TypeFilter = 'all' | LiveTransactionItem['type'];
@@ -12,12 +13,10 @@ export function useTransactionFilters(transactions: LiveTransactionItem[]) {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
     return transactions.filter((tx) => {
       if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
       if (selectedAccount !== 'all' && tx.bank !== selectedAccount) return false;
-      if (!query) return true;
-      return [tx.description, tx.category, tx.account].some((field) => field.toLowerCase().includes(query));
+      return matchesTextSearch(tx, search);
     });
   }, [transactions, search, selectedAccount, typeFilter]);
 

@@ -4,7 +4,7 @@ import { updateTag } from 'next/cache';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { notifications } from '@/db/schema';
-import { requireUserId } from './require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 
 async function fetchNotificationsCached(userId: string) {
   'use cache';

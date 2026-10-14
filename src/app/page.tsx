@@ -1,9 +1,10 @@
-import { getLiveOverviewData } from '@/modules/finance/application/services/overview-data-service';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
+import { getLiveOverviewData } from '@/composition/finance-views';
 import { OverviewCards } from '@/components/overview/OverviewCards';
 import { BalanceEvolutionCard } from '@/components/overview/BalanceEvolutionCard';
 
 export default async function DashboardPage() {
-  const data = await getLiveOverviewData();
+  const data = await getLiveOverviewData(await requireUserId());
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">

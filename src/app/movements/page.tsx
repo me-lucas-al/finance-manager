@@ -1,27 +1,8 @@
-import { getLiveMovementsData } from '@/modules/finance/application/services/movements-data-service';
-import { getCurrentMonth } from '@/lib/month';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
+import { getLiveMovementsData } from '@/composition/finance-views';
+import { getCurrentMonth, isValidMonthKey, monthLabel } from '@/lib/month';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
 import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
-
-const MONTH_NAMES = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-];
-
-function formatMonthLabel(month: string): string {
-  const [year, mon] = month.split('-').map(Number);
-  return `${MONTH_NAMES[mon - 1]} De ${year}`;
-}
 
 export default async function MovementsPage({
   searchParams,
@@ -30,9 +11,9 @@ export default async function MovementsPage({
 }) {
   const { month: rawMonth } = await searchParams;
   const defaultMonth = getCurrentMonth();
-  const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : defaultMonth;
+  const month = rawMonth && isValidMonthKey(rawMonth) ? rawMonth : defaultMonth;
 
-  const data = await getLiveMovementsData(month);
+  const data = await getLiveMovementsData(await requireUserId(), month);
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
@@ -53,7 +34,7 @@ export default async function MovementsPage({
 
         <TransactionsExplorer
           month={month}
-          monthLabel={formatMonthLabel(month)}
+          monthLabel={monthLabel(month)}
           initialTransactions={data.transactions}
           totalIncome={data.totalIncome}
           totalExpenses={data.totalExpenses}

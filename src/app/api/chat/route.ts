@@ -1,5 +1,5 @@
-import { authorizeUser } from '@/app/api/authorize-user';
-import { buildAdvisorServices } from '@/modules/ai/infrastructure/build-advisor-services';
+import { buildAdvisorServices } from '@/composition/ai';
+import { authorizeUser } from '@/modules/auth/infrastructure/authorize-user';
 import { extractLastUserText } from './chat-request';
 import { textStreamToUIResponse } from './text-stream-response';
 

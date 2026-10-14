@@ -1,5 +1,3 @@
-'use client';
-
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 import { TransactionRow } from './TransactionRow';
 

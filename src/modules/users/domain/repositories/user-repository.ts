@@ -1,8 +1,6 @@
-import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import type { users } from '@/db/schema';
+import type { NewUser, User } from '../models/user';
 
-export type User = InferSelectModel<typeof users>;
-export type NewUser = InferInsertModel<typeof users>;
+export type { NewUser, User };
 
 export interface UserRepository {
   create(data: Omit<NewUser, 'id'>): Promise<User>;

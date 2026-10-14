@@ -6,6 +6,11 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     exclude: ['**/node_modules/**', '**/e2e/**'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/components/ui/**', 'src/tests/**', 'src/db/migrations/**'],
+    },
   },
   resolve: {
     alias: {

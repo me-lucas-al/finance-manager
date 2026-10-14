@@ -1,17 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const sendMessageMock = vi.fn();
+import { createFakeTelegramMessenger } from '@/tests/fakes/fake-telegram-messenger';
 
-vi.mock('@/modules/notifications/telegram/TelegramService', () => ({
-  TelegramService: { sendMessage: (...args: unknown[]) => sendMessageMock(...args) },
-}));
+const messenger = createFakeTelegramMessenger();
+const sendMessageMock = messenger.sendMessage;
 
 const { AskFinancialGoalsUseCase } = await import(
   '../../../../modules/open-finance/application/use-cases/ask-financial-goals'
 );
-const { FakeGoalRepository } = await import('./fake-goal-repository');
-const { FakeSavingsGoalRepository } = await import('./fake-savings-goal-repository');
-const { FakeGoalPromptRepository } = await import('./fake-goal-prompt-repository');
+const { FakeGoalRepository } = await import('@/tests/fakes/fake-goal-repository');
+const { FakeSavingsGoalRepository } = await import('@/tests/fakes/fake-savings-goal-repository');
+const { FakeGoalPromptRepository } = await import('@/tests/fakes/fake-goal-prompt-repository');
 
 function currentMonth(): string {
   const now = new Date();
@@ -29,7 +28,12 @@ describe('AskFinancialGoalsUseCase', () => {
     goalRepository = new FakeGoalRepository();
     savingsGoalRepository = new FakeSavingsGoalRepository();
     goalPromptRepository = new FakeGoalPromptRepository();
-    useCase = new AskFinancialGoalsUseCase(goalRepository, savingsGoalRepository, goalPromptRepository);
+    useCase = new AskFinancialGoalsUseCase(
+      goalRepository,
+      savingsGoalRepository,
+      goalPromptRepository,
+      messenger
+    );
   });
 
   it('sends the prompt and records the goal_prompt with the returned message id', async () => {

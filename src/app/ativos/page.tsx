@@ -1,9 +1,10 @@
-import { getLiveInvestmentsData } from '@/modules/finance/application/services/assets-data-service';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
+import { getLiveInvestmentsData } from '@/composition/finance-views';
 import { AtivosList } from '@/components/ativos/AtivosList';
 import { Suspense } from 'react';
 
 export default async function AtivosPage() {
-  const data = await getLiveInvestmentsData();
+  const data = await getLiveInvestmentsData(await requireUserId());
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">

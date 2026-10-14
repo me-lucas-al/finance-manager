@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
-import { AppHeader } from '@/components/AppHeader';
+import { CurrentUserHeader } from '@/components/CurrentUserHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { PrivacyProvider } from '@/components/PrivacyProvider';
+import { PrivacyProvider } from '@/providers/PrivacyProvider';
 import { AssistantChat } from '@/components/AssistantChat';
-import { LiveRefresh } from '@/components/LiveRefresh';
 
 const inter = Inter({
   variable: '--font-sans',
@@ -32,7 +31,7 @@ export const viewport = {
   themeColor: '#09090b',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="pt-BR"
@@ -40,13 +39,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col bg-[#09090b] text-[#fafafa] font-sans selection:bg-blue-600 selection:text-white">
         <ServiceWorkerRegister />
-        <Suspense fallback={null}>
-          <LiveRefresh />
-        </Suspense>
         <TooltipProvider>
           <PrivacyProvider>
             <Suspense fallback={null}>
-              <AppHeader />
+              <CurrentUserHeader />
             </Suspense>
             <main className="flex-1">
               {children}

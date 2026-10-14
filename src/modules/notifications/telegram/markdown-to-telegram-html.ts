@@ -2,9 +2,6 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Converts the Markdown that LLMs tend to produce into the small HTML subset
-// Telegram accepts (parse_mode=HTML). Everything is escaped first, so stray
-// "<" or "&" in plain messages can never break the request.
 export function markdownToTelegramHtml(markdown: string): string {
   const codeBlocks: string[] = [];
   const stash = (html: string) => `\u0000${codeBlocks.push(html) - 1}\u0000`;

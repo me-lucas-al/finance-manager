@@ -1,7 +1,6 @@
-import type { InferSelectModel } from 'drizzle-orm';
-import type { incomes } from '@/db/schema';
+import type { Income } from '../models/income';
 
-export type Income = InferSelectModel<typeof incomes>;
+export type { Income };
 
 export type IncomeSortField = 'date' | 'description' | 'amount';
 

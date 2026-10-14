@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 import { AlertLog, NewAlertLog, AlertLogRepository } from '../domain/repositories/alert-log-repository';
 import { unwrap } from './supabase-common';
 

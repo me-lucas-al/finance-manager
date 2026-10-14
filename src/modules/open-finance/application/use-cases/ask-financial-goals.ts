@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/lib/format';
-import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
+import type { TelegramMessenger } from '@/modules/notifications/telegram/domain/telegram-messenger';
 import type { Goal, GoalRepository } from '../../domain/repositories/goal-repository';
 import type { SavingsGoal, SavingsGoalRepository } from '../../domain/repositories/savings-goal-repository';
 import type { GoalPromptRepository } from '../../domain/repositories/goal-prompt-repository';
@@ -39,14 +39,12 @@ function buildPromptMessage(goals: Goal[], savingsGoals: SavingsGoal[]): string 
   return lines.join('\n');
 }
 
-// Sends the day-16 / /goal (bare) prompt and records the resulting message id
-// in goal_prompts, so the user's reply can be correlated back to it later
-// (same role as telegram_question_message_id for transactions).
 export class AskFinancialGoalsUseCase {
   constructor(
     private goalRepository: GoalRepository,
     private savingsGoalRepository: SavingsGoalRepository,
     private goalPromptRepository: GoalPromptRepository,
+    private messenger: TelegramMessenger,
   ) {}
 
   async execute(userId: string): Promise<void> {
@@ -55,7 +53,7 @@ export class AskFinancialGoalsUseCase {
       this.savingsGoalRepository.findAllActiveByUserId(userId),
     ]);
 
-    const messageId = await TelegramService.sendMessage(userId, buildPromptMessage(goals, savingsGoals));
+    const messageId = await this.messenger.sendMessage(userId, buildPromptMessage(goals, savingsGoals));
     if (messageId) {
       await this.goalPromptRepository.create({ userId, telegramMessageId: messageId });
     }

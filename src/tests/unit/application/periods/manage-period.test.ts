@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CreatePeriodUseCase, GetPeriodUseCase, UpdatePeriodUseCase, DeletePeriodUseCase } from '../../../../modules/periods/application/use-cases/manage-period';
-import { FakePeriodRepository } from './fake-period-repository';
+import { FakePeriodRepository } from '@/tests/fakes/fake-period-repository';
 
 const basePeriod = {
   userId: 'user-1',

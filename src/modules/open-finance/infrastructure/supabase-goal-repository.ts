@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 import { Goal, NewGoal, GoalRepository } from '../domain/repositories/goal-repository';
 import { unwrap } from './supabase-common';
 

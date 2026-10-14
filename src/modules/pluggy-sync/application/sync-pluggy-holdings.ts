@@ -1,24 +1,21 @@
-import { fetchItemInvestments } from '@/lib/pluggy-items';
+import { fetchItemInvestments } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import type { LedgerWriter } from '../domain/ledger-writer';
-import type { SyncPeriod } from '../domain/sync-period';
 
 export class SyncPluggyHoldings {
   constructor(private ledger: LedgerWriter) {}
 
-  async execute(userId: string, itemId: string, period: SyncPeriod): Promise<void> {
-    const holdings = await fetchItemInvestments(itemId);
-
-    for (const holding of holdings) {
-      if (!holding.balance || holding.balance <= 0) continue;
-      await this.ledger.upsertHolding({
+  async execute(userId: string, itemId: string): Promise<void> {
+    const fetched = await fetchItemInvestments(itemId);
+    const positions = fetched
+      .filter((holding) => holding.balance && holding.balance > 0)
+      .map((holding) => ({
         userId,
-        periodId: period.id,
+        itemId,
         externalId: `pluggy-investment:${holding.id}`,
-        amount: holding.balance,
-        description: holding.name,
+        name: holding.name,
         type: String(holding.type),
-        date: new Date(),
-      });
-    }
+        balance: holding.balance,
+      }));
+    await this.ledger.replaceItemHoldings(userId, itemId, positions);
   }
 }

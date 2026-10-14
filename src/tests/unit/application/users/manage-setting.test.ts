@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CreateSettingUseCase, GetSettingUseCase, UpdateSettingUseCase, DeleteSettingUseCase } from '../../../../modules/users/application/use-cases/manage-setting';
-import { FakeSettingRepository } from './fake-setting-repository';
+import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 
 const baseSetting = { userId: 'user-1' };
 

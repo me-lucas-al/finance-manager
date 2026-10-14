@@ -1,4 +1,4 @@
-import { classifyTransaction } from '@/lib/transaction-classifier';
+import { classifyTransaction, type ClassifiedTransactionType, type RawTransactionLike } from './classification';
 
 export type PluggyTransactionLike = {
   id: string;
@@ -7,39 +7,36 @@ export type PluggyTransactionLike = {
   type: string;
   amount: number;
   category: string | null;
+  status?: string | null;
+  currencyCode?: string | null;
+  paymentData?: RawTransactionLike['paymentData'];
 };
 
-export type LedgerEntry =
+export type PluggyLedgerEntry =
   | { kind: 'income'; externalId: string; amount: number; description: string; category: string; date: Date }
   | { kind: 'investment'; externalId: string; amount: number; description: string; type: string; date: Date }
   | { kind: 'expense'; externalId: string; amount: number; description: string; category: string; date: Date };
 
-export function mapPluggyTransaction(
+export type MappingContext = { isCreditCard: boolean; hasCreditCardPurchases?: boolean };
+
+export function entryFromClassification(
   tx: PluggyTransactionLike,
-  context: { isCreditCard: boolean },
-): LedgerEntry | null {
-  const classification = classifyTransaction({
-    id: tx.id,
-    amount: tx.amount,
-    type: tx.type,
-    date: tx.date,
-    description: tx.description,
-    category: tx.category,
-    isCreditCard: context.isCreditCard,
-  });
+  classification: ClassifiedTransactionType,
+): PluggyLedgerEntry | null {
+  const base = { externalId: tx.id, amount: Math.abs(tx.amount), description: tx.description, date: new Date(tx.date) };
+  const category = tx.category || 'Outros';
 
-  const amount = Math.abs(tx.amount);
-  const date = new Date(tx.date);
-  const base = { externalId: tx.id, amount, description: tx.description, date };
+  if (classification === 'INCOME') return { kind: 'income', ...base, category };
+  if (classification === 'EXPENSE') return { kind: 'expense', ...base, category };
+  const isOutflow = tx.type === 'DEBIT' || tx.amount < 0;
+  if (classification === 'INVESTMENT' && isOutflow) return { kind: 'investment', ...base, type: 'Investimento' };
+  return null;
+}
 
-  switch (classification) {
-    case 'INCOME':
-      return { kind: 'income', ...base, category: tx.category || 'Outros' };
-    case 'EXPENSE':
-      return { kind: 'expense', ...base, category: tx.category || 'Outros' };
-    case 'INVESTMENT':
-      return tx.type === 'DEBIT' || tx.amount < 0 ? { kind: 'investment', ...base, type: 'Investimento' } : null;
-    default:
-      return null;
-  }
+export function mapPluggyTransaction(tx: PluggyTransactionLike, context: MappingContext): PluggyLedgerEntry | null {
+  const classification = classifyTransaction(
+    { ...tx, isCreditCard: context.isCreditCard },
+    { hasCreditCardPurchases: context.hasCreditCardPurchases },
+  );
+  return entryFromClassification(tx, classification);
 }

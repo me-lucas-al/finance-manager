@@ -1,0 +1,25 @@
+import { describe, expect, it, vi } from 'vitest';
+import { createExpenseBreakdownReader } from '@/modules/open-finance/application/shared/expense-totals';
+
+describe('createExpenseBreakdownReader', () => {
+  it('sums stored expenses, which are always positive amounts', async () => {
+    const findAllByUserId = vi.fn().mockResolvedValue([
+      { amount: 40, category: 'Mercado', categorySuggested: null },
+      { amount: 10, category: 'Mercado', categorySuggested: null },
+      { amount: 25, category: null, categorySuggested: 'Lazer' },
+    ]);
+
+    const result = await createExpenseBreakdownReader({ findAllByUserId })('user-1');
+
+    expect(result.total).toBe(75);
+    expect(result.byCategory).toEqual({ Mercado: 50, Lazer: 25 });
+  });
+
+  it('buckets uncategorized transactions under a fallback label', async () => {
+    const findAllByUserId = vi.fn().mockResolvedValue([{ amount: 12, category: null, categorySuggested: null }]);
+
+    const result = await createExpenseBreakdownReader({ findAllByUserId })('user-1');
+
+    expect(result.byCategory).toEqual({ 'Sem categoria': 12 });
+  });
+});

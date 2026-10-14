@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AdvisorChatService } from '@/modules/ai/application/services/advisor-chat-service';
 import { ChatMemoryService } from '@/modules/ai/application/services/chat-memory-service';
+import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
+import { fakePortfolioSource } from '@/tests/fakes/fake-portfolio-source';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import { FakeChatMessageRepository } from '@/tests/fakes/fake-chat-message-repository';
 import { FakeAssistantMemoryRepository } from '@/tests/fakes/fake-assistant-memory-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
 import { sampleLedgerSource } from '@/tests/fakes/fake-ledger-source';
-import { FakeGoalRepository } from '../open-finance/fake-goal-repository';
+import { FakeGoalRepository } from '@/tests/fakes/fake-goal-repository';
 
 describe('AdvisorChatService', () => {
   let chatRepo: FakeChatMessageRepository;
@@ -22,6 +24,7 @@ describe('AdvisorChatService', () => {
       chatRepo,
       llm,
       ledger: new LedgerService(sampleLedgerSource),
+      portfolio: new PortfolioService(fakePortfolioSource()),
       goalRepo: new FakeGoalRepository(),
       buildTools: () => [],
     });
@@ -80,6 +83,7 @@ describe('AdvisorChatService', () => {
       chatRepo,
       llm,
       ledger: new LedgerService(sampleLedgerSource),
+      portfolio: new PortfolioService(fakePortfolioSource()),
       goalRepo: new FakeGoalRepository(),
       buildTools: ({ turnId }) => {
         turnIds.push(turnId);

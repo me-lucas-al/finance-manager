@@ -1,6 +1,6 @@
 'use server';
 
-import { requireUserId } from './require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 
 export async function getPushPublicKey(): Promise<string | null> {
   await requireUserId();

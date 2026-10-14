@@ -1,26 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { GoalsReplyInterpretation } from '../../../../lib/gemini';
+import type { GoalsReplyInterpretation } from '@/modules/open-finance/domain/ports/goals-reply-interpreter';
+import { createFakeGoalsReplyInterpreter } from '@/tests/fakes/fake-goals-reply-interpreter';
+import { createFakeTelegramMessenger } from '@/tests/fakes/fake-telegram-messenger';
 
-const interpretGoalsReplyMock = vi.fn();
-const sendMessageMock = vi.fn();
+const interpreter = createFakeGoalsReplyInterpreter();
+const interpretGoalsReplyMock = interpreter.interpret;
+const messenger = createFakeTelegramMessenger();
+const sendMessageMock = messenger.sendMessage;
 const getExpenseCategoriesMock = vi.fn();
-
-vi.mock('@/lib/gemini', () => ({
-  interpretGoalsReply: (...args: unknown[]) => interpretGoalsReplyMock(...args),
-}));
-vi.mock('@/modules/notifications/telegram/TelegramService', () => ({
-  TelegramService: { sendMessage: (...args: unknown[]) => sendMessageMock(...args) },
-}));
-vi.mock('@/modules/open-finance/application/shared/expense-categories', () => ({
-  getExpenseCategories: (...args: unknown[]) => getExpenseCategoriesMock(...args),
-}));
 
 const { RecordGoalsReplyUseCase } = await import(
   '../../../../modules/open-finance/application/use-cases/record-goals-reply'
 );
-const { FakeGoalRepository } = await import('./fake-goal-repository');
-const { FakeSavingsGoalRepository } = await import('./fake-savings-goal-repository');
-const { FakeGoalPromptRepository } = await import('./fake-goal-prompt-repository');
+const { FakeGoalRepository } = await import('@/tests/fakes/fake-goal-repository');
+const { FakeSavingsGoalRepository } = await import('@/tests/fakes/fake-savings-goal-repository');
+const { FakeGoalPromptRepository } = await import('@/tests/fakes/fake-goal-prompt-repository');
 
 function currentMonth(): string {
   const now = new Date();
@@ -42,7 +36,11 @@ describe('RecordGoalsReplyUseCase', () => {
     goalRepository = new FakeGoalRepository();
     savingsGoalRepository = new FakeSavingsGoalRepository();
     goalPromptRepository = new FakeGoalPromptRepository();
-    useCase = new RecordGoalsReplyUseCase(goalRepository, savingsGoalRepository, goalPromptRepository);
+    useCase = new RecordGoalsReplyUseCase(
+      { goalRepository, savingsGoalRepository, interpreter, listCategories: getExpenseCategoriesMock },
+      goalPromptRepository,
+      messenger
+    );
     getExpenseCategoriesMock.mockResolvedValue(['Alimentação', 'Transporte']);
   });
 

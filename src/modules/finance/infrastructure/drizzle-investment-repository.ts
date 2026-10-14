@@ -9,7 +9,8 @@ import {
 } from '../domain/repositories/investment-repository';
 import { db } from '../../../db';
 import { investments } from '../../../db/schema';
-import { and, asc, count, desc, eq, ilike } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike } from 'drizzle-orm';
+import { totalOverWindow, toPageWithTotal } from './page-with-total';
 
 export class DrizzleInvestmentRepository implements InvestmentRepository {
   async create(data: NewInvestment): Promise<Investment> {
@@ -66,10 +67,13 @@ export class DrizzleInvestmentRepository implements InvestmentRepository {
       : investments.date;
     const orderFn = query.dir === 'asc' ? asc : desc;
 
-    const [rows, totalResult] = await Promise.all([
-      db.select().from(investments).where(where).orderBy(orderFn(sortColumn)).limit(query.limit).offset(query.offset),
-      db.select({ value: count() }).from(investments).where(where),
-    ]);
-    return { rows, total: Number(totalResult[0]?.value ?? 0) };
+    const rowsWithTotal = await db
+      .select({ row: investments, total: totalOverWindow })
+      .from(investments)
+      .where(where)
+      .orderBy(orderFn(sortColumn))
+      .limit(query.limit)
+      .offset(query.offset);
+    return toPageWithTotal(rowsWithTotal);
   }
 }

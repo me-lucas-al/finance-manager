@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { WebhookEventPayload } from 'pluggy-sdk';
-import { fetchItemOwner } from '@/lib/pluggy-items';
-import { DrizzleDataModeStore } from '@/modules/onboarding/infrastructure/drizzle-data-mode-store';
-import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
-import { buildPluggySync } from '@/modules/pluggy-sync/application/build-pluggy-sync';
+import { fetchItemOwner } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
+import { accountRepository } from '@/composition/open-finance';
+import { pluggySync } from '@/composition/pluggy-sync';
+import { isPluggyMode } from '../pluggy-mode';
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.PLUGGY_WEBHOOK_SECRET;
@@ -12,7 +12,7 @@ function isAuthorized(req: NextRequest): boolean {
 }
 
 async function resolveItemOwner(itemId: string): Promise<string | null> {
-  const known = await new SupabaseAccountRepository().findAllByPluggyItemId(itemId);
+  const known = await accountRepository.findAllByPluggyItemId(itemId);
   if (known[0]) return known[0].userId;
   return fetchItemOwner(itemId).catch(() => null);
 }
@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
       if (!userId) {
         return NextResponse.json({ ok: true });
       }
-      if ((await new DrizzleDataModeStore().getState(userId)).dataMode !== 'pluggy') {
+      if (!(await isPluggyMode(userId))) {
         return NextResponse.json({ ok: true });
       }
-      await buildPluggySync().syncItem(userId, itemId);
+      await pluggySync.syncItem(userId, itemId);
     }
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -4,8 +4,13 @@ export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
 }
 
-const brazilDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' });
+const MAX_INITIALS = 2;
 
-export function toBrazilDateString(date: Date): string {
-  return brazilDateFormatter.format(date);
+export function toInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, MAX_INITIALS)
+    .join('')
+    .toUpperCase();
 }
