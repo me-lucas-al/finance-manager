@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { CreditCard, Clock } from 'lucide-react';
-import { usePrivacy } from '@/components/PrivacyProvider';
+import { usePrivacy } from '@/providers/PrivacyProvider';
 import type { LiveExpenseCategory } from '@/modules/finance/domain/models/financial-types';
 
 interface ExpenseBreakdownCardsProps {

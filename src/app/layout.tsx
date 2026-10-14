@@ -5,7 +5,7 @@ import './globals.css';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { AppHeader } from '@/components/AppHeader';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { PrivacyProvider } from '@/components/PrivacyProvider';
+import { PrivacyProvider } from '@/providers/PrivacyProvider';
 import { AssistantChat } from '@/components/AssistantChat';
 
 const inter = Inter({

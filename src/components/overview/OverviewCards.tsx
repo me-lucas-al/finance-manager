@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Landmark, CreditCard, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
-import { usePrivacy } from '@/components/PrivacyProvider';
+import { usePrivacy } from '@/providers/PrivacyProvider';
 
 interface OverviewCardsProps {
   bankData?: {

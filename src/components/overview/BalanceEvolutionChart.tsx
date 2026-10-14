@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { usePrivacy } from '@/components/PrivacyProvider';
+import { usePrivacy } from '@/providers/PrivacyProvider';
 
 interface BalanceEvolutionChartProps {
   initialBalance?: number;

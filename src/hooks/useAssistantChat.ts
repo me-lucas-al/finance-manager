@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
@@ -35,19 +35,15 @@ export function useAssistantChat() {
   const transport = useMemo(() => new DefaultChatTransport({ api: '/api/chat' }), []);
   const { sendMessage, setMessages, stop, status, ...chat } = useChat({ transport, onFinish: () => router.refresh() });
   const generation = useRef(0);
-  const busy = useRef(false);
-
-  useEffect(() => {
-    busy.current = status === 'submitted' || status === 'streaming';
-  }, [status]);
+  const isBusy = status === 'submitted' || status === 'streaming';
 
   const loadHistory = useCallback(async () => {
-    if (busy.current) return;
+    if (isBusy) return;
     const ticket = ++generation.current;
     const history = await fetchHistory();
-    if (history === null || ticket !== generation.current || busy.current) return;
+    if (history === null || ticket !== generation.current) return;
     setMessages(history);
-  }, [setMessages]);
+  }, [isBusy, setMessages]);
 
   const send = useCallback(
     (...args: Parameters<typeof sendMessage>) => {

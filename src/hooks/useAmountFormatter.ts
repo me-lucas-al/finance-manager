@@ -1,6 +1,6 @@
 'use client';
 
-import { usePrivacy } from '@/components/PrivacyProvider';
+import { usePrivacy } from '@/providers/PrivacyProvider';
 
 export function useAmountFormatter(): (value: number) => string {
   const { isPrivate } = usePrivacy();

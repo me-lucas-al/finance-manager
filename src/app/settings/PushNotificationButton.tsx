@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPushPublicKey } from '@/app/actions/push';
+import { usePushPermission } from '@/hooks/usePushPermission';
 
 type PermissionState = 'unsupported' | 'default' | 'granted' | 'denied' | 'subscribed';
+type StatusOverride = PermissionState | null;
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -15,24 +17,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 export function PushNotificationButton() {
-  const [status, setStatus] = useState<PermissionState>('default');
+  const browserPermission = usePushPermission();
+  const [override, setStatus] = useState<StatusOverride>(null);
+  const status: PermissionState = override ?? browserPermission;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const isSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
-    const initialStatus: PermissionState = !isSupported
-      ? 'unsupported'
-      : Notification.permission === 'granted'
-        ? 'granted'
-        : Notification.permission === 'denied'
-          ? 'denied'
-          : 'default';
-    // Notification/PushManager only exist in the browser, so the real status
-    // can only be read after mount — this sync-on-mount effect is intentional.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setStatus(initialStatus);
-  }, []);
 
   async function enablePush() {
     setError(null);
