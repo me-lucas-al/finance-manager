@@ -11,8 +11,21 @@ type AccountRow = {
   account_type: string;
   item_status: string | null;
   last_synced_at: string | null;
+  balance: number | string | null;
+  credit_limit: number | string | null;
   created_at: string;
 };
+
+const toNumberOrNull = (value: number | string | null): number | null => (value === null ? null : Number(value));
+
+function balanceColumns(data: NewAccount) {
+  if (data.balance === undefined) return {};
+  return {
+    balance: data.balance,
+    credit_limit: data.creditLimit ?? null,
+    balance_synced_at: new Date().toISOString(),
+  };
+}
 
 function toAccount(row: AccountRow): Account {
   return {
@@ -24,6 +37,8 @@ function toAccount(row: AccountRow): Account {
     accountType: row.account_type,
     itemStatus: row.item_status,
     lastSyncedAt: row.last_synced_at,
+    balance: toNumberOrNull(row.balance),
+    creditLimit: toNumberOrNull(row.credit_limit),
     createdAt: row.created_at,
   };
 }
@@ -69,6 +84,7 @@ export class SupabaseAccountRepository implements AccountRepository {
           account_type: data.accountType,
           item_status: data.itemStatus,
           last_synced_at: data.lastSyncedAt,
+          ...balanceColumns(data),
         },
         { onConflict: 'pluggy_account_id' },
       )

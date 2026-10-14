@@ -18,3 +18,18 @@ export async function fetchItemInvestments(itemId: string) {
 export async function deletePluggyItem(itemId: string): Promise<void> {
   await getPluggyClient().deleteItem(itemId);
 }
+
+export type PluggyAccountBalance = {
+  pluggyAccountId: string;
+  balance: number;
+  creditLimit: number | null;
+};
+
+export async function fetchItemAccountBalances(itemId: string): Promise<PluggyAccountBalance[]> {
+  const page = await getPluggyClient().fetchAccounts(itemId);
+  return page.results.map((account) => ({
+    pluggyAccountId: account.id,
+    balance: account.balance,
+    creditLimit: account.creditData?.creditLimit ?? null,
+  }));
+}

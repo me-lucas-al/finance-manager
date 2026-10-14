@@ -9,10 +9,13 @@ export type Account = {
   // we asked Pluggy about this item — either at connect time or on ingestion.
   itemStatus: string | null;
   lastSyncedAt: string | null;
+  balance: number | null;
+  creditLimit: number | null;
   createdAt: string;
 };
 
-export type NewAccount = Omit<Account, 'id' | 'createdAt'>;
+export type NewAccount = Omit<Account, 'id' | 'createdAt' | 'balance' | 'creditLimit'> &
+  Partial<Pick<Account, 'balance' | 'creditLimit'>>;
 
 export interface AccountRepository {
   findByPluggyAccountId(pluggyAccountId: string): Promise<Account | null>;

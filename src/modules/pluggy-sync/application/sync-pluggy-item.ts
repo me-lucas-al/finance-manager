@@ -6,6 +6,7 @@ import type { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/
 import { mapPluggyTransaction } from '../domain/map-pluggy-transaction';
 import type { SyncPeriod } from '../domain/sync-period';
 import type { PersistLedgerEntry } from './persist-ledger-entry';
+import type { SyncAccountBalances } from './sync-account-balances';
 import type { SyncPluggyHoldings } from './sync-pluggy-holdings';
 
 export class SyncPluggyItemUseCase {
@@ -13,6 +14,7 @@ export class SyncPluggyItemUseCase {
     private accounts: AccountRepository,
     private persistEntry: PersistLedgerEntry,
     private syncHoldings: SyncPluggyHoldings,
+    private syncBalances: SyncAccountBalances,
     private resolvePeriod: ResolveCurrentPeriodUseCase,
   ) {}
 
@@ -48,7 +50,8 @@ export class SyncPluggyItemUseCase {
       const transactions = await fetchTransactionsSince(account.pluggyAccountId, dateFrom);
       imported += await this.ingestTransactions(userId, account, transactions, period);
     }
-    await this.syncHoldings.execute(userId, itemId, period);
+    await this.syncHoldings.execute(userId, itemId);
+    await this.syncBalances.execute(itemId, await this.accounts.findAllByPluggyItemId(itemId));
     return { imported };
   }
 
