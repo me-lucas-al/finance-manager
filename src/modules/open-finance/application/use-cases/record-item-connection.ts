@@ -1,4 +1,4 @@
-import { fetchItemConnectionInfo } from '@/lib/pluggy';
+import { fetchItemConnectionInfo } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import type { Account, AccountRepository } from '../../domain/repositories/account-repository';
 
 export class AccountOwnedByAnotherUserError extends Error {

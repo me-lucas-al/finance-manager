@@ -1,4 +1,4 @@
-import { fetchItemInvestments } from '@/lib/pluggy-items';
+import { fetchItemInvestments } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import type { LedgerWriter } from '../domain/ledger-writer';
 
 export class SyncPluggyHoldings {

@@ -1,4 +1,4 @@
-import { fetchTransactionsSince } from '@/lib/pluggy-items';
+import { fetchTransactionsSince } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import { toLocalDateString } from '@/lib/month';
 import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 import type { Account, AccountRepository } from '@/modules/open-finance/domain/repositories/account-repository';

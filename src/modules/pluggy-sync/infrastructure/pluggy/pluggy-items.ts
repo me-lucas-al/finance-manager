@@ -1,5 +1,17 @@
 import type { Transaction as PluggyTransaction } from 'pluggy-sdk';
-import { getPluggyClient } from '@/lib/pluggy';
+import { getPluggyClient } from './pluggy-client';
+import { normalizeBankName } from './normalize-bank-name';
+
+export type PluggyAccountBalance = {
+  pluggyAccountId: string;
+  balance: number;
+  creditLimit: number | null;
+};
+
+export type PluggyItemConnectionInfo = {
+  status: string;
+  accounts: { id: string; accountType: string; bank: string }[];
+};
 
 export async function fetchItemOwner(itemId: string): Promise<string | null> {
   const item = await getPluggyClient().fetchItem(itemId);
@@ -19,12 +31,6 @@ export async function deletePluggyItem(itemId: string): Promise<void> {
   await getPluggyClient().deleteItem(itemId);
 }
 
-export type PluggyAccountBalance = {
-  pluggyAccountId: string;
-  balance: number;
-  creditLimit: number | null;
-};
-
 export async function fetchItemAccountBalances(itemId: string): Promise<PluggyAccountBalance[]> {
   const page = await getPluggyClient().fetchAccounts(itemId);
   return page.results.map((account) => ({
@@ -32,4 +38,17 @@ export async function fetchItemAccountBalances(itemId: string): Promise<PluggyAc
     balance: account.balance,
     creditLimit: account.creditData?.creditLimit ?? null,
   }));
+}
+
+export async function fetchItemConnectionInfo(itemId: string): Promise<PluggyItemConnectionInfo> {
+  const client = getPluggyClient();
+  const [item, accountsPage] = await Promise.all([client.fetchItem(itemId), client.fetchAccounts(itemId)]);
+  return {
+    status: item.status,
+    accounts: accountsPage.results.map((account) => ({
+      id: account.id,
+      accountType: account.subtype,
+      bank: normalizeBankName(account.name),
+    })),
+  };
 }

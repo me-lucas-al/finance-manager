@@ -1,4 +1,4 @@
-import { fetchItemAccountBalances } from '@/lib/pluggy-items';
+import { fetchItemAccountBalances } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import type { Account, AccountRepository } from '@/modules/open-finance/domain/repositories/account-repository';
 
 export class SyncAccountBalances {
