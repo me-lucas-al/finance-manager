@@ -1,3 +1,4 @@
+import { toMonthStart } from '@/lib/month';
 import type { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import type { LedgerEntry } from '@/modules/finance/domain/models/ledger-entry';
 import { entriesInMonth, totalsByCategory } from '@/modules/finance/domain/services/summarize-ledger';
@@ -27,7 +28,7 @@ export async function loadGoalTargets(
   month: string
 ): Promise<GoalTarget[]> {
   try {
-    return await goals.findAllByUserIdAndMonth(userId, `${month}-01`);
+    return await goals.findAllByUserIdAndMonth(userId, toMonthStart(month));
   } catch {
     return [];
   }
