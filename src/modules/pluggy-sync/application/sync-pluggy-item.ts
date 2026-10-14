@@ -1,5 +1,6 @@
 import { fetchTransactionsSince } from '@/lib/pluggy-items';
 import { toLocalDateString } from '@/lib/month';
+import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 import type { Account, AccountRepository } from '@/modules/open-finance/domain/repositories/account-repository';
 import type { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
 import { mapPluggyTransactions, type TransactionSource } from '../domain/map-pluggy-transactions';
@@ -17,6 +18,7 @@ export class SyncPluggyItemUseCase {
     private syncHoldings: SyncPluggyHoldings,
     private syncBalances: SyncAccountBalances,
     private resolvePeriod: ResolveCurrentPeriodUseCase,
+    private notifier: EntryChangeNotifier,
   ) {}
 
   async syncItem(userId: string, itemId: string): Promise<{ imported: number }> {
@@ -29,6 +31,7 @@ export class SyncPluggyItemUseCase {
     const imported = await this.importTransactions(userId, itemAccounts, period);
     await this.syncHoldings.execute(userId, itemId);
     await this.syncBalances.execute(itemId, await this.accounts.findAllByPluggyItemId(itemId));
+    await this.notifier.notifyEntriesChanged(userId);
     return { imported };
   }
 

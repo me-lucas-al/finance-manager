@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { updateTag, revalidatePath } from 'next/cache';
 import { requireUserId } from './require-session';
+import { ledgerCacheTag } from '@/modules/finance/application/services/ledger-cache-tag';
 import { UpdateSettingUseCase } from '../../modules/users/application/use-cases/manage-setting';
 import { DrizzleSettingRepository } from '../../modules/users/infrastructure/repositories';
 import type { NewSetting } from '../../modules/users/domain/repositories/setting-repository';
@@ -55,6 +56,7 @@ export async function updateUserSettings(formData: FormData) {
   await useCase.execute(existing.id, dataToUpdate);
 
   updateTag(`settings-${userId}`);
+  updateTag(ledgerCacheTag(userId));
 }
 
 async function fetchUserSettingsCached(userId: string) {

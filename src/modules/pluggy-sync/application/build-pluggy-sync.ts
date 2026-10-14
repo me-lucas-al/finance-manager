@@ -1,5 +1,6 @@
 import { SyncPluggyItemUseCase } from './sync-pluggy-item';
 import { PersistLedgerEntry } from './persist-ledger-entry';
+import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-entry-change-notifier';
 import { SyncAccountBalances } from './sync-account-balances';
 import { SyncPluggyHoldings } from './sync-pluggy-holdings';
 import { DrizzleLedgerWriter } from '../infrastructure/drizzle-ledger-writer';
@@ -18,5 +19,6 @@ export function buildPluggySync(): SyncPluggyItemUseCase {
     new SyncPluggyHoldings(ledger),
     new SyncAccountBalances(accounts),
     new ResolveCurrentPeriodUseCase(new DrizzlePeriodRepository(), new DrizzleSettingRepository()),
+    new NextEntryChangeNotifier(),
   );
 }
