@@ -2,11 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { NewTransaction } from '../../../../modules/open-finance/domain/repositories/transaction-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
 
-const sendMessageMock = vi.fn();
+import { createFakeTelegramMessenger } from '@/tests/fakes/fake-telegram-messenger';
 
-vi.mock('@/modules/notifications/telegram/TelegramService', () => ({
-  TelegramService: { sendMessage: (...args: unknown[]) => sendMessageMock(...args) },
-}));
+const messenger = createFakeTelegramMessenger();
+const sendMessageMock = messenger.sendMessage;
 
 const { SendWeeklyGoalsSummaryUseCase } = await import(
   '../../../../modules/open-finance/application/use-cases/send-weekly-goals-summary'
@@ -53,7 +52,12 @@ describe('SendWeeklyGoalsSummaryUseCase', () => {
     goalRepository = new FakeGoalRepository();
     savingsGoalRepository = new FakeSavingsGoalRepository();
     transactionRepository = new FakeTransactionRepository();
-    useCase = new SendWeeklyGoalsSummaryUseCase(goalRepository, savingsGoalRepository, transactionRepository);
+    useCase = new SendWeeklyGoalsSummaryUseCase(
+      goalRepository,
+      savingsGoalRepository,
+      transactionRepository,
+      messenger
+    );
   });
 
   it('sends a summary with spending vs goals and savings goal progress', async () => {
@@ -81,7 +85,13 @@ describe('SendWeeklyGoalsSummaryUseCase', () => {
   it('generates Pro AI summary when LLM is provided', async () => {
     const fakeLlm = new FakeLanguageModel();
     fakeLlm.nextTextResponse = 'Relatório Semanal Gerado pela IA Pro';
-    const aiUseCase = new SendWeeklyGoalsSummaryUseCase(goalRepository, savingsGoalRepository, transactionRepository, fakeLlm);
+    const aiUseCase = new SendWeeklyGoalsSummaryUseCase(
+      goalRepository,
+      savingsGoalRepository,
+      transactionRepository,
+      messenger,
+      fakeLlm
+    );
 
     await aiUseCase.execute('user-1');
 

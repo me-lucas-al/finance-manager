@@ -1,4 +1,4 @@
-import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
+import type { TelegramMessenger } from '@/modules/notifications/telegram/domain/telegram-messenger';
 import { parseEntryMessage } from '@/modules/finance/domain/parsers/parse-entry-message';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { ExtractEntryWithAiUseCase } from '@/modules/finance/application/use-cases/extract-entry-with-ai';
@@ -23,6 +23,7 @@ export type RouteTelegramDeps = {
   askFinancialGoals: AskFinancialGoalsUseCase;
   recordGoalsReply: RecordGoalsReplyUseCase;
   goalPromptRepo: GoalPromptRepository;
+  messenger: TelegramMessenger;
 };
 
 export class RouteTelegramMessageUseCase {
@@ -51,7 +52,7 @@ export class RouteTelegramMessageUseCase {
 
     if (trimmed.startsWith('/')) {
       const commandReply = await this.deps.handleBotCommand.execute(userId, trimmed);
-      await TelegramService.sendMessage(userId, commandReply, message.messageId);
+      await this.deps.messenger.sendMessage(userId, commandReply, message.messageId);
       return;
     }
 
@@ -59,7 +60,7 @@ export class RouteTelegramMessageUseCase {
     if (parsed) {
       const res = await this.deps.registerManualEntry.execute(userId, parsed);
       const conf = formatEntryConfirmation(res);
-      await TelegramService.sendMessage(userId, conf, message.messageId);
+      await this.deps.messenger.sendMessage(userId, conf, message.messageId);
       return;
     }
 
@@ -67,16 +68,16 @@ export class RouteTelegramMessageUseCase {
     if (aiExtraction.success) {
       const res = await this.deps.registerManualEntry.execute(userId, aiExtraction.entry);
       const conf = formatEntryConfirmation(res);
-      await TelegramService.sendMessage(userId, conf, message.messageId);
+      await this.deps.messenger.sendMessage(userId, conf, message.messageId);
       return;
     }
 
     if (aiExtraction.needsClarification) {
-      await TelegramService.sendMessage(userId, aiExtraction.question, message.messageId);
+      await this.deps.messenger.sendMessage(userId, aiExtraction.question, message.messageId);
       return;
     }
 
-    await TelegramService.sendTyping(userId);
+    await this.deps.messenger.sendTyping(userId);
     let reply: string;
     try {
       reply = (await this.deps.advisorChat.respond(userId, trimmed, 'telegram')).trim();
@@ -88,6 +89,6 @@ export class RouteTelegramMessageUseCase {
       console.error('Advisor chat returned an empty reply');
       reply = 'Não consegui gerar uma resposta agora. Pode reformular a pergunta?';
     }
-    await TelegramService.sendMessage(userId, reply, message.messageId);
+    await this.deps.messenger.sendMessage(userId, reply, message.messageId);
   }
 }

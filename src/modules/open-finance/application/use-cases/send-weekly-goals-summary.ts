@@ -1,4 +1,4 @@
-import { TelegramService } from '@/modules/notifications/telegram/TelegramService';
+import type { TelegramMessenger } from '@/modules/notifications/telegram/domain/telegram-messenger';
 import type { Goal, GoalRepository } from '../../domain/repositories/goal-repository';
 import type { SavingsGoalRepository } from '../../domain/repositories/savings-goal-repository';
 import type { TransactionRepository } from '../../domain/repositories/transaction-repository';
@@ -12,6 +12,7 @@ export class SendWeeklyGoalsSummaryUseCase {
     private goalRepository: GoalRepository,
     private savingsGoalRepository: SavingsGoalRepository,
     private transactionRepository: TransactionRepository,
+    private messenger: TelegramMessenger,
     private llm?: ILanguageModel
   ) {}
 
@@ -69,6 +70,6 @@ Destaque o total, as maiores categorias, os supérfluos ('bobeiras') e forneça 
       });
     }
 
-    await TelegramService.sendMessage(userId, message);
+    await this.messenger.sendMessage(userId, message);
   }
 }
