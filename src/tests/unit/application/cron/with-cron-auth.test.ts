@@ -32,12 +32,15 @@ describe('withCronAuth', () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
-  it('delegates to the handler when no secret is configured', async () => {
+  it('rejects every request when no secret is configured', async () => {
     vi.stubEnv('CRON_SECRET', '');
     const handler = vi.fn().mockResolvedValue(NextResponse.json({ ok: true }));
 
-    await withCronAuth(handler)(cronRequest());
+    const withoutHeader = await withCronAuth(handler)(cronRequest());
+    const withEmptyBearer = await withCronAuth(handler)(cronRequest('Bearer '));
 
-    expect(handler).toHaveBeenCalledOnce();
+    expect(withoutHeader.status).toBe(401);
+    expect(withEmptyBearer.status).toBe(401);
+    expect(handler).not.toHaveBeenCalled();
   });
 });

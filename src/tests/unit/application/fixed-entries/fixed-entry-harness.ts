@@ -13,9 +13,9 @@ import { SetFixedEntryActiveUseCase } from '@/modules/finance/application/fixed-
 import { DeleteFixedEntryUseCase } from '@/modules/finance/application/fixed-entries/delete-fixed-entry';
 import { ListFixedEntriesUseCase } from '@/modules/finance/application/fixed-entries/list-fixed-entries';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
-import { FakeTransactionRepository } from '../open-finance/fake-transaction-repository';
-import { FakePeriodRepository } from '../periods/fake-period-repository';
-import { FakeSettingRepository } from '../users/fake-setting-repository';
+import { FakeTransactionRepository } from '@/tests/fakes/fake-transaction-repository';
+import { FakePeriodRepository } from '@/tests/fakes/fake-period-repository';
+import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';
 import { FakeInvestmentRepository } from '@/tests/fakes/fake-investment-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
