@@ -5,6 +5,10 @@
       "schedule": "0 3 * * *"
     },
     {
+      "path": "/api/cron/sync-transactions",
+      "schedule": "0 6 * * *"
+    },
+    {
       "path": "/api/cron/ask-goals",
       "schedule": "0 12 16 * *"
     },
