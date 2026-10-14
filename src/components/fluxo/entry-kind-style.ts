@@ -35,6 +35,4 @@ export const ENTRY_KIND_STYLE: Record<EntryKind, EntryKindStyle> = {
   },
 };
 
-export function signedAmount(kind: EntryKind, amount: number): number {
-  return kind === 'income' ? Math.abs(amount) : -Math.abs(amount);
-}
+export { signedAmount } from '@/modules/finance/domain/services/signed-amount';
