@@ -1,3 +1,4 @@
+import { auth } from '@/auth';
 import { streamText, tool, type ModelMessage } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
@@ -66,9 +67,10 @@ export async function POST(req: Request) {
     }
   }
 
-  const userId = process.env.FINANCE_OWNER_USER_ID;
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) {
-    return new Response('User ID not configured', { status: 500 });
+    return new Response('Unauthorized', { status: 401 });
   }
 
   const today = new Date();

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '../../db';
 import { financialPeriods, userSettings } from '../../db/schema';
@@ -11,7 +12,8 @@ import { getFinancialPeriod } from '../../modules/periods/domain/financial-perio
 
 export default async function PeriodsPage() {
   const session = await auth();
-  const userId = session?.user?.id ?? process.env.FINANCE_OWNER_USER_ID ?? '3dd11c4e-e3c6-4a97-adb4-431ca7f476f1';
+  const userId = session?.user?.id;
+  if (!userId) redirect('/login');
 
   const [periods, settingsResult] = await Promise.all([
     db.select().from(financialPeriods).where(eq(financialPeriods.userId, userId)).orderBy(desc(financialPeriods.startDate)),
