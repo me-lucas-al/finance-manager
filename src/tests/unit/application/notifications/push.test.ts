@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const requireUserIdMock = vi.fn();
-vi.mock('@/app/actions/require-session', () => ({
+vi.mock('@/modules/auth/infrastructure/require-user-id', () => ({
   requireUserId: requireUserIdMock,
 }));
 

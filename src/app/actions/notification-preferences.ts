@@ -5,7 +5,7 @@ import { updateTag } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { notificationPreferences } from '@/db/schema';
-import { requireUserId } from './require-session';
+import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 
 // z.coerce.boolean() would turn the string "false" into `true` (any non-empty
 // string is truthy), so checkboxes could never be turned off. Parse the exact
