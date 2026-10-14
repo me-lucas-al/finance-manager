@@ -1,4 +1,5 @@
-﻿CREATE TABLE IF NOT EXISTS "expenses" (
+-- drizzle: 0000..0004
+CREATE TABLE IF NOT EXISTS "expenses" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
 	"period_id" text NOT NULL,
