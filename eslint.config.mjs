@@ -2,6 +2,15 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+const EFFECT_ALLOWLIST = [
+  "src/app/error.tsx",
+  "src/components/ChatMessageList.tsx",
+  "src/components/ServiceWorkerRegister.tsx",
+  "src/components/onboarding/useCarouselProgress.ts",
+  "src/components/onboarding/useTelegramLinkPolling.ts",
+  "src/components/ui/**",
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -14,11 +23,25 @@ const eslintConfig = defineConfig([
           message: "Não use `import * as React from 'react'`; importe diretamente o que for usar (ex.: `import { useState } from 'react'`).",
         },
       ],
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              importNames: ["useEffect", "useLayoutEffect"],
+              message: "Evite efeitos: derive estado, use handlers ou useSyncExternalStore. Só os arquivos da allowlist podem usar useEffect.",
+            },
+          ],
+        },
+      ],
     },
   },
-  // Override default ignores of eslint-config-next.
+  {
+    files: EFFECT_ALLOWLIST,
+    rules: { "no-restricted-imports": "off" },
+  },
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
