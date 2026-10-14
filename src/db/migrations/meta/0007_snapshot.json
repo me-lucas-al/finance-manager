@@ -1,5 +1,5 @@
 {
-  "id": "f0eee108-0260-4456-9968-d026af2960b9",
+  "id": "d2d01e3a-d333-4481-9c06-95c9ab137f82",
   "prevId": "bce73864-f7b2-4af9-9dfa-55d66565d677",
   "version": "7",
   "dialect": "postgresql",
@@ -1221,6 +1221,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": 20
+        },
+        "initial_balance": {
+          "name": "initial_balance",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
         },
         "expense_categories": {
           "name": "expense_categories",
