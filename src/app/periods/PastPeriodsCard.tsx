@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,9 +22,10 @@ export async function PastPeriodsCard({ userId }: { userId: string }) {
         )}
         <div className="space-y-3">
           {pastPeriods.slice(0, VISIBLE_PERIODS).map((period) => (
-            <div
+            <Link
               key={period.id}
-              className="flex items-center justify-between p-3 bg-muted rounded border border-border"
+              href={`/periods/${period.id}`}
+              className="flex items-center justify-between p-3 bg-muted rounded border border-border transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-positive" />
@@ -32,12 +34,15 @@ export async function PastPeriodsCard({ userId }: { userId: string }) {
                 </span>
               </div>
               <Badge variant="secondary">Fechado</Badge>
-            </div>
+            </Link>
           ))}
           {pastPeriods.length > VISIBLE_PERIODS && (
-            <p className="text-sm text-center text-primary cursor-pointer hover:underline pt-2">
+            <Link
+              href="/periods/history"
+              className="block rounded pt-2 text-center text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
               Ver todos os {pastPeriods.length} períodos
-            </p>
+            </Link>
           )}
         </div>
       </CardContent>
