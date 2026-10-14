@@ -2,6 +2,7 @@ import { ToolDefinition } from '../../domain/models/language-model';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import type { LedgerEntry } from '@/modules/finance/domain/models/ledger-entry';
 import { entriesInMonth, totalsByCategory, totalsOf } from '@/modules/finance/domain/services/summarize-ledger';
+import { matchesTextSearch } from '@/modules/finance/domain/services/match-text-search';
 import { getCurrentMonth } from '@/lib/month';
 import { isValidMonthKey } from '@/modules/finance/domain/parsers/parse-entry-date';
 import {
@@ -32,7 +33,7 @@ function matchesSearch(entry: LedgerEntry, args: BuscarLancamentosArgs): boolean
   if (args.periodo && entry.date.slice(0, 7) !== args.periodo) return false;
   if (args.tipo && entry.kind !== args.tipo) return false;
   if (args.categoria && !sameText(entry.category, args.categoria)) return false;
-  if (args.texto && !entry.description.toLowerCase().includes(args.texto.toLowerCase())) return false;
+  if (args.texto && !matchesTextSearch(entry, args.texto)) return false;
   return true;
 }
 
