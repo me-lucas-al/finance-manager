@@ -1,39 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { SendWeeklyGoalsSummaryUseCase } from '@/modules/open-finance/application/use-cases/send-weekly-goals-summary';
-import {
-  SupabaseGoalRepository,
-  SupabaseSavingsGoalRepository,
-  SupabaseTransactionRepository,
-} from '@/modules/open-finance/infrastructure/supabase-repositories';
-import { GeminiLanguageModel } from '@/modules/ai/infrastructure/gemini-language-model';
-import { SupabaseTelegramLinkRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-link-repository';
+import { NextResponse } from 'next/server';
+import { sendWeeklyGoalsSummary } from '@/composition/open-finance';
+import { telegramLinkRepository } from '@/composition/telegram';
+import { runForUsers } from '../run-for-users';
+import { withCronAuth } from '../with-cron-auth';
 
-export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withCronAuth(async () => {
   try {
-    const useCase = new SendWeeklyGoalsSummaryUseCase(
-      new SupabaseGoalRepository(),
-      new SupabaseSavingsGoalRepository(),
-      new SupabaseTransactionRepository(),
-      new GeminiLanguageModel(),
+    const userIds = await telegramLinkRepository.listLinkedUserIds();
+    const { users, failed } = await runForUsers('weekly-goals-summary', userIds, (userId) =>
+      sendWeeklyGoalsSummary.execute(userId)
     );
-    const userIds = await new SupabaseTelegramLinkRepository().listLinkedUserIds();
-    let failed = 0;
-    for (const userId of userIds) {
-      try {
-        await useCase.execute(userId);
-      } catch (error) {
-        failed++;
-        console.error(`weekly-goals-summary failed for user ${userId}:`, error);
-      }
-    }
-    return NextResponse.json({ ok: failed === 0, users: userIds.length, failed });
+    return NextResponse.json({ ok: failed === 0, users, failed });
   } catch (error) {
     console.error('Error executing weekly-goals-summary cron:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});
