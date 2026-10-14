@@ -7,9 +7,9 @@ import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/e
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
 import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
-import { FakeTransactionRepository } from '@/tests/unit/application/open-finance/fake-transaction-repository';
-import { FakePeriodRepository } from '@/tests/unit/application/periods/fake-period-repository';
-import { FakeSettingRepository } from '@/tests/unit/application/users/fake-setting-repository';
+import { FakeTransactionRepository } from './fake-transaction-repository';
+import { FakePeriodRepository } from './fake-period-repository';
+import { FakeSettingRepository } from './fake-setting-repository';
 import { FakeIncomeRepository } from './fake-income-repository';
 import { FakeInvestmentRepository } from './fake-investment-repository';
 import { FakeLanguageModel } from './fake-language-model';

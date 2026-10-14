@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EditLastEntryService } from '@/modules/finance/application/services/edit-last-entry-service';
 import { LatestEntryFinder } from '@/modules/finance/application/services/latest-entry-finder';
 import { buildFakeEntryServices } from '@/tests/fakes/build-fake-entry-services';
@@ -6,6 +6,10 @@ import { buildFakeEntryServices } from '@/tests/fakes/build-fake-entry-services'
 describe('EditLastEntryService', () => {
   let services: ReturnType<typeof buildFakeEntryServices>;
   let editLast: EditLastEntryService;
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
   beforeEach(() => {
     services = buildFakeEntryServices();
@@ -43,7 +47,10 @@ describe('EditLastEntryService', () => {
   });
 
   it('edits the newest entry among all kinds', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-03-10T10:00:00Z'));
     await registerExpense();
+    vi.setSystemTime(new Date('2026-03-10T10:05:00Z'));
     await services.registerEntry.execute('user-1', { type: 'income', category: 'Salário', description: 'Mês', amount: 100 });
 
     await editLast.execute('user-1', 'categoria Freela');

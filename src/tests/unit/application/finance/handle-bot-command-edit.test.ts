@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
 import type { UndoLastEntryService } from '@/modules/finance/application/services/undo-last-entry-service';
+import type { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
 import type { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import type { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 
@@ -9,6 +10,7 @@ function buildUseCase(editLastEntry = { execute: vi.fn(async () => 'editado') })
     {} as UndoLastEntryService,
     editLastEntry,
     {} as LedgerService,
+    {} as PortfolioService,
     {} as GoalRepository
   );
   return { useCase, editLastEntry };
