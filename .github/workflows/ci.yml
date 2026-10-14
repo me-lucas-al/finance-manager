@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/finance_manager' }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/finance_manager
       AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'nO0uBk2mBfICrf2WrBMHSEzwdUgcfCSGOM1eHL/yFhY=' }}
       CRON_SECRET: ${{ secrets.CRON_SECRET || 'dev_cron_secret_12345' }}
       NEXT_PUBLIC_APP_URL: http://localhost:3000

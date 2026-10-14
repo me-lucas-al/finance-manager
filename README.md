@@ -100,10 +100,16 @@ PUSH_SUBJECT=mailto:seu_email@dominio.com
 ```
 
 ### 3. Migrações do Banco de Dados
-```bash
-pnpm run db:generate
-pnpm run db:migrate
-```
+
+O app usa um Postgres só (Supabase). O Drizzle define o schema em TypeScript (`src/db/schema`) e dá a tipagem, mas **o único caminho até produção é `supabase/migrations`**: a CI aplica esses arquivos sozinha em cada push na `main` (job `migrate-supabase`).
+
+Mudou o schema?
+
+1. `pnpm run db:generate` gera o SQL do Drizzle em `src/db/migrations`.
+2. Copie esse SQL para `supabase/migrations/NNNN_descricao.sql`, com o próximo número livre. Deixe a migration idempotente (`if not exists`) e coloque na primeira linha `-- drizzle: <tag da migration do Drizzle>`.
+3. Abra o PR. O teste `migration-parity` falha se uma migration do Drizzle não tiver a contraparte no Supabase, ou se um número de migration for repetido.
+
+Para desenvolver localmente use `pnpm run db:push` num banco local. Nunca rode `db:push` nem `db:migrate` contra produção: o `db:migrate` não funciona lá, porque a tabela de controle do Drizzle não existe, e o `db:push` pode apagar colunas sem avisar.
 
 ### 4. Executar em Desenvolvimento
 ```bash
