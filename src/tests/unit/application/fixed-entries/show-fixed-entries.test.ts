@@ -3,6 +3,8 @@ import { ShowFixedEntriesUseCase } from '@/modules/finance/application/fixed-ent
 import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
 import { buildFixedEntryViews } from '@/modules/finance/domain/services/build-fixed-entry-views';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
+import { fakePortfolioSource } from '@/tests/fakes/fake-portfolio-source';
 import { sampleLedgerSource } from '@/tests/fakes/fake-ledger-source';
 import { makeFixedEntry } from '@/tests/fakes/fixed-entry-fixture';
 
@@ -16,10 +18,11 @@ const views = buildFixedEntryViews(
 );
 
 const ledger = new LedgerService(sampleLedgerSource);
+const portfolio = new PortfolioService(fakePortfolioSource());
 
 describe('ShowFixedEntriesUseCase', () => {
   it('lists each fixed entry with its status and the projected balance', async () => {
-    const message = await new ShowFixedEntriesUseCase({ execute: async () => views }, ledger).execute('user-1');
+    const message = await new ShowFixedEntriesUseCase({ execute: async () => views }, ledger, portfolio).execute('user-1');
 
     expect(message).toContain('Fixos do mês');
     expect(message).toContain('dia 05 · Aluguel');
@@ -31,7 +34,7 @@ describe('ShowFixedEntriesUseCase', () => {
   });
 
   it('explains how to create the first one when there are none', async () => {
-    const message = await new ShowFixedEntriesUseCase({ execute: async () => [] }, ledger).execute('user-1');
+    const message = await new ShowFixedEntriesUseCase({ execute: async () => [] }, ledger, portfolio).execute('user-1');
 
     expect(message).toContain('ainda não tem lançamentos fixos');
   });
@@ -41,6 +44,7 @@ describe('/fixos bot command', () => {
   const bot = new HandleBotCommandUseCase(
     {} as never,
     ledger,
+    portfolio,
     {} as never,
     { execute: async () => 'lista de fixos' }
   );

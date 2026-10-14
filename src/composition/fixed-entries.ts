@@ -14,7 +14,14 @@ import { PersistenceFixedLaunchLookup } from '@/modules/finance/infrastructure/p
 import { TelegramFixedLaunchAnnouncer } from '@/modules/finance/infrastructure/telegram-fixed-launch-announcer';
 import { TelegramPushReminderDelivery } from '@/modules/finance/infrastructure/telegram-push-reminder-delivery';
 import { SupabaseAlertLogRepository } from '@/modules/open-finance/infrastructure/supabase-alert-log-repository';
-import { deleteEntry, entryChangeNotifier, ledgerService, registerEntry, updateEntry } from './finance';
+import {
+  deleteEntry,
+  entryChangeNotifier,
+  ledgerService,
+  portfolioService,
+  registerEntry,
+  updateEntry,
+} from './finance';
 import { telegramMessenger } from './telegram';
 
 export const fixedEntryRepository = new DrizzleFixedEntryRepository();
@@ -22,7 +29,7 @@ const fixedLaunchLookup = new PersistenceFixedLaunchLookup();
 const launcher = new FixedEntryLauncher(registerEntry, new TelegramFixedLaunchAnnouncer(telegramMessenger));
 
 export const listFixedEntries = new ListFixedEntriesUseCase(fixedEntryRepository, fixedLaunchLookup);
-export const showFixedEntries = new ShowFixedEntriesUseCase(listFixedEntries, ledgerService);
+export const showFixedEntries = new ShowFixedEntriesUseCase(listFixedEntries, ledgerService, portfolioService);
 export const generateDueFixedEntries = new GenerateDueFixedEntriesUseCase(fixedEntryRepository, fixedLaunchLookup, launcher);
 
 export const createFixedEntry = new CreateFixedEntryUseCase(fixedEntryRepository, launcher, entryChangeNotifier);
