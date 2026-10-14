@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { authorizeUser } from '@/app/api/authorize-user';
-import { SupabaseChatMessageRepository } from '@/modules/ai/infrastructure/supabase-chat-message-repository';
+import { chatMessageRepository } from '@/composition/ai';
+import { authorizeUser } from '@/modules/auth/infrastructure/authorize-user';
 
 const HISTORY_LIMIT = 40;
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -9,7 +9,7 @@ export async function GET() {
   const authorization = await authorizeUser();
   if (authorization.response) return authorization.response;
 
-  const recent = await new SupabaseChatMessageRepository().findRecentByUserId(authorization.userId, HISTORY_LIMIT);
+  const recent = await chatMessageRepository.findRecentByUserId(authorization.userId, HISTORY_LIMIT);
   const messages = recent
     .filter((message) => message.role === 'user' || message.role === 'assistant')
     .map(({ id, role, content, channel }) => ({ id, role, content, channel }));
@@ -20,6 +20,6 @@ export async function DELETE() {
   const authorization = await authorizeUser();
   if (authorization.response) return authorization.response;
 
-  await new SupabaseChatMessageRepository().deleteAllByUserId(authorization.userId);
+  await chatMessageRepository.deleteAllByUserId(authorization.userId);
   return NextResponse.json({ cleared: true }, { headers: NO_STORE });
 }

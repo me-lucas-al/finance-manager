@@ -5,17 +5,11 @@ const authMock = vi.fn();
 vi.mock('@/auth', () => ({ auth: authMock }));
 
 const streamMock = vi.fn();
-vi.mock('@/modules/ai/infrastructure/build-advisor-services', () => ({
-  buildAdvisorServices: () => ({ advisorChat: { stream: streamMock } }),
-}));
-
 const findRecentMock = vi.fn();
 const deleteAllMock = vi.fn();
-vi.mock('@/modules/ai/infrastructure/supabase-chat-message-repository', () => ({
-  SupabaseChatMessageRepository: class {
-    findRecentByUserId = findRecentMock;
-    deleteAllByUserId = deleteAllMock;
-  },
+vi.mock('@/composition/ai', () => ({
+  buildAdvisorServices: () => ({ advisorChat: { stream: streamMock } }),
+  chatMessageRepository: { findRecentByUserId: findRecentMock, deleteAllByUserId: deleteAllMock },
 }));
 
 const { POST } = await import('@/app/api/chat/route');
