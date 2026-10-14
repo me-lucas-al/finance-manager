@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { DrizzleDataModeStore } from '@/modules/onboarding/infrastructure/drizzle-data-mode-store';
-import { fetchItemOwner } from '@/lib/pluggy-items';
-import { AccountOwnedByAnotherUserError, RecordItemConnectionUseCase } from '@/modules/open-finance/application/use-cases/record-item-connection';
-import { SupabaseAccountRepository } from '@/modules/open-finance/infrastructure/supabase-repositories';
-import { buildPluggySync } from '@/modules/pluggy-sync/application/build-pluggy-sync';
+import { recordItemConnection } from '@/composition/open-finance';
+import { pluggySync } from '@/composition/pluggy-sync';
+import { pluggyModeRequiredResponse } from '../pluggy-mode';
+import { fetchItemOwner } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
+import { AccountOwnedByAnotherUserError } from '@/modules/open-finance/application/use-cases/record-item-connection';
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -13,9 +13,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if ((await new DrizzleDataModeStore().getState(userId)).dataMode !== 'pluggy') {
-    return NextResponse.json({ error: 'A conexão bancária só está disponível no modo Pluggy.' }, { status: 409 });
-  }
+  const modeResponse = await pluggyModeRequiredResponse(userId);
+  if (modeResponse) return modeResponse;
 
   let itemId: string | undefined;
   try {
@@ -33,8 +32,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const accounts = await new RecordItemConnectionUseCase(new SupabaseAccountRepository()).execute(userId, itemId);
-    const sync = await buildPluggySync()
+    const accounts = await recordItemConnection.execute(userId, itemId);
+    const sync = await pluggySync
       .syncItem(userId, itemId)
       .catch((error) => {
         console.error('Initial Pluggy sync failed:', error);

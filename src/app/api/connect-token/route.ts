@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { DrizzleDataModeStore } from '@/modules/onboarding/infrastructure/drizzle-data-mode-store';
-import { getPluggyConnectToken } from '@/lib/pluggy';
+import { pluggyModeRequiredResponse } from '../pluggy-mode';
+import { getPluggyConnectToken } from '@/modules/pluggy-sync/infrastructure/pluggy/connect-token';
 
 export async function POST() {
   const session = await auth();
@@ -10,9 +10,8 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if ((await new DrizzleDataModeStore().getState(userId)).dataMode !== 'pluggy') {
-    return NextResponse.json({ error: 'A conexão bancária só está disponível no modo Pluggy.' }, { status: 409 });
-  }
+  const modeResponse = await pluggyModeRequiredResponse(userId);
+  if (modeResponse) return modeResponse;
 
   try {
     const accessToken = await getPluggyConnectToken(userId);

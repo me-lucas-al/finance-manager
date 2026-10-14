@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse, after } from 'next/server';
-import { buildTelegramRouter } from '@/modules/open-finance/application/use-cases/build-telegram-router';
+import { buildTelegramRouter } from '@/composition/telegram-router';
+import { telegramLinkRepository, telegramMessenger, telegramUpdateRepository } from '@/composition/telegram';
 import { handleStartCommand, parseStartCommand } from '@/modules/notifications/telegram/application/handle-start-command';
-import { SupabaseTelegramLinkRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-link-repository';
-import { SupabaseTelegramUpdateRepository } from '@/modules/notifications/telegram/infrastructure/supabase-telegram-update-repository';
 
 type TelegramUpdate = {
   update_id: number;
@@ -45,9 +44,9 @@ async function routeToAssistant(update: TelegramUpdate, text: string, userId: st
   }
 }
 
-async function runStartCommand(links: SupabaseTelegramLinkRepository, chatId: number, code?: string) {
+async function runStartCommand(chatId: number, code?: string) {
   try {
-    await handleStartCommand(links, chatId, code);
+    await handleStartCommand(telegramLinkRepository, telegramMessenger, chatId, code);
   } catch (err) {
     console.error('Error handling Telegram /start:', err);
   }
@@ -63,17 +62,15 @@ export async function POST(req: NextRequest) {
   const chatId = message?.chat?.id;
   if (!message?.text || !chatId || message.chat?.type !== 'private') return acknowledged();
 
-  const updates = new SupabaseTelegramUpdateRepository();
-  if (update.update_id && !(await updates.claim(update.update_id))) return acknowledged();
+  if (update.update_id && !(await telegramUpdateRepository.claim(update.update_id))) return acknowledged();
 
-  const links = new SupabaseTelegramLinkRepository();
   const startCommand = parseStartCommand(message.text);
   if (startCommand) {
-    after(() => runStartCommand(links, chatId, startCommand.code));
+    after(() => runStartCommand(chatId, startCommand.code));
     return acknowledged();
   }
 
-  const userId = await links.findUserIdByChatId(chatId);
+  const userId = await telegramLinkRepository.findUserIdByChatId(chatId);
   if (!userId) return acknowledged();
 
   const text = message.text;
