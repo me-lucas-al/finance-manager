@@ -18,6 +18,7 @@ export class FakeInvestmentRepository implements InvestmentRepository {
       amount: String(data.amount),
       type: data.type,
       date: data.date,
+      externalId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

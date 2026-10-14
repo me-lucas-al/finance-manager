@@ -6,6 +6,8 @@ export const users = pgTable('users', {
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
+  dataMode: text('data_mode').$type<'manual' | 'pluggy'>(),
+  onboardingCompletedAt: timestamp('onboarding_completed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -56,12 +58,14 @@ export const incomes = pgTable('incomes', {
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   category: text('category').notNull(),
   receivedAt: timestamp('received_at').notNull(),
+  externalId: text('external_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {
   return {
     userIdIdx: index('incomes_user_id_idx').on(table.userId),
     periodIdIdx: index('incomes_period_id_idx').on(table.periodId),
+    externalIdIdx: uniqueIndex('incomes_user_external_id_idx').on(table.userId, table.externalId),
   };
 });
 
@@ -90,12 +94,14 @@ export const investments = pgTable('investments', {
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   type: text('type').notNull(),
   date: timestamp('date').notNull(),
+  externalId: text('external_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {
   return {
     userIdIdx: index('investments_user_id_idx').on(table.userId),
     periodIdIdx: index('investments_period_id_idx').on(table.periodId),
+    externalIdIdx: uniqueIndex('investments_user_external_id_idx').on(table.userId, table.externalId),
   };
 });
 
