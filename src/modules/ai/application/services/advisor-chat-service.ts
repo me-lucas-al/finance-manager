@@ -3,6 +3,7 @@ import { ChatMessageRepository, ChatChannel } from '../../domain/repositories/ch
 import { ILanguageModel, ChatOptions, LanguageModelMessage } from '../../domain/models/language-model';
 import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
 import { calculateFinancialSnapshot } from '@/modules/finance/domain/services/calculate-financial-snapshot';
 import { buildAdvisorSystemPrompt } from '../../domain/prompts/advisor-persona-prompt';
 import { AdvisorToolsFactory } from '../tools/financial-advisor-tools';
@@ -13,6 +14,7 @@ export type AdvisorChatDeps = {
   chatRepo: ChatMessageRepository;
   llm: ILanguageModel;
   ledger: LedgerService;
+  portfolio: PortfolioService;
   goalRepo: GoalRepository;
   buildTools: AdvisorToolsFactory;
 };
@@ -47,9 +49,10 @@ export class AdvisorChatService {
 
   private async prepare(userId: string, userMessage: string, channel: ChatChannel): Promise<PreparedChat> {
     const currentMonth = getCurrentMonth();
-    const [{ messages, facts }, entries, goals] = await Promise.all([
+    const [{ messages, facts }, entries, portfolio, goals] = await Promise.all([
       this.deps.chatMemory.prepareContext(userId),
       this.deps.ledger.load(userId),
+      this.deps.portfolio.load(userId),
       this.deps.goalRepo.findAllByUserIdAndMonth(userId, `${currentMonth}-01`),
     ]);
 
@@ -57,7 +60,7 @@ export class AdvisorChatService {
       currentDate: new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
       currentIsoDate: toLocalDateString(new Date()),
       currentMonth,
-      snapshot: calculateFinancialSnapshot({ entries, goals, referenceMonth: currentMonth }),
+      snapshot: calculateFinancialSnapshot({ entries, goals, portfolio, referenceMonth: currentMonth }),
       facts,
       channel,
     });

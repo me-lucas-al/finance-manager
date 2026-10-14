@@ -1,5 +1,6 @@
 import { ToolDefinition } from '../../domain/models/language-model';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
 import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { SavingsGoalRepository } from '@/modules/open-finance/domain/repositories/savings-goal-repository';
 import { AssistantMemoryRepository } from '../../domain/repositories/assistant-memory-repository';
@@ -15,6 +16,7 @@ import { buildAdvisorActionTools } from './advisor-action-tools';
 
 export type AdvisorToolCollaborators = {
   ledger: LedgerService;
+  portfolio: PortfolioService;
   goalRepo: GoalRepository;
   savingsGoalRepo: SavingsGoalRepository;
   memoryRepo: AssistantMemoryRepository;

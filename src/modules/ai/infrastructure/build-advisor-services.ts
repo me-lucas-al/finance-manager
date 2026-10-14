@@ -30,6 +30,7 @@ export function buildAdvisorServices() {
 
   const buildTools = createAdvisorToolsFactory({
     ledger: entries.ledger,
+    portfolio: entries.portfolio,
     goalRepo,
     savingsGoalRepo,
     memoryRepo,
@@ -46,6 +47,7 @@ export function buildAdvisorServices() {
     chatRepo,
     llm,
     ledger: entries.ledger,
+    portfolio: entries.portfolio,
     goalRepo,
     buildTools,
   });
@@ -57,6 +59,6 @@ export function buildAdvisorServices() {
     chatRepo,
     registerEntry: entries.registerEntry,
     advisorChat,
-    handleBotCommand: new HandleBotCommandUseCase(entries.undoService, entries.ledger, goalRepo),
+    handleBotCommand: new HandleBotCommandUseCase(entries.undoService, entries.ledger, entries.portfolio, goalRepo),
   };
 }
