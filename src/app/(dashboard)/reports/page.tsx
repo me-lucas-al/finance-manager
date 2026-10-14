@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { getCurrentMonth } from '@/lib/month';
+import { SectionSkeleton } from '@/components/shared/SectionSkeleton';
 import { ReportChartsSection } from './ReportChartsSection';
 import { ReportFilters } from './ReportFilters';
-import { ReportSkeleton } from './ReportSkeleton';
 import { ReportSummarySection } from './ReportSummarySection';
 import { resolveReportPeriod } from './resolve-report-period';
 
@@ -28,11 +28,11 @@ export default async function ReportsPage({
 
         <ReportFilters period={period} />
 
-        <Suspense fallback={<ReportSkeleton height="h-28" />}>
+        <Suspense fallback={<SectionSkeleton height="h-28" />}>
           <ReportSummarySection userId={userId} period={period} />
         </Suspense>
 
-        <Suspense fallback={<ReportSkeleton height="h-80" />}>
+        <Suspense fallback={<SectionSkeleton height="h-80" />}>
           <ReportChartsSection userId={userId} period={period} />
         </Suspense>
       </div>
