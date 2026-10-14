@@ -5,10 +5,11 @@ import { OwnedEntryGuard } from '@/modules/finance/application/services/owned-en
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { EntryNotFoundError } from '@/modules/finance/domain/models/entry-errors';
 import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
-import { FakeTransactionRepository } from '../open-finance/fake-transaction-repository';
+import { FakeTransactionRepository } from '@/tests/fakes/fake-transaction-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';
 import { FakeInvestmentRepository } from '@/tests/fakes/fake-investment-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
+import { seedManualExpense } from '@/tests/fakes/seed-manual-expense';
 
 describe('update and delete entries', () => {
   let transactionRepo: FakeTransactionRepository;
@@ -38,23 +39,7 @@ describe('update and delete entries', () => {
     remove = new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier);
   });
 
-  const seedExpense = () =>
-    transactionRepo.create({
-      userId: 'user-1',
-      pluggyTransactionId: null,
-      accountId: null,
-      bank: 'Manual',
-      amount: 50,
-      description: 'Almoço',
-      occurredAt: '2026-03-01',
-      category: 'Alimentação',
-      categorySuggested: null,
-      reason: null,
-      status: 'categorized',
-      source: 'manual',
-      necessity: 'importante',
-      telegramQuestionMessageId: null,
-    });
+  const seedExpense = () => seedManualExpense(transactionRepo);
 
   it('updates an expense keeping untouched fields and notifies', async () => {
     const expense = await seedExpense();
