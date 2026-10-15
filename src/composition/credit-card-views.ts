@@ -2,7 +2,11 @@ import { createCreditCardOverviewService } from '@/modules/finance/application/s
 import { listCreditCardUsage } from './credit-cards';
 import { dataModeStore } from './onboarding';
 
+export const readDataMode = async (userId: string) => (await dataModeStore.getState(userId)).dataMode;
+
 export const getCreditCardOverview = createCreditCardOverviewService({
-  readDataMode: async (userId) => (await dataModeStore.getState(userId)).dataMode,
+  readDataMode,
   listUsage: (userId) => listCreditCardUsage.execute(userId),
 });
+
+export const loadCreditCardUsage = (userId: string) => listCreditCardUsage.execute(userId);
