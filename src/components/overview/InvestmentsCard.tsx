@@ -8,7 +8,7 @@ import type { InvestmentOverview } from '@/types/overview';
 import { InvestmentClassesView } from './InvestmentClassesView';
 import { InvestmentInstitutionsView } from './InvestmentInstitutionsView';
 import { InvestmentViewToggle, type InvestmentView } from './InvestmentViewToggle';
-import { OverviewCardLabel } from './OverviewCardLabel';
+import { OverviewCardLinkLabel } from './OverviewCardLinkLabel';
 
 function describeView(view: InvestmentView, investments: InvestmentOverview): string {
   if (view === 'classes') return `1 classes · ${investments.count} ativos (${investments.subtitle})`;
@@ -22,9 +22,9 @@ export function InvestmentsCard({ investments }: { investments: InvestmentOvervi
     <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm hover:border-zinc-700/60 transition-colors">
       <CardHeader className="pb-3 pt-5 px-6">
         <div className="flex items-center justify-between">
-          <OverviewCardLabel icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}>
+          <OverviewCardLinkLabel href="/ativos" icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}>
             INVESTIMENTOS
-          </OverviewCardLabel>
+          </OverviewCardLinkLabel>
           <InvestmentViewToggle activeView={view} onChange={setView} />
         </div>
         <div className="mt-2">

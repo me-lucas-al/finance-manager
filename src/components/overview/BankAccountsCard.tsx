@@ -3,15 +3,15 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Amount } from '@/components/shared/Amount';
 import type { BankOverview } from '@/types/overview';
 import { BankAccountRow } from './BankAccountRow';
-import { OverviewCardLabel } from './OverviewCardLabel';
+import { OverviewCardLinkLabel } from './OverviewCardLinkLabel';
 
 export function BankAccountsCard({ bank }: { bank: BankOverview }) {
   return (
     <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm hover:border-zinc-700/60 transition-colors">
       <CardHeader className="pb-3 pt-5 px-6">
-        <OverviewCardLabel icon={<Landmark className="h-4 w-4 text-zinc-400" />}>
+        <OverviewCardLinkLabel href="/movements" icon={<Landmark className="h-4 w-4 text-zinc-400" />}>
           CONTAS BANCÁRIAS
-        </OverviewCardLabel>
+        </OverviewCardLinkLabel>
         <div className="mt-2">
           <Amount value={bank.total} className="text-3xl font-bold tracking-tight text-white" />
         </div>
