@@ -1,12 +1,12 @@
 import { ILanguageModel } from '@/modules/ai/domain/models/language-model';
 import { ParsedEntry } from '../../domain/parsers/parse-entry-message';
+import type { CardNameSource } from '../../domain/ports/card-name-source';
+import { mentionsCreditCard } from '../../domain/services/mentions-credit-card';
 
 export type AiExtractionResult =
   | { success: true; entry: ParsedEntry }
   | { success: false; needsClarification: true; question: string }
   | { success: false; needsClarification: false };
-
-const CARD_MENTION_PATTERN = /cart[aã]o|fatura|cr[eé]dito/i;
 
 const EXTRACTION_SCHEMA = `{
   "isFinancialEntry": boolean,
@@ -19,9 +19,12 @@ const EXTRACTION_SCHEMA = `{
 }`;
 
 export class ExtractEntryWithAiUseCase {
-  constructor(private llm: ILanguageModel) {}
+  constructor(
+    private llm: ILanguageModel,
+    private cardNames: CardNameSource
+  ) {}
 
-  async execute(text: string): Promise<AiExtractionResult> {
+  async execute(text: string, userId: string): Promise<AiExtractionResult> {
     const prompt = `Analise a mensagem do usuário e identifique se trata-se de um registro de transação financeira (saída, entrada ou investimento).
 Mensagem: "${text}"
 Se o valor ou o tipo de transação for ambíguo ou faltar dado crítico para registrar, defina isAmbiguous=true e elabore uma pergunta direta em clarificationQuestion. Não invente valores.`;
@@ -49,7 +52,7 @@ Se o valor ou o tipo de transação for ambíguo ou faltar dado crítico para re
         };
       }
 
-      if (parsed.type === 'expense' && CARD_MENTION_PATTERN.test(text)) {
+      if (parsed.type === 'expense' && (await this.isAboutCard(text, userId))) {
         return { success: false, needsClarification: false };
       }
 
@@ -65,5 +68,9 @@ Se o valor ou o tipo de transação for ambíguo ou faltar dado crítico para re
     } catch {
       return { success: false, needsClarification: false };
     }
+  }
+
+  private async isAboutCard(text: string, userId: string): Promise<boolean> {
+    return mentionsCreditCard(text, await this.cardNames.listCardNames(userId));
   }
 }
