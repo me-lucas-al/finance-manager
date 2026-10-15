@@ -29,3 +29,27 @@ alter table incomes add column if not exists fixed_reference_month text;
 create unique index if not exists incomes_fixed_entry_month_uidx
   on incomes (fixed_entry_id, fixed_reference_month)
   where fixed_entry_id is not null;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'transactions_fixed_link_check') then
+    alter table transactions add constraint transactions_fixed_link_check
+      check (fixed_entry_id is null or fixed_reference_month is not null);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'incomes_fixed_link_check') then
+    alter table incomes add constraint incomes_fixed_link_check
+      check (fixed_entry_id is null or fixed_reference_month is not null);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'transactions_fixed_reference_month_format') then
+    alter table transactions add constraint transactions_fixed_reference_month_format
+      check (fixed_reference_month is null or fixed_reference_month ~ '^[0-9]{4}-(0[1-9]|1[0-2])$');
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'incomes_fixed_reference_month_format') then
+    alter table incomes add constraint incomes_fixed_reference_month_format
+      check (fixed_reference_month is null or fixed_reference_month ~ '^[0-9]{4}-(0[1-9]|1[0-2])$');
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'fixed_entries_last_launched_month_format') then
+    alter table fixed_entries add constraint fixed_entries_last_launched_month_format
+      check (last_launched_month is null or last_launched_month ~ '^[0-9]{4}-(0[1-9]|1[0-2])$');
+  end if;
+end $$;
