@@ -18,10 +18,13 @@ export type Transaction = {
   source: TransactionSource;
   necessity: TransactionNecessity | null;
   telegramQuestionMessageId: number | null;
+  fixedEntryId: string | null;
+  fixedReferenceMonth: string | null;
   createdAt: string;
 };
 
-export type NewTransaction = Omit<Transaction, 'id' | 'createdAt'>;
+export type NewTransaction = Omit<Transaction, 'id' | 'createdAt' | 'fixedEntryId' | 'fixedReferenceMonth'> &
+  Partial<Pick<Transaction, 'fixedEntryId' | 'fixedReferenceMonth'>>;
 export type TransactionSortField = 'date' | 'description' | 'amount';
 
 export type TransactionFilters = {

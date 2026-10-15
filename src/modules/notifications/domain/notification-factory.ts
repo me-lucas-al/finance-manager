@@ -1,4 +1,12 @@
+import { formatCurrency } from '@/lib/format';
 import { NotificationPayload, NotificationTriggerParams, NotificationType } from './notification-types';
+
+export type FixedEntryReminderParams = {
+  userId: string;
+  kind: 'expense' | 'income';
+  description: string;
+  amount: number;
+};
 
 export class NotificationFactory {
   static createExpenseWarning(params: NotificationTriggerParams): NotificationPayload {
@@ -44,6 +52,17 @@ export class NotificationFactory {
       type: NotificationType.PERIOD_CLOSED,
       title: 'Período Fechado',
       message: 'O período foi fechado com sucesso.',
+    };
+  }
+
+  static createFixedEntryReminder(params: FixedEntryReminderParams): NotificationPayload {
+    const isExpense = params.kind === 'expense';
+    const amountText = formatCurrency(params.amount);
+    return {
+      userId: params.userId,
+      type: NotificationType.FIXED_ENTRY_REMINDER,
+      title: isExpense ? 'Gasto fixo vence amanhã' : 'Receita fixa cai amanhã',
+      message: `${params.description} — ${amountText}`,
     };
   }
 

@@ -7,6 +7,8 @@ export type Income = {
   category: string;
   receivedAt: Date;
   externalId: string | null;
+  fixedEntryId: string | null;
+  fixedReferenceMonth: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

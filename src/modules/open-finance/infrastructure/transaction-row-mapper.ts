@@ -22,6 +22,8 @@ export type TransactionRow = {
   source: Transaction['source'];
   necessity: Transaction['necessity'];
   telegram_question_message_id: number | null;
+  fixed_entry_id: string | null;
+  fixed_reference_month: string | null;
   created_at: string;
 };
 
@@ -68,6 +70,8 @@ export function toTransaction(row: TransactionRow): Transaction {
     source: row.source ?? 'manual',
     necessity: row.necessity ?? null,
     telegramQuestionMessageId: row.telegram_question_message_id,
+    fixedEntryId: row.fixed_entry_id ?? null,
+    fixedReferenceMonth: row.fixed_reference_month ?? null,
     createdAt: row.created_at,
   };
 }

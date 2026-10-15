@@ -7,8 +7,10 @@ import { ClassifyNecessityService } from '../services/classify-necessity-service
 import { ExpensePatternAnalyzer } from '../services/expense-pattern-analyzer';
 import { SpendingAlert } from '../../domain/models/spending-patterns';
 import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
-import { dateAtNoon, toLocalDateString } from '@/lib/month';
+import type { FixedLaunchLink } from '../../domain/models/fixed-entry';
+import { toLocalDateString } from '@/lib/month';
 import { assertValidEntryDate } from '../../domain/parsers/parse-entry-date';
+import { buildNewExpense, buildNewIncome, buildNewInvestment } from '../services/entry-record-builders';
 
 export type RegisteredEntryResult = {
   type: ParsedEntry['type'];
@@ -18,6 +20,8 @@ export type RegisteredEntryResult = {
   necessity?: TransactionNecessity;
   alerts: SpendingAlert[];
 };
+
+export type RegisterEntryOptions = { fixed?: FixedLaunchLink };
 
 export class RegisterManualEntryUseCase {
   constructor(
@@ -30,65 +34,36 @@ export class RegisterManualEntryUseCase {
     private notifier: EntryChangeNotifier
   ) {}
 
-  async execute(userId: string, entry: ParsedEntry): Promise<RegisteredEntryResult> {
+  async execute(userId: string, entry: ParsedEntry, options: RegisterEntryOptions = {}): Promise<RegisteredEntryResult> {
     const dateString = entry.date ?? toLocalDateString(new Date());
     assertValidEntryDate(dateString);
-    const result = await this.persist(userId, entry, dateString);
+    const result = await this.persist(userId, entry, dateString, options);
     await this.notifier.notifyEntriesChanged(userId);
     return result;
   }
 
-  private async persist(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
-    if (entry.type === 'income') return this.persistIncome(userId, entry, dateString);
-    if (entry.type === 'investment') return this.persistInvestment(userId, entry, dateString);
-    return this.persistExpense(userId, entry, dateString);
+  private async persist(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
+    if (entry.type === 'income') return this.persistIncome(userId, entry, date, options);
+    if (entry.type === 'investment') return this.persistInvestment(userId, entry, date);
+    return this.persistExpense(userId, entry, date, options);
   }
 
-  private async persistIncome(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+  private async persistIncome(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
     const period = await this.resolvePeriod.execute(userId);
-    await this.incomeRepo.create({
-      userId,
-      periodId: period.id,
-      amount: entry.amount,
-      description: entry.description,
-      category: entry.category,
-      receivedAt: dateAtNoon(dateString),
-    });
+    await this.incomeRepo.create(buildNewIncome(userId, period.id, entry, date, options.fixed));
     return { ...entry, alerts: [] };
   }
 
-  private async persistInvestment(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+  private async persistInvestment(userId: string, entry: ParsedEntry, date: string): Promise<RegisteredEntryResult> {
     const period = await this.resolvePeriod.execute(userId);
-    await this.investmentRepo.create({
-      userId,
-      periodId: period.id,
-      amount: entry.amount,
-      description: entry.description,
-      type: entry.category,
-      date: dateAtNoon(dateString),
-    });
+    await this.investmentRepo.create(buildNewInvestment(userId, period.id, entry, date));
     return { ...entry, alerts: [] };
   }
 
-  private async persistExpense(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
+  private async persistExpense(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
     const necessity = entry.necessity ?? (await this.classifyNecessity.execute(userId, entry.category, entry.description));
-    const alerts = await this.patternAnalyzer.analyze(userId, entry, dateString.slice(0, 7));
-    await this.transactionRepo.create({
-      userId,
-      pluggyTransactionId: null,
-      accountId: null,
-      bank: 'Manual',
-      amount: entry.amount,
-      description: entry.description,
-      occurredAt: dateString,
-      category: entry.category,
-      categorySuggested: null,
-      reason: null,
-      status: 'categorized',
-      source: 'manual',
-      necessity,
-      telegramQuestionMessageId: null,
-    });
+    const alerts = options.fixed ? [] : await this.patternAnalyzer.analyze(userId, entry, date.slice(0, 7));
+    await this.transactionRepo.create(buildNewExpense(userId, entry, date, necessity, options.fixed));
     return { ...entry, necessity, alerts };
   }
 }

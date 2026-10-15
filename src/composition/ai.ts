@@ -14,6 +14,14 @@ import {
   undoLastEntry,
   updateEntry,
 } from './finance';
+import {
+  createFixedEntry,
+  deleteFixedEntry,
+  listFixedEntries,
+  setFixedEntryActive,
+  showFixedEntries,
+  updateFixedEntry,
+} from './fixed-entries';
 import { languageModel } from './language-model';
 import {
   goalRepository,
@@ -41,6 +49,13 @@ export function buildAdvisorServices() {
     registerEntry,
     updateEntry,
     deleteEntry,
+    fixedEntries: {
+      list: listFixedEntries,
+      create: createFixedEntry,
+      update: updateFixedEntry,
+      setActive: setFixedEntryActive,
+      remove: deleteFixedEntry,
+    },
     deletion: new DeletionConfirmationService(requireDeletionSecret()),
     goalsUpdater: updateGoalsFromMessage,
     listCategories: listExpenseCategories,
@@ -60,6 +75,13 @@ export function buildAdvisorServices() {
     llm: languageModel,
     registerEntry,
     advisorChat,
-    handleBotCommand: new HandleBotCommandUseCase(undoLastEntry, editLastEntry, ledgerService, portfolioService, goalRepository),
+    handleBotCommand: new HandleBotCommandUseCase(
+      undoLastEntry,
+      editLastEntry,
+      ledgerService,
+      portfolioService,
+      goalRepository,
+      showFixedEntries,
+    ),
   };
 }

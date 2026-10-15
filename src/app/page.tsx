@@ -1,10 +1,15 @@
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { getLiveOverviewData } from '@/composition/finance-views';
+import { fixedEntriesData } from '@/composition/fixed-entries-views';
+import { FixedEntriesCard } from '@/components/fixed/FixedEntriesCard';
 import { OverviewCards } from '@/components/overview/OverviewCards';
 import { BalanceEvolutionCard } from '@/components/overview/BalanceEvolutionCard';
 
 export default async function DashboardPage() {
-  const data = await getLiveOverviewData(await requireUserId());
+  const userId = await requireUserId();
+  await fixedEntriesData.catchUp(userId);
+  const data = await getLiveOverviewData(userId);
+  const fixedEntries = await fixedEntriesData.overview(userId, data.bankTotal);
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
@@ -36,6 +41,8 @@ export default async function DashboardPage() {
             institutions: data.investmentInstitutions,
           }}
         />
+
+        <FixedEntriesCard overview={fixedEntries} />
 
         <BalanceEvolutionCard
           balance={data.evolutionBalance}

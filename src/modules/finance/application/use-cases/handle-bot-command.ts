@@ -5,6 +5,7 @@ import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-
 import { calculateFinancialSnapshot } from '../../domain/services/calculate-financial-snapshot';
 import { formatMonthSummary } from '../services/month-summary-formatter';
 import { getCurrentMonth } from '@/lib/month';
+import type { ShowFixedEntriesUseCase } from '../fixed-entries/show-fixed-entries';
 
 const HELP_MESSAGE = `🤖 Comandos do Assistente Financeiro:
 
@@ -21,6 +22,7 @@ Ou escreva naturalmente, ex: "gastei 50 no almoço".
 /desfazer - Remove o último lançamento
 /editar   - Corrige o último lançamento (ex.: /editar valor 45,90)
 /resumo   - Snapshot financeiro do mês
+/fixos    - Lançamentos fixos do mês (lançados e agendados)
 /ajuda    - Mostra este menu de instruções`;
 
 export type LastEntryEditor = { execute(userId: string, argumentsText: string): Promise<string> };
@@ -31,7 +33,8 @@ export class HandleBotCommandUseCase {
     private editLastEntry: LastEntryEditor,
     private ledger: LedgerService,
     private portfolio: PortfolioService,
-    private goalRepo: GoalRepository
+    private goalRepo: GoalRepository,
+    private showFixedEntries: Pick<ShowFixedEntriesUseCase, 'execute'>
   ) {}
 
   async execute(userId: string, command: string): Promise<string> {
@@ -47,6 +50,10 @@ export class HandleBotCommandUseCase {
 
     if (norm === '/editar') {
       return this.editLastEntry.execute(userId, command.trim().slice(norm.length));
+    }
+
+    if (norm === '/fixos') {
+      return this.showFixedEntries.execute(userId);
     }
 
     if (norm === '/resumo') {

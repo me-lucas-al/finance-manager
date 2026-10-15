@@ -12,6 +12,7 @@ const entry = (kind: LedgerEntry['kind'], amount: number): LedgerEntry => ({
   category: 'Outros',
   amount,
   account: 'manual',
+  fixed: false,
 });
 
 const entries = [entry('income', 1000), entry('expense', 400), entry('investment', 100)];

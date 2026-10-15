@@ -40,6 +40,7 @@ export interface LiveTransactionItem {
   isCreditCard: boolean;
   necessity?: TransactionNecessity;
   imported?: boolean;
+  fixed: boolean;
 }
 
 export interface LiveExpenseCategory {

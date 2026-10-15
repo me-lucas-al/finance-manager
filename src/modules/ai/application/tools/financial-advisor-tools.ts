@@ -13,6 +13,8 @@ import { buildAdvisorGoalTools, GoalsMessageUpdater } from './advisor-goal-tools
 import { DeletionConfirmationService } from '../services/deletion-confirmation-service';
 import { buildAdvisorEntryTools } from './advisor-entry-tools';
 import { buildAdvisorActionTools } from './advisor-action-tools';
+import { buildAdvisorFixedTools } from './advisor-fixed-tools';
+import type { AdvisorFixedEntryServices } from './advisor-fixed-types';
 
 export type AdvisorToolCollaborators = {
   ledger: LedgerService;
@@ -23,6 +25,7 @@ export type AdvisorToolCollaborators = {
   registerEntry: RegisterManualEntryUseCase;
   updateEntry: UpdateEntryUseCase;
   deleteEntry: DeleteEntryUseCase;
+  fixedEntries: AdvisorFixedEntryServices;
   deletion: DeletionConfirmationService;
   goalsUpdater: GoalsMessageUpdater;
   listCategories: (userId: string) => Promise<string[]>;
@@ -41,6 +44,7 @@ export function buildAdvisorTools(deps: ToolDeps): ToolDefinition[] {
     ...buildAdvisorGoalTools(deps),
     ...buildAdvisorEntryTools(deps),
     ...buildAdvisorActionTools(deps),
+    ...buildAdvisorFixedTools(deps),
   ];
 }
 

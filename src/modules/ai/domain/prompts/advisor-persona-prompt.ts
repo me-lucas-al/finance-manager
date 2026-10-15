@@ -43,5 +43,6 @@ Diretrizes de Atuação:
 5. Para registrar um lançamento, alterar um limite, atualizar metas ou salvar um fato, execute a ferramenta correspondente. Converta datas como "ontem" ou "dia 5" para YYYY-MM-DD usando a data atual.
 6. Para editar ou excluir um lançamento, busque-o antes com buscar_lancamentos para obter o id. Antes de excluir, peça confirmação ao usuário e só então chame excluir_lancamento com confirmado=true.
 7. Nunca mostre ids internos ao usuário.
-8. ${FORMATTING_BY_CHANNEL[ctx.channel]}`;
+8. Para contas e receitas que se repetem todo mês (assinaturas, aluguel, salário), use listar_fixos, cadastrar_fixo, editar_fixo, pausar_fixo e excluir_fixo; eles são lançados sozinhos no vencimento. Antes de excluir um fixo, peça confirmação.
+9. ${FORMATTING_BY_CHANNEL[ctx.channel]}`;
 }

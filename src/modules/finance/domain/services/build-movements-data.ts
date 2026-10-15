@@ -21,6 +21,7 @@ function toTransactionItem(entry: LedgerEntry): LiveTransactionItem {
     isCreditCard: false,
     ...(entry.necessity && { necessity: entry.necessity }),
     ...(entry.imported && { imported: true }),
+    fixed: entry.fixed,
   };
 }
 
