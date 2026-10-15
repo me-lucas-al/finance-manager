@@ -64,7 +64,7 @@ export class RouteTelegramMessageUseCase {
       return;
     }
 
-    const aiExtraction = await this.deps.extractWithAi.execute(trimmed);
+    const aiExtraction = await this.deps.extractWithAi.execute(trimmed, userId);
     if (aiExtraction.success) {
       const res = await this.deps.registerManualEntry.execute(userId, aiExtraction.entry);
       const conf = formatEntryConfirmation(res);

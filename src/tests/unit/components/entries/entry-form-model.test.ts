@@ -1,12 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { toCreateInput, toUpdateInput } from '@/components/entries/entry-form-payload';
 import { hasErrors, validateEntryValues } from '@/components/entries/entry-form-validation';
-import {
-  createEmptyEntryValues,
-  valuesFromEntry,
-  type EditableEntry,
-  type EntryFormValues,
-} from '@/components/entries/entry-form-values';
+import { createEmptyEntryValues, valuesFromEntry, type EditableEntry, type EntryFormValues } from '@/components/entries/entry-form-values';
 
 const filled: EntryFormValues = {
   type: 'expense',
@@ -15,6 +10,7 @@ const filled: EntryFormValues = {
   category: ' Alimentação ',
   date: '2026-03-10',
   necessity: '',
+  creditCardId: '',
 };
 
 const stored: EditableEntry = {
@@ -35,6 +31,7 @@ describe('entry form values', () => {
       category: '',
       date: '2026-03-10',
       necessity: '',
+      creditCardId: '',
     });
   });
 

@@ -1,4 +1,5 @@
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
+import { getCreditCardOverview } from '@/composition/credit-card-views';
 import { getLiveOverviewData } from '@/composition/finance-views';
 import { fixedEntriesData } from '@/composition/fixed-entries-views';
 import { FixedEntriesCard } from '@/components/fixed/FixedEntriesCard';
@@ -9,6 +10,7 @@ export default async function DashboardPage() {
   const userId = await requireUserId();
   await fixedEntriesData.catchUp(userId);
   const data = await getLiveOverviewData(userId);
+  const creditCardData = await getCreditCardOverview(userId, data);
   const fixedEntries = await fixedEntriesData.overview(userId, data.bankTotal);
 
   return (
@@ -26,12 +28,7 @@ export default async function DashboardPage() {
             total: data.bankTotal,
             accounts: data.bankAccounts,
           }}
-          creditCardData={{
-            total: data.cardTotal,
-            limit: data.cardLimit,
-            usedPercentage: data.cardUsedPercentage,
-            cards: data.cards,
-          }}
+          creditCardData={creditCardData}
           investmentsData={{
             total: data.investmentTotal,
             count: data.investmentCount,

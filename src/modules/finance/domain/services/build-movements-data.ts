@@ -7,7 +7,9 @@ import { categoriesOf } from './filter-ledger-entries';
 import { selectStatementEntries } from './select-statement-entries';
 import { entriesInMonth, totalsByCategory, totalsOf } from './summarize-ledger';
 
-function toTransactionItem(entry: LedgerEntry): LiveTransactionItem {
+export type CardNames = Record<string, string>;
+
+function toTransactionItem(entry: LedgerEntry, cardNames: CardNames): LiveTransactionItem {
   return {
     id: entry.id,
     dateStr: entry.date,
@@ -21,6 +23,8 @@ function toTransactionItem(entry: LedgerEntry): LiveTransactionItem {
     isCreditCard: false,
     ...(entry.necessity && { necessity: entry.necessity }),
     ...(entry.imported && { imported: true }),
+    ...(entry.creditCardId && { creditCardId: entry.creditCardId }),
+    ...(entry.creditCardId && cardNames[entry.creditCardId] && { creditCardName: cardNames[entry.creditCardId] }),
     fixed: entry.fixed,
   };
 }
@@ -28,7 +32,8 @@ function toTransactionItem(entry: LedgerEntry): LiveTransactionItem {
 export function buildMovementsData(
   entries: LedgerEntry[],
   month: string,
-  filters: StatementFilters = DEFAULT_STATEMENT_FILTERS
+  filters: StatementFilters = DEFAULT_STATEMENT_FILTERS,
+  cardNames: CardNames = {}
 ): LiveMovementsData {
   const monthEntries = entriesInMonth(entries, month);
   const totals = totalsOf(monthEntries);
@@ -46,7 +51,7 @@ export function buildMovementsData(
       color: getCategoryColor(category),
     })),
     pendingExpenses: [],
-    transactions: selectStatementEntries(entries, month, filters).map(toTransactionItem),
+    transactions: selectStatementEntries(entries, month, filters).map((entry) => toTransactionItem(entry, cardNames)),
     categoryOptions: categoriesOf(monthEntries),
   };
 }

@@ -18,6 +18,7 @@ export function expenseToEntry(transaction: Transaction): LedgerEntry {
     account: transaction.bank || MANUAL_ACCOUNT,
     ...(transaction.necessity && { necessity: transaction.necessity }),
     ...(transaction.source !== 'manual' && { imported: true as const }),
+    ...(transaction.creditCardId && { creditCardId: transaction.creditCardId }),
     fixed: Boolean(transaction.fixedReferenceMonth),
   };
 }

@@ -19,6 +19,7 @@ import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';
 import { FakeInvestmentRepository } from '@/tests/fakes/fake-investment-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
+import { noopCardLinkValidator } from '@/tests/fakes/noop-card-link-validator';
 import { FakeFixedEntryRepository } from '@/tests/fakes/fake-fixed-entry-repository';
 import { FakeFixedLaunchLookup } from '@/tests/fakes/fake-fixed-launch-lookup';
 
@@ -41,10 +42,11 @@ export function createFixedEntryHarness(initialNow = new Date('2026-03-10T15:00:
     new ResolveCurrentPeriodUseCase(new FakePeriodRepository(), new FakeSettingRepository()),
     classify,
     new ExpensePatternAnalyzer(transactionRepo),
-    notifier
+    notifier,
+    noopCardLinkValidator
   );
   const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
-  const updateEntry = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, notifier);
+  const updateEntry = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, notifier, noopCardLinkValidator);
   const deleteEntry = new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier);
   const lookup = new FakeFixedLaunchLookup({
     transactions: () => transactionRepo.findAllByUserId(FIXED_USER),

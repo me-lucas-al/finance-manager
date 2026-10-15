@@ -10,6 +10,7 @@ export type ParsedEntry = {
   amount: number;
   date?: string;
   necessity?: TransactionNecessity;
+  creditCardId?: string;
 };
 
 const EXPENSE_SYNONYMS = new Set(['saida', 'saída', 'gasto', 'despesa', 'debito', 'débito']);

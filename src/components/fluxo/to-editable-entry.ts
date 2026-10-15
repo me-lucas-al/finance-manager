@@ -11,5 +11,6 @@ export function toEditableEntry(transaction: LiveTransactionItem): EditableEntry
     category: transaction.category,
     date: transaction.dateStr,
     necessity: transaction.necessity,
+    creditCardId: transaction.creditCardId,
   };
 }

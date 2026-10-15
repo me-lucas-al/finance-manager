@@ -10,6 +10,11 @@ function informedNecessity(values: EntryFormValues): Pick<EntryChanges, 'necessi
   return { necessity: values.necessity };
 }
 
+function informedCard(values: EntryFormValues): Pick<ParsedEntry, 'creditCardId'> {
+  if (values.type !== 'expense' || values.creditCardId === '') return {};
+  return { creditCardId: values.creditCardId };
+}
+
 export function toCreateInput(values: EntryFormValues): ParsedEntry {
   return {
     type: values.type,
@@ -18,6 +23,7 @@ export function toCreateInput(values: EntryFormValues): ParsedEntry {
     category: values.category.trim(),
     date: values.date,
     ...informedNecessity(values),
+    ...informedCard(values),
   };
 }
 
@@ -25,11 +31,13 @@ export function toUpdateInput(entry: EditableEntry, values: EntryFormValues): Up
   const amount = parseCurrencyAmount(values.amount) ?? 0;
   const description = values.description.trim();
   const category = values.category.trim();
+  const cardChanged = entry.kind === 'expense' && values.creditCardId !== (entry.creditCardId ?? '');
   const changedFields: EntryChanges = {
     ...(amount !== entry.amount && { amount }),
     ...(description !== entry.description && { description }),
     ...(category !== entry.category && { category }),
     ...(values.date !== entry.date && { date: values.date }),
+    ...(cardChanged && { creditCardId: values.creditCardId || null }),
   };
   const necessity = informedNecessity(values);
   const hasFieldChanges = Object.keys(changedFields).length > 0;

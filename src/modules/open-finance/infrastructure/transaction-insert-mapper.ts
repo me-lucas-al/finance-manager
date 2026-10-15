@@ -16,6 +16,7 @@ export function buildTransactionInsert(data: NewTransaction): Record<string, unk
     source: data.source ?? 'manual',
     necessity: data.necessity ?? null,
     telegram_question_message_id: data.telegramQuestionMessageId,
+    ...(data.creditCardId ? { credit_card_id: data.creditCardId } : {}),
     ...(data.fixedEntryId
       ? { fixed_entry_id: data.fixedEntryId, fixed_reference_month: data.fixedReferenceMonth ?? null }
       : {}),

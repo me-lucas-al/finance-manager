@@ -9,6 +9,7 @@ export type EntryFormValues = {
   category: string;
   date: string;
   necessity: TransactionNecessity | '';
+  creditCardId: string;
 };
 
 export type EditableEntry = {
@@ -19,10 +20,11 @@ export type EditableEntry = {
   category: string;
   date: string;
   necessity?: TransactionNecessity;
+  creditCardId?: string;
 };
 
 export function createEmptyEntryValues(type: EntryType, today: string): EntryFormValues {
-  return { type, amount: '', description: '', category: '', date: today, necessity: '' };
+  return { type, amount: '', description: '', category: '', date: today, necessity: '', creditCardId: '' };
 }
 
 export function valuesFromEntry(entry: EditableEntry): EntryFormValues {
@@ -33,5 +35,6 @@ export function valuesFromEntry(entry: EditableEntry): EntryFormValues {
     category: entry.category,
     date: entry.date,
     necessity: entry.necessity ?? '',
+    creditCardId: entry.creditCardId ?? '',
   };
 }

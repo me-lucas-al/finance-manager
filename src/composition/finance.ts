@@ -15,6 +15,7 @@ import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-e
 import { PersistenceLedgerSource } from '@/modules/finance/infrastructure/persistence-ledger-source';
 import { PersistencePortfolioSource } from '@/modules/finance/infrastructure/persistence-portfolio-source';
 import { toLocalDateString } from '@/lib/month';
+import { cardLinkGuard } from './credit-cards';
 import { languageModel } from './language-model';
 import { accountRepository, goalRepository, transactionRepository } from './open-finance';
 import { resolveCurrentPeriod } from './periods';
@@ -37,6 +38,7 @@ export const registerEntry = new RegisterManualEntryUseCase(
   classifyNecessity,
   new ExpensePatternAnalyzer(transactionRepository, goalRepository),
   entryChangeNotifier,
+  cardLinkGuard,
 );
 
 export const updateEntry = new UpdateEntryUseCase(
@@ -46,6 +48,7 @@ export const updateEntry = new UpdateEntryUseCase(
   ownedEntryGuard,
   classifyNecessity,
   entryChangeNotifier,
+  cardLinkGuard,
 );
 
 export const deleteEntry = new DeleteEntryUseCase(

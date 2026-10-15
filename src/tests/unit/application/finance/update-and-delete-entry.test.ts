@@ -4,6 +4,7 @@ import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/dele
 import { OwnedEntryGuard } from '@/modules/finance/application/services/owned-entry-guard';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { EntryNotFoundError } from '@/modules/finance/domain/models/entry-errors';
+import { noopCardLinkValidator } from '@/tests/fakes/noop-card-link-validator';
 import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 import { FakeTransactionRepository } from '@/tests/fakes/fake-transaction-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';
@@ -34,7 +35,8 @@ describe('update and delete entries', () => {
       investmentRepo,
       guard,
       new ClassifyNecessityService(transactionRepo, language),
-      notifier
+      notifier,
+      noopCardLinkValidator
     );
     remove = new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier);
   });

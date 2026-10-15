@@ -15,6 +15,8 @@ import { buildAdvisorEntryTools } from './advisor-entry-tools';
 import { buildAdvisorActionTools } from './advisor-action-tools';
 import { buildAdvisorFixedTools } from './advisor-fixed-tools';
 import type { AdvisorFixedEntryServices } from './advisor-fixed-types';
+import { buildAdvisorCardTools } from './advisor-card-tools';
+import type { AdvisorCreditCardServices } from './advisor-card-types';
 
 export type AdvisorToolCollaborators = {
   ledger: LedgerService;
@@ -26,6 +28,7 @@ export type AdvisorToolCollaborators = {
   updateEntry: UpdateEntryUseCase;
   deleteEntry: DeleteEntryUseCase;
   fixedEntries: AdvisorFixedEntryServices;
+  creditCards: AdvisorCreditCardServices;
   deletion: DeletionConfirmationService;
   goalsUpdater: GoalsMessageUpdater;
   listCategories: (userId: string) => Promise<string[]>;
@@ -45,6 +48,7 @@ export function buildAdvisorTools(deps: ToolDeps): ToolDefinition[] {
     ...buildAdvisorEntryTools(deps),
     ...buildAdvisorActionTools(deps),
     ...buildAdvisorFixedTools(deps),
+    ...buildAdvisorCardTools(deps),
   ];
 }
 

@@ -9,6 +9,7 @@ import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
 import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';
+import { noopCardLinkValidator } from '@/tests/fakes/noop-card-link-validator';
 import { noopEntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 
 describe('RegisterManualEntryUseCase', () => {
@@ -32,7 +33,8 @@ describe('RegisterManualEntryUseCase', () => {
       resolvePeriod,
       classifyNecessity,
       new ExpensePatternAnalyzer(transactionRepo),
-      noopEntryChangeNotifier
+      noopEntryChangeNotifier,
+      noopCardLinkValidator
     );
   });
 

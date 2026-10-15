@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/movements', label: 'Fluxo' },
   { href: '/ativos', label: 'Ativos' },
   { href: '/fixed-entries', label: 'Fixos' },
+  { href: '/cards', label: 'Cartões' },
   { href: '/goals', label: 'Metas' },
   { href: '/reports', label: 'Relatórios' },
   { href: '/periods', label: 'Calendário' },

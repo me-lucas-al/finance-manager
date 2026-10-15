@@ -7,6 +7,7 @@ import type { UpdateEntryUseCase } from '@/modules/finance/application/use-cases
 import type { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
 import type { AdvisorFixedEntryServices } from '@/modules/ai/application/tools/advisor-fixed-types';
 import { DeletionConfirmationService } from '@/modules/ai/application/services/deletion-confirmation-service';
+import type { AdvisorCreditCardServices } from '@/modules/ai/application/tools/advisor-card-types';
 import { fakePortfolioSource } from './fake-portfolio-source';
 import { sampleLedgerSource } from './fake-ledger-source';
 import { FakeGoalRepository } from './fake-goal-repository';
@@ -23,6 +24,13 @@ export function createAdvisorToolsHarness() {
   const deleteEntry = stubUseCase(undefined);
   const goalsUpdater = stubUseCase('ok');
   const deletion = new DeletionConfirmationService('test-secret');
+  const creditCards = {
+    readDataMode: vi.fn().mockResolvedValue('manual'),
+    list: stubUseCase([]),
+    create: stubUseCase({ id: 'card-1' }),
+    update: stubUseCase(undefined),
+    remove: stubUseCase(undefined),
+  };
 
   const tools = buildAdvisorTools({
     userId: 'user-1',
@@ -35,6 +43,7 @@ export function createAdvisorToolsHarness() {
     updateEntry: updateEntry as unknown as UpdateEntryUseCase,
     deleteEntry: deleteEntry as unknown as DeleteEntryUseCase,
     fixedEntries: {} as unknown as AdvisorFixedEntryServices,
+    creditCards: creditCards as unknown as AdvisorCreditCardServices,
     deletion,
     turnId: 'turn-2',
     goalsUpdater,
@@ -44,5 +53,5 @@ export function createAdvisorToolsHarness() {
   const run = (name: string, args: Record<string, unknown> = {}) =>
     tools.find((tool) => tool.name === name)!.execute(args);
 
-  return { run, tools, goalRepo, memoryRepo, registerEntry, updateEntry, deleteEntry, goalsUpdater, deletion };
+  return { run, tools, creditCards, goalRepo, memoryRepo, registerEntry, updateEntry, deleteEntry, goalsUpdater, deletion };
 }

@@ -50,6 +50,7 @@ export function buildNewExpense(
     source: 'manual',
     necessity,
     telegramQuestionMessageId: null,
+    creditCardId: entry.creditCardId ?? null,
     ...(fixed ? { fixedEntryId: fixed.fixedEntryId, fixedReferenceMonth: fixed.referenceMonth } : {}),
   };
 }

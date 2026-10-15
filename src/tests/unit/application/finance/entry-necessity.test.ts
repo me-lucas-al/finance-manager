@@ -5,6 +5,7 @@ import { OwnedEntryGuard } from '@/modules/finance/application/services/owned-en
 import { ClassifyNecessityService } from '@/modules/finance/application/services/classify-necessity-service';
 import { ExpensePatternAnalyzer } from '@/modules/finance/application/services/expense-pattern-analyzer';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
+import { noopCardLinkValidator } from '@/tests/fakes/noop-card-link-validator';
 import { noopEntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 import { FakeTransactionRepository } from '@/tests/fakes/fake-transaction-repository';
 import { FakePeriodRepository } from '@/tests/fakes/fake-period-repository';
@@ -32,10 +33,11 @@ describe('informed necessity on expenses', () => {
       new ResolveCurrentPeriodUseCase(new FakePeriodRepository(), new FakeSettingRepository()),
       classify,
       new ExpensePatternAnalyzer(transactionRepo),
-      noopEntryChangeNotifier
+      noopEntryChangeNotifier,
+      noopCardLinkValidator
     );
     const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
-    update = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, noopEntryChangeNotifier);
+    update = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, noopEntryChangeNotifier, noopCardLinkValidator);
   });
 
   const expense = { type: 'expense' as const, category: 'Lazer', description: 'Cinema', amount: 40 };

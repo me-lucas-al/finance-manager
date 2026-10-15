@@ -5,6 +5,8 @@ import type { EntryChangeNotifier } from '../../domain/ports/entry-change-notifi
 import { validateEntryChanges, type EntryChanges, type EntryRef } from '../../domain/models/entry-changes';
 import { dateAtNoon } from '@/lib/month';
 import { OwnedEntryGuard } from '../services/owned-entry-guard';
+import type { CardLinkValidator } from '../../domain/ports/card-link-validator';
+import { assertCardLink } from '../credit-cards/assert-card-link';
 import { ClassifyNecessityService } from '../services/classify-necessity-service';
 
 export class UpdateEntryUseCase {
@@ -14,12 +16,14 @@ export class UpdateEntryUseCase {
     private readonly investmentRepo: InvestmentRepository,
     private readonly guard: OwnedEntryGuard,
     private readonly classifyNecessity: ClassifyNecessityService,
-    private readonly notifier: EntryChangeNotifier
+    private readonly notifier: EntryChangeNotifier,
+    private readonly cardLinks: CardLinkValidator
   ) {}
 
   async execute(userId: string, ref: EntryRef, changes: EntryChanges): Promise<void> {
     validateEntryChanges(changes);
     await this.guard.assertOwned(userId, ref);
+    await assertCardLink(this.cardLinks, userId, ref.kind, changes.creditCardId);
     await this.updateByKind(userId, ref, changes);
     await this.notifier.notifyEntriesChanged(userId);
   }
@@ -48,6 +52,7 @@ export class UpdateEntryUseCase {
       description: changes.description,
       category: changes.category,
       occurredAt: changes.date,
+      creditCardId: changes.creditCardId,
       necessity: changes.necessity ?? (reclassify ? await this.classifyNecessity.execute(userId, category, description) : undefined),
     });
   }

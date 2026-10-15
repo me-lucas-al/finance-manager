@@ -12,5 +12,6 @@ export type LedgerEntry = {
   account: string;
   necessity?: TransactionNecessity;
   imported?: true;
+  creditCardId?: string;
   fixed: boolean;
 };

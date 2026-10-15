@@ -11,19 +11,10 @@ export interface BankOverview {
   accounts: BankAccountSummary[];
 }
 
-export interface CreditCardSummary {
-  id: string;
-  name: string;
-  digits: string;
-  amount: number;
-}
-
-export interface CreditCardOverview {
-  total: number;
-  usedPercentage: number;
-  limit: number;
-  cards: CreditCardSummary[];
-}
+export type {
+  CreditCardOverview,
+  CreditCardSummary,
+} from '@/modules/finance/domain/models/credit-card-overview';
 
 export interface InvestmentInstitution {
   name: string;
