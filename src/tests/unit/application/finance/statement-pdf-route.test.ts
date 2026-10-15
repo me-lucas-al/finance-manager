@@ -55,6 +55,16 @@ describe('GET /api/statement/pdf', () => {
     expect((await GET(request('?month=abc'))).status).toBe(400);
   });
 
+  it('returns 500 json when the pdf cannot be generated', async () => {
+    authMock.mockResolvedValue({ user: { id: 'u1' } });
+    loadLedgerMock.mockRejectedValue(new Error('db down'));
+
+    const response = await GET(request('?month=2026-03'));
+
+    expect(response.status).toBe(500);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+  });
+
   it('falls back to defaults for invalid filters and a missing month', async () => {
     authMock.mockResolvedValue({ user: { id: 'u1' } });
 
