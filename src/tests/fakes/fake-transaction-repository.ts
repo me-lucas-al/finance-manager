@@ -51,9 +51,9 @@ export class FakeTransactionRepository implements TransactionRepository {
     return matching[0] ?? null;
   }
 
-  async findLatestByUserId(userId: string): Promise<Transaction | null> {
+  async findLatestEditableByUserId(userId: string): Promise<Transaction | null> {
     const matching = this.items
-      .filter((item) => item.userId === userId)
+      .filter((item) => item.userId === userId && item.source === 'manual' && !item.fixedReferenceMonth)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return matching[0] ?? null;
   }

@@ -18,7 +18,7 @@ import {
   fetchTransactionByPluggyId,
   fetchTransactionByTelegramMessageId,
   fetchLatestPendingTransaction,
-  fetchLatestTransaction,
+  fetchLatestEditableTransaction,
   fetchTransactionsList,
   fetchTransactionsCount,
 } from './supabase-transaction-queries';
@@ -57,8 +57,8 @@ export class SupabaseTransactionRepository implements TransactionRepository {
     return fetchLatestPendingTransaction(userId);
   }
 
-  async findLatestByUserId(userId: string): Promise<Transaction | null> {
-    return fetchLatestTransaction(userId);
+  async findLatestEditableByUserId(userId: string): Promise<Transaction | null> {
+    return fetchLatestEditableTransaction(userId);
   }
 
   async findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]> {

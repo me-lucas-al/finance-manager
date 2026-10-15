@@ -19,13 +19,13 @@ export class LatestEntryFinder {
 
   async find(userId: string): Promise<LatestEntry | null> {
     const [expense, income, investment] = await Promise.all([
-      this.transactionRepo.findLatestByUserId(userId),
-      this.incomeRepo.findLatestByUserId(userId),
+      this.transactionRepo.findLatestEditableByUserId(userId),
+      this.incomeRepo.findLatestEditableByUserId(userId),
       this.investmentRepo.findLatestByUserId(userId),
     ]);
 
     const candidates: Array<LatestEntry | null> = [
-      expense && expense.source === 'manual'
+      expense
         ? { ref: { kind: 'expense', id: expense.id }, description: expense.description, amount: expense.amount, createdAt: new Date(expense.createdAt).getTime() }
         : null,
       income

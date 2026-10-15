@@ -46,7 +46,7 @@ export interface TransactionRepository {
   findByPluggyId(pluggyTransactionId: string): Promise<Transaction | null>;
   findByTelegramQuestionMessageId(userId: string, messageId: number): Promise<Transaction | null>;
   findLatestPendingByUserId(userId: string): Promise<Transaction | null>;
-  findLatestByUserId(userId: string): Promise<Transaction | null>;
+  findLatestEditableByUserId(userId: string): Promise<Transaction | null>;
   findAllByUserId(userId: string, filters?: TransactionFilters): Promise<Transaction[]>;
   countByUserId(userId: string, filters?: Pick<TransactionFilters, 'month' | 'category' | 'search'>): Promise<number>;
   update(id: string, data: Partial<Omit<Transaction, 'id' | 'userId' | 'createdAt'>>): Promise<Transaction>;

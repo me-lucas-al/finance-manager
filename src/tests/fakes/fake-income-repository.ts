@@ -51,8 +51,8 @@ export class FakeIncomeRepository implements IncomeRepository {
     return updated;
   }
 
-  async findLatestByUserId(userId: string): Promise<Income | null> {
-    const list = this.items.filter((i) => i.userId === userId);
+  async findLatestEditableByUserId(userId: string): Promise<Income | null> {
+    const list = this.items.filter((i) => i.userId === userId && !i.externalId && !i.fixedReferenceMonth);
     return list[list.length - 1] ?? null;
   }
 

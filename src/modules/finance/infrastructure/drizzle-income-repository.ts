@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { IncomeRepository, IncomeQuery, IncomePage, IncomeUpdate, NewIncome, Income } from '../domain/repositories/income-repository';
 import { db } from '../../../db';
 import { incomes } from '../../../db/schema';
-import { and, asc, desc, eq, ilike } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, isNull } from 'drizzle-orm';
 import { totalOverWindow, toPageWithTotal } from './page-with-total';
 import { DuplicateFixedLaunchError } from '../domain/models/fixed-launch-errors';
 import { isUniqueViolation } from './is-unique-violation';
@@ -44,11 +44,13 @@ export class DrizzleIncomeRepository implements IncomeRepository {
     return updated;
   }
 
-  async findLatestByUserId(userId: string): Promise<Income | null> {
+  async findLatestEditableByUserId(userId: string): Promise<Income | null> {
     const [latest] = await db
       .select()
       .from(incomes)
-      .where(eq(incomes.userId, userId))
+      .where(
+        and(eq(incomes.userId, userId), isNull(incomes.externalId), isNull(incomes.fixedReferenceMonth))
+      )
       .orderBy(desc(incomes.createdAt))
       .limit(1);
     return latest ?? null;
