@@ -1,5 +1,6 @@
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
+import { isUuid } from '@/lib/is-uuid';
 import { creditCards } from '@/db/schema';
 import type { CreditCard } from '../domain/models/credit-card';
 import type {
@@ -24,6 +25,7 @@ export class DrizzleCreditCardRepository implements CreditCardRepository {
   }
 
   async findById(userId: string, id: string): Promise<CreditCard | null> {
+    if (!isUuid(id)) return null;
     const [found] = await db
       .select()
       .from(creditCards)
@@ -42,6 +44,7 @@ export class DrizzleCreditCardRepository implements CreditCardRepository {
   }
 
   async update(userId: string, id: string, data: CreditCardUpdate): Promise<CreditCard> {
+    if (!isUuid(id)) throw new Error('Credit card not found');
     const { creditLimit, ...rest } = data;
     const [updated] = await db
       .update(creditCards)
@@ -53,6 +56,7 @@ export class DrizzleCreditCardRepository implements CreditCardRepository {
   }
 
   async delete(userId: string, id: string): Promise<void> {
+    if (!isUuid(id)) return;
     await db.delete(creditCards).where(and(eq(creditCards.id, id), eq(creditCards.userId, userId)));
   }
 }
