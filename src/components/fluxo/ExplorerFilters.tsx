@@ -24,9 +24,11 @@ const TYPE_OPTIONS: Array<{ value: StatementTypeFilter; label: string }> = [
 ];
 
 export function ExplorerFilters(props: ExplorerFiltersProps) {
+  const isUnlisted = props.category !== ALL_OPTION && !props.categoryOptions.includes(props.category);
+  const categoryNames = isUnlisted ? [...props.categoryOptions, props.category] : props.categoryOptions;
   const categoryItems = [
     { value: ALL_OPTION, label: 'Todas categorias' },
-    ...props.categoryOptions.map((name) => ({ value: name, label: name })),
+    ...categoryNames.map((name) => ({ value: name, label: name })),
   ];
 
   return (
