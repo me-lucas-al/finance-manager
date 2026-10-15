@@ -8,11 +8,10 @@ import type { CategoriesByType } from './entry-category-options';
 import { hasErrors, validateEntryValues, type EntryFormErrors } from './entry-form-validation';
 import type { EntryFormValues } from './entry-form-values';
 import { CategoryField } from './CategoryField';
-import { CreditCardField } from './CreditCardField';
 import { CurrencyField } from './CurrencyField';
 import { EntryTypeTabs } from './EntryTypeTabs';
+import { ExpenseOnlyFields } from './ExpenseOnlyFields';
 import { FormField } from './FormField';
-import { NecessityField } from './NecessityField';
 
 export type EntryFormProps = {
   mode: 'create' | 'edit';
@@ -77,15 +76,7 @@ export function EntryForm(props: EntryFormProps) {
           className="h-9"
         />
       </FormField>
-      {values.type === 'expense' && (
-        <NecessityField
-          value={values.necessity}
-          onChange={(necessity) => changeField('necessity', necessity)}
-        />
-      )}
-      {values.type === 'expense' && cardOptions.length > 0 && (
-        <CreditCardField value={values.creditCardId} options={cardOptions} onChange={(card) => changeField('creditCardId', card)} />
-      )}
+      <ExpenseOnlyFields values={values} cardOptions={cardOptions} onChange={changeField} />
       {error && (
         <p role="alert" className="text-sm text-red-400">
           {error}
