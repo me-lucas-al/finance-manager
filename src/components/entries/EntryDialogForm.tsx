@@ -3,6 +3,7 @@
 import { createEntryAction, updateEntryAction } from '@/app/actions/entries';
 import { toLocalDateString } from '@/lib/month';
 import type { EntryType } from '@/modules/finance/domain/parsers/parse-entry-message';
+import type { CardOption } from '@/modules/finance/domain/models/credit-card';
 import type { CategoriesByType } from './entry-category-options';
 import { toCreateInput, toUpdateInput } from './entry-form-payload';
 import { createEmptyEntryValues, valuesFromEntry, type EditableEntry, type EntryFormValues } from './entry-form-values';
@@ -11,12 +12,13 @@ import { useEntryAction } from './useEntryAction';
 
 type EntryDialogFormProps = {
   categoriesByType: CategoriesByType;
+  cardOptions: CardOption[];
   entry?: EditableEntry;
   initialType: EntryType;
   onClose: () => void;
 };
 
-export function EntryDialogForm({ categoriesByType, entry, initialType, onClose }: EntryDialogFormProps) {
+export function EntryDialogForm({ categoriesByType, cardOptions, entry, initialType, onClose }: EntryDialogFormProps) {
   const action = useEntryAction(onClose);
 
   function handleSubmit(values: EntryFormValues) {
@@ -34,6 +36,7 @@ export function EntryDialogForm({ categoriesByType, entry, initialType, onClose 
       mode={entry ? 'edit' : 'create'}
       initialValues={entry ? valuesFromEntry(entry) : createEmptyEntryValues(initialType, toLocalDateString(new Date()))}
       categoriesByType={categoriesByType}
+      cardOptions={cardOptions}
       isPending={action.isPending}
       error={action.error}
       onSubmit={handleSubmit}

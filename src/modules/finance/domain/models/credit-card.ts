@@ -27,4 +27,6 @@ export type CreditCardUsage = {
   cycle: BillingCycle;
 };
 
+export type CardOption = Pick<CreditCard, 'id' | 'name' | 'lastDigits'>;
+
 export type CardExpense = { creditCardId: string; amount: number; date: string };

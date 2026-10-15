@@ -6,15 +6,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DeleteEntryAlert } from './DeleteEntryAlert';
 import { EntryDialog } from './EntryDialog';
 import type { EditableEntry } from './entry-form-values';
+import { useEntryCardOptions } from './useEntryCardOptions';
 import { useEntryCategories } from './useEntryCategories';
 
 export function EntryActionsMenu({ entry }: { entry: EditableEntry }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { categoriesByType, loadCategories } = useEntryCategories();
+  const { cardOptions, loadCardOptions } = useEntryCardOptions();
 
   function openEdit() {
     loadCategories();
+    loadCardOptions();
     setIsEditOpen(true);
   }
 
@@ -43,7 +46,7 @@ export function EntryActionsMenu({ entry }: { entry: EditableEntry }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <EntryDialog open={isEditOpen} onOpenChange={setIsEditOpen} categoriesByType={categoriesByType} entry={entry} />
+      <EntryDialog open={isEditOpen} onOpenChange={setIsEditOpen} categoriesByType={categoriesByType} cardOptions={cardOptions} entry={entry} />
       <DeleteEntryAlert open={isDeleteOpen} onOpenChange={setIsDeleteOpen} entry={entry} />
     </>
   );

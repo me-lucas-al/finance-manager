@@ -3,10 +3,12 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import type { CardOption } from '@/modules/finance/domain/models/credit-card';
 import type { CategoriesByType } from './entry-category-options';
 import { hasErrors, validateEntryValues, type EntryFormErrors } from './entry-form-validation';
 import type { EntryFormValues } from './entry-form-values';
 import { CategoryField } from './CategoryField';
+import { CreditCardField } from './CreditCardField';
 import { CurrencyField } from './CurrencyField';
 import { EntryTypeTabs } from './EntryTypeTabs';
 import { FormField } from './FormField';
@@ -16,13 +18,15 @@ export type EntryFormProps = {
   mode: 'create' | 'edit';
   initialValues: EntryFormValues;
   categoriesByType: CategoriesByType;
+  cardOptions: CardOption[];
   isPending: boolean;
   error: string | null;
   onSubmit: (values: EntryFormValues) => void;
   onCancel: () => void;
 };
 
-export function EntryForm({ mode, initialValues, categoriesByType, isPending, error, onSubmit, onCancel }: EntryFormProps) {
+export function EntryForm(props: EntryFormProps) {
+  const { mode, initialValues, categoriesByType, cardOptions, isPending, error, onSubmit, onCancel } = props;
   const [values, setValues] = useState(initialValues);
   const [fieldErrors, setFieldErrors] = useState<EntryFormErrors>({});
   const isEditing = mode === 'edit';
@@ -32,7 +36,7 @@ export function EntryForm({ mode, initialValues, categoriesByType, isPending, er
   }
 
   function changeType(type: EntryFormValues['type']) {
-    setValues((current) => ({ ...current, type, category: '', necessity: '' }));
+    setValues((current) => ({ ...current, type, category: '', necessity: '', creditCardId: '' }));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -78,6 +82,9 @@ export function EntryForm({ mode, initialValues, categoriesByType, isPending, er
           value={values.necessity}
           onChange={(necessity) => changeField('necessity', necessity)}
         />
+      )}
+      {values.type === 'expense' && cardOptions.length > 0 && (
+        <CreditCardField value={values.creditCardId} options={cardOptions} onChange={(card) => changeField('creditCardId', card)} />
       )}
       {error && (
         <p role="alert" className="text-sm text-red-400">

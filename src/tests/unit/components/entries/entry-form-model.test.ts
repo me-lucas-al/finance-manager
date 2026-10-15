@@ -15,6 +15,7 @@ const filled: EntryFormValues = {
   category: ' Alimentação ',
   date: '2026-03-10',
   necessity: '',
+  creditCardId: '',
 };
 
 const stored: EditableEntry = {
@@ -35,6 +36,7 @@ describe('entry form values', () => {
       category: '',
       date: '2026-03-10',
       necessity: '',
+      creditCardId: '',
     });
   });
 
