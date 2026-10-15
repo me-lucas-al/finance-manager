@@ -61,6 +61,13 @@ export class DrizzleFixedEntryRepository implements FixedEntryRepository {
     return toFixedEntry(updated);
   }
 
+  async markLaunched(userId: string, id: string, month: string): Promise<void> {
+    await db
+      .update(fixedEntries)
+      .set({ lastLaunchedMonth: month })
+      .where(and(eq(fixedEntries.id, id), eq(fixedEntries.userId, userId)));
+  }
+
   async delete(userId: string, id: string): Promise<void> {
     await db.delete(fixedEntries).where(and(eq(fixedEntries.id, id), eq(fixedEntries.userId, userId)));
   }

@@ -54,6 +54,7 @@ describe('GenerateDueFixedEntriesUseCase', () => {
     vi.spyOn(harness.lookup, 'findLaunchedRuleIds').mockResolvedValue(new Set());
 
     await harness.generate.execute(FIXED_USER);
+    harness.rules.items[0].lastLaunchedMonth = null;
     const second = await harness.generate.execute(FIXED_USER);
 
     expect(second).toEqual({ launched: 0, alreadyLaunched: 1, failed: 0 });

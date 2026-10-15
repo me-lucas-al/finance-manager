@@ -12,6 +12,7 @@ export const fixedEntries = pgTable('fixed_entries', {
   dueDay: integer('due_day').notNull(),
   active: boolean('active').default(true).notNull(),
   startsOn: date('starts_on', { mode: 'string' }).default(sql`current_date`).notNull(),
+  lastLaunchedMonth: text('last_launched_month'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {

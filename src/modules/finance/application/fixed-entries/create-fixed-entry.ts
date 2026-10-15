@@ -30,7 +30,10 @@ export class CreateFixedEntryUseCase {
       active: true,
       startsOn: launchThisMonth ? `${month}-01` : today,
     });
-    if (dueDate <= today && (launchThisMonth || dueDate === today)) await this.launcher.launch(rule, month);
+    if (dueDate <= today && (launchThisMonth || dueDate === today)) {
+      await this.launcher.launch(rule, month);
+      await this.rules.markLaunched(userId, rule.id, month);
+    }
     await this.notifier.notifyEntriesChanged(userId);
     return rule;
   }

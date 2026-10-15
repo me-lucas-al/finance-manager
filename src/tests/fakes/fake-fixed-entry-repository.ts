@@ -14,6 +14,7 @@ export class FakeFixedEntryRepository implements FixedEntryRepository {
     const item: FixedEntry = {
       ...data,
       id: `fx-${this.counter++}`,
+      lastLaunchedMonth: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -38,6 +39,11 @@ export class FakeFixedEntryRepository implements FixedEntryRepository {
     if (index === -1) throw new Error('Fixed entry not found');
     this.items[index] = { ...this.items[index], ...definedOnly(data), updatedAt: new Date() };
     return this.items[index];
+  }
+
+  async markLaunched(userId: string, id: string, month: string): Promise<void> {
+    const item = this.items.find((entry) => entry.id === id && entry.userId === userId);
+    if (item) item.lastLaunchedMonth = month;
   }
 
   async delete(userId: string, id: string): Promise<void> {

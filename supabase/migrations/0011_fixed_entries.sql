@@ -8,11 +8,13 @@ create table if not exists fixed_entries (
   due_day integer not null check (due_day between 1 and 31),
   active boolean not null default true,
   starts_on date not null default current_date,
+  last_launched_month text,
   created_at timestamp not null default now(),
   updated_at timestamp not null default now()
 );
 create index if not exists fixed_entries_user_id_idx on fixed_entries (user_id);
 alter table fixed_entries enable row level security;
+alter table fixed_entries add column if not exists last_launched_month text;
 
 alter table transactions
   add column if not exists fixed_entry_id text references fixed_entries (id) on delete set null;

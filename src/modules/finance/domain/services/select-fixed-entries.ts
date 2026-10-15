@@ -8,7 +8,7 @@ export function selectDueFixedEntries(
 ): FixedEntry[] {
   const month = today.slice(0, 7);
   return rules.filter((rule) => {
-    if (!rule.active || launchedRuleIds.has(rule.id)) return false;
+    if (!rule.active || launchedRuleIds.has(rule.id) || rule.lastLaunchedMonth === month) return false;
     const dueDate = resolveDueDate(month, rule.dueDay);
     return dueDate >= rule.startsOn && dueDate <= today;
   });

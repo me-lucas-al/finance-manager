@@ -12,6 +12,7 @@ export type FixedEntry = {
   dueDay: number;
   active: boolean;
   startsOn: string;
+  lastLaunchedMonth: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
