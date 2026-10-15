@@ -8,8 +8,7 @@ export async function assertCardLink(
   kind: EntryType,
   creditCardId: string | null | undefined
 ): Promise<void> {
-  if (creditCardId === undefined) return;
+  if (creditCardId === undefined || creditCardId === null) return;
   if (kind !== 'expense') throw new EntryValidationError('Só despesas podem ser vinculadas a um cartão');
-  if (creditCardId === null) return;
   await validator.assertUsable(userId, creditCardId);
 }
