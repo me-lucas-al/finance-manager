@@ -60,8 +60,8 @@ export function buildAdvisorCardTools(deps: AdvisorCardDeps): ToolDefinition[] {
           await creditCards.update.execute(userId, args.id, {
             name: args.nome,
             creditLimit: args.limite,
-            lastDigits: args.final,
-            closingDay: args.dia_fechamento,
+            lastDigits: args.final === '' ? null : args.final,
+            closingDay: args.dia_fechamento === 0 ? null : args.dia_fechamento,
           });
           return { status: 'atualizado' };
         });

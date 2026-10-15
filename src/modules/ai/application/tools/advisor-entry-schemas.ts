@@ -16,6 +16,7 @@ export type EditarLancamentoArgs = {
   descricao?: string;
   categoria?: string;
   data?: string;
+  cartao_id?: string;
 };
 
 export type ExcluirLancamentoArgs = {
@@ -56,6 +57,10 @@ export const EDITAR_LANCAMENTO_SCHEMA = {
     descricao: { type: 'string' },
     categoria: { type: 'string' },
     data: DATE_PROPERTY,
+    cartao_id: {
+      type: 'string',
+      description: 'id do cartão (de listar_cartoes) para vincular a despesa; string vazia remove o vínculo. Só despesas.',
+    },
   },
   required: ['id', 'tipo'],
 };

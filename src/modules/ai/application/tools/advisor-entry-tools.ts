@@ -57,11 +57,18 @@ export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[]
       parameters: EDITAR_LANCAMENTO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as EditarLancamentoArgs;
+        if (args.cartao_id && !(await isManualMode(deps))) return { erro: PLUGGY_MODE_REFUSAL };
         return reportFailure(async () => {
           await deps.updateEntry.execute(
             deps.userId,
             { kind: args.tipo, id: args.id },
-            { amount: args.valor, description: args.descricao, category: args.categoria, date: args.data }
+            {
+              amount: args.valor,
+              description: args.descricao,
+              category: args.categoria,
+              date: args.data,
+              creditCardId: args.cartao_id === undefined ? undefined : args.cartao_id || null,
+            }
           );
           return { status: 'atualizado' };
         });

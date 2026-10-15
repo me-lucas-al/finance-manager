@@ -44,3 +44,35 @@ describe('registrar_lancamento with a credit card', () => {
     expect(harness.registerEntry.execute).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('editar_lancamento with a credit card', () => {
+  let harness: Harness;
+
+  beforeEach(() => {
+    harness = createAdvisorToolsHarness();
+  });
+
+  it('links the card on edit', async () => {
+    await harness.run('editar_lancamento', { id: 'e1', tipo: 'expense', cartao_id: 'card-1' });
+
+    expect(harness.updateEntry.execute).toHaveBeenCalledWith('user-1', { kind: 'expense', id: 'e1' }, expect.objectContaining({ creditCardId: 'card-1' }));
+  });
+
+  it('unlinks with an empty string and leaves the card alone when omitted', async () => {
+    await harness.run('editar_lancamento', { id: 'e1', tipo: 'expense', cartao_id: '' });
+    await harness.run('editar_lancamento', { id: 'e1', tipo: 'expense', valor: 5 });
+
+    const [unlink, untouched] = harness.updateEntry.execute.mock.calls.map((call) => call[2]);
+    expect(unlink.creditCardId).toBeNull();
+    expect(untouched.creditCardId).toBeUndefined();
+  });
+
+  it('refuses a card in pluggy mode', async () => {
+    harness.creditCards.readDataMode.mockResolvedValue('pluggy');
+
+    const result = await harness.run('editar_lancamento', { id: 'e1', tipo: 'expense', cartao_id: 'card-1' });
+
+    expect(result).toEqual({ erro: PLUGGY_MODE_REFUSAL });
+    expect(harness.updateEntry.execute).not.toHaveBeenCalled();
+  });
+});
