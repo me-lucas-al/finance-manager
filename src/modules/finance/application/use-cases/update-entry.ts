@@ -5,7 +5,7 @@ import type { EntryChangeNotifier } from '../../domain/ports/entry-change-notifi
 import { validateEntryChanges, type EntryChanges, type EntryRef } from '../../domain/models/entry-changes';
 import { dateAtNoon } from '@/lib/month';
 import { OwnedEntryGuard } from '../services/owned-entry-guard';
-import { noopCardLinkValidator, type CardLinkValidator } from '../../domain/ports/card-link-validator';
+import type { CardLinkValidator } from '../../domain/ports/card-link-validator';
 import { assertCardLink } from '../credit-cards/assert-card-link';
 import { ClassifyNecessityService } from '../services/classify-necessity-service';
 
@@ -17,7 +17,7 @@ export class UpdateEntryUseCase {
     private readonly guard: OwnedEntryGuard,
     private readonly classifyNecessity: ClassifyNecessityService,
     private readonly notifier: EntryChangeNotifier,
-    private readonly cardLinks: CardLinkValidator = noopCardLinkValidator
+    private readonly cardLinks: CardLinkValidator
   ) {}
 
   async execute(userId: string, ref: EntryRef, changes: EntryChanges): Promise<void> {

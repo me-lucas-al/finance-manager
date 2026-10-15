@@ -13,6 +13,7 @@ import { FakeSettingRepository } from '@/tests/fakes/fake-setting-repository';
 import { FakeIncomeRepository } from '@/tests/fakes/fake-income-repository';
 import { FakeInvestmentRepository } from '@/tests/fakes/fake-investment-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
+import { noopCardLinkValidator } from '@/tests/fakes/noop-card-link-validator';
 import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-change-notifier';
 
 describe('entry date and change notification', () => {
@@ -35,7 +36,8 @@ describe('entry date and change notification', () => {
       new ResolveCurrentPeriodUseCase(new FakePeriodRepository(), new FakeSettingRepository()),
       new ClassifyNecessityService(transactionRepo, new FakeLanguageModel()),
       new ExpensePatternAnalyzer(transactionRepo),
-      notifier
+      notifier,
+      noopCardLinkValidator
     );
     const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
     undo = new UndoLastEntryService(

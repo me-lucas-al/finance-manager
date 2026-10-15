@@ -10,7 +10,7 @@ import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
 import type { FixedLaunchLink } from '../../domain/models/fixed-entry';
 import { toLocalDateString } from '@/lib/month';
 import { assertValidEntryDate } from '../../domain/parsers/parse-entry-date';
-import { noopCardLinkValidator, type CardLinkValidator } from '../../domain/ports/card-link-validator';
+import type { CardLinkValidator } from '../../domain/ports/card-link-validator';
 import { assertCardLink } from '../credit-cards/assert-card-link';
 import { buildNewExpense, buildNewIncome, buildNewInvestment } from '../services/entry-record-builders';
 
@@ -34,7 +34,7 @@ export class RegisterManualEntryUseCase {
     private classifyNecessity: ClassifyNecessityService,
     private patternAnalyzer: ExpensePatternAnalyzer,
     private notifier: EntryChangeNotifier,
-    private cardLinks: CardLinkValidator = noopCardLinkValidator
+    private cardLinks: CardLinkValidator
   ) {}
 
   async execute(userId: string, entry: ParsedEntry, options: RegisterEntryOptions = {}): Promise<RegisteredEntryResult> {
