@@ -14,6 +14,7 @@ import {
   undoLastEntry,
   updateEntry,
 } from './finance';
+import { creditCardServices } from './credit-card-advisor';
 import {
   createFixedEntry,
   deleteFixedEntry,
@@ -56,6 +57,7 @@ export function buildAdvisorServices() {
       setActive: setFixedEntryActive,
       remove: deleteFixedEntry,
     },
+    creditCards: creditCardServices,
     deletion: new DeletionConfirmationService(requireDeletionSecret()),
     goalsUpdater: updateGoalsFromMessage,
     listCategories: listExpenseCategories,

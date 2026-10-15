@@ -6,6 +6,7 @@ export type RegistrarLancamentoArgs = {
   descricao: string;
   valor: number;
   data?: string;
+  cartao_id?: string;
 };
 
 export type EditarLancamentoArgs = {
@@ -37,6 +38,11 @@ export const REGISTRAR_LANCAMENTO_SCHEMA = {
     descricao: { type: 'string' },
     valor: { type: 'number' },
     data: DATE_PROPERTY,
+    cartao_id: {
+      type: 'string',
+      description:
+        'id do cartão (de listar_cartoes) quando a despesa foi no cartão de crédito. Só para despesas. Se o usuário falar de cartão, fatura ou crédito e o cartão não estiver claro, pergunte qual é antes de registrar.',
+    },
   },
   required: ['tipo', 'categoria', 'descricao', 'valor'],
 };

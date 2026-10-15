@@ -3,6 +3,8 @@ import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-ca
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
 import { reportFailure } from './advisor-failure-reporter';
+import { isManualMode, PLUGGY_MODE_REFUSAL } from './advisor-card-mode';
+import type { AdvisorCreditCardServices } from './advisor-card-types';
 import { DeletionConfirmationService } from '../services/deletion-confirmation-service';
 import {
   REGISTRAR_LANCAMENTO_SCHEMA,
@@ -19,6 +21,7 @@ export type AdvisorEntryDeps = {
   updateEntry: UpdateEntryUseCase;
   deleteEntry: DeleteEntryUseCase;
   deletion: DeletionConfirmationService;
+  creditCards: Pick<AdvisorCreditCardServices, 'readDataMode'>;
   turnId: string;
 };
 
@@ -30,10 +33,11 @@ export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[]
     {
       name: 'registrar_lancamento',
       description:
-        'Registra um novo lançamento financeiro (saída, entrada ou investimento). Informe a data (YYYY-MM-DD) quando o usuário citar um dia diferente de hoje.',
+        'Registra um novo lançamento financeiro (saída, entrada ou investimento). Informe a data (YYYY-MM-DD) quando o usuário citar um dia diferente de hoje. Para despesa no cartão de crédito, informe cartao_id.',
       parameters: REGISTRAR_LANCAMENTO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as RegistrarLancamentoArgs;
+        if (args.cartao_id && !(await isManualMode(deps))) return { erro: PLUGGY_MODE_REFUSAL };
         return reportFailure(() =>
           deps.registerEntry.execute(deps.userId, {
             type: args.tipo,
@@ -41,6 +45,7 @@ export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[]
             description: args.descricao,
             amount: Math.abs(Number(args.valor)),
             ...(args.data ? { date: args.data } : {}),
+            ...(args.cartao_id ? { creditCardId: args.cartao_id } : {}),
           })
         );
       },
