@@ -21,6 +21,7 @@ export const transaction = (id: string, occurredAt: string, amount: number, cate
   telegramQuestionMessageId: null,
   fixedEntryId: null,
   fixedReferenceMonth: null,
+  creditCardId: null,
   createdAt: '2026-01-01T00:00:00Z',
 });
 

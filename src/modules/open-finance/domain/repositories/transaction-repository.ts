@@ -20,11 +20,15 @@ export type Transaction = {
   telegramQuestionMessageId: number | null;
   fixedEntryId: string | null;
   fixedReferenceMonth: string | null;
+  creditCardId: string | null;
   createdAt: string;
 };
 
-export type NewTransaction = Omit<Transaction, 'id' | 'createdAt' | 'fixedEntryId' | 'fixedReferenceMonth'> &
-  Partial<Pick<Transaction, 'fixedEntryId' | 'fixedReferenceMonth'>>;
+export type NewTransaction = Omit<
+  Transaction,
+  'id' | 'createdAt' | 'fixedEntryId' | 'fixedReferenceMonth' | 'creditCardId'
+> &
+  Partial<Pick<Transaction, 'fixedEntryId' | 'fixedReferenceMonth' | 'creditCardId'>>;
 export type TransactionSortField = 'date' | 'description' | 'amount';
 
 export type TransactionFilters = {

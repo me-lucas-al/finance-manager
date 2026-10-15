@@ -21,6 +21,7 @@ function makeMockTx(amount: number, category: string): Transaction {
     telegramQuestionMessageId: null,
     fixedEntryId: null,
     fixedReferenceMonth: null,
+    creditCardId: null,
     createdAt: new Date().toISOString(),
   };
 }

@@ -24,6 +24,7 @@ export type TransactionRow = {
   telegram_question_message_id: number | null;
   fixed_entry_id: string | null;
   fixed_reference_month: string | null;
+  credit_card_id: string | null;
   created_at: string;
 };
 
@@ -72,6 +73,7 @@ export function toTransaction(row: TransactionRow): Transaction {
     telegramQuestionMessageId: row.telegram_question_message_id,
     fixedEntryId: row.fixed_entry_id ?? null,
     fixedReferenceMonth: row.fixed_reference_month ?? null,
+    creditCardId: row.credit_card_id ?? null,
     createdAt: row.created_at,
   };
 }
@@ -93,5 +95,6 @@ export function buildTransactionPatch(
   if (data.source !== undefined) patch.source = data.source;
   if (data.necessity !== undefined) patch.necessity = data.necessity;
   if (data.telegramQuestionMessageId !== undefined) patch.telegram_question_message_id = data.telegramQuestionMessageId;
+  if (data.creditCardId !== undefined) patch.credit_card_id = data.creditCardId;
   return patch;
 }
