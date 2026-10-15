@@ -12,6 +12,7 @@ export type EntryChanges = {
   category?: string;
   date?: string;
   necessity?: TransactionNecessity;
+  creditCardId?: string | null;
 };
 
 export function validateEntryChanges(changes: EntryChanges): void {

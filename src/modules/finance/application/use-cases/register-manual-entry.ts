@@ -10,6 +10,8 @@ import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
 import type { FixedLaunchLink } from '../../domain/models/fixed-entry';
 import { toLocalDateString } from '@/lib/month';
 import { assertValidEntryDate } from '../../domain/parsers/parse-entry-date';
+import { noopCardLinkValidator, type CardLinkValidator } from '../../domain/ports/card-link-validator';
+import { assertCardLink } from '../credit-cards/assert-card-link';
 import { buildNewExpense, buildNewIncome, buildNewInvestment } from '../services/entry-record-builders';
 
 export type RegisteredEntryResult = {
@@ -31,12 +33,14 @@ export class RegisterManualEntryUseCase {
     private resolvePeriod: ResolveCurrentPeriodUseCase,
     private classifyNecessity: ClassifyNecessityService,
     private patternAnalyzer: ExpensePatternAnalyzer,
-    private notifier: EntryChangeNotifier
+    private notifier: EntryChangeNotifier,
+    private cardLinks: CardLinkValidator = noopCardLinkValidator
   ) {}
 
   async execute(userId: string, entry: ParsedEntry, options: RegisterEntryOptions = {}): Promise<RegisteredEntryResult> {
     const dateString = entry.date ?? toLocalDateString(new Date());
     assertValidEntryDate(dateString);
+    await assertCardLink(this.cardLinks, userId, entry.type, entry.creditCardId);
     const result = await this.persist(userId, entry, dateString, options);
     await this.notifier.notifyEntriesChanged(userId);
     return result;

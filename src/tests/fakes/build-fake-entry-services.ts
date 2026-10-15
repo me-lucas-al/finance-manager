@@ -13,6 +13,8 @@ import { FakeSettingRepository } from './fake-setting-repository';
 import { FakeIncomeRepository } from './fake-income-repository';
 import { FakeInvestmentRepository } from './fake-investment-repository';
 import { FakeLanguageModel } from './fake-language-model';
+import { FakeCreditCardRepository } from './fake-credit-card-repository';
+import { CreditCardLinkGuard } from '@/modules/finance/application/credit-cards/credit-card-link-guard';
 
 export function buildFakeEntryServices() {
   const transactionRepo = new FakeTransactionRepository();
@@ -23,6 +25,8 @@ export function buildFakeEntryServices() {
   const notifier: EntryChangeNotifier = { notifyEntriesChanged: vi.fn(async () => {}) };
   const classifyNecessity = new ClassifyNecessityService(transactionRepo, language);
   const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
+  const cards = new FakeCreditCardRepository();
+  const cardLinks = new CreditCardLinkGuard(cards);
 
   return {
     transactionRepo,
@@ -30,6 +34,7 @@ export function buildFakeEntryServices() {
     investmentRepo,
     notifier,
     guard,
+    cards,
     registerEntry: new RegisterManualEntryUseCase(
       transactionRepo,
       incomeRepo,
@@ -37,9 +42,10 @@ export function buildFakeEntryServices() {
       new ResolveCurrentPeriodUseCase(new FakePeriodRepository(), new FakeSettingRepository()),
       classifyNecessity,
       new ExpensePatternAnalyzer(transactionRepo),
-      notifier
+      notifier,
+      cardLinks
     ),
-    updateEntry: new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classifyNecessity, notifier),
+    updateEntry: new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classifyNecessity, notifier, cardLinks),
     deleteEntry: new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier),
   };
 }

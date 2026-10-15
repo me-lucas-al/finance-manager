@@ -8,6 +8,7 @@ const descriptionSchema = z.string({ error: 'Informe a descrição' }).trim().mi
 const categorySchema = z.string({ error: 'Informe a categoria' }).trim().min(1, 'Informe a categoria');
 const dateSchema = z.string({ error: 'Data inválida' }).refine(isValidEntryDate, 'Data inválida');
 const necessitySchema = z.enum(ENTRY_NECESSITIES, { error: 'Necessidade inválida' });
+const creditCardIdSchema = z.string({ error: 'Cartão inválido' }).min(1, 'Cartão inválido');
 const entryIdSchema = z.string({ error: 'Lançamento inválido' }).min(1, 'Lançamento inválido');
 
 export const createEntrySchema = z.object({
@@ -17,6 +18,7 @@ export const createEntrySchema = z.object({
   category: categorySchema,
   date: dateSchema.optional(),
   necessity: necessitySchema.optional(),
+  creditCardId: creditCardIdSchema.optional(),
 });
 
 export const updateEntrySchema = z.object({
@@ -28,6 +30,7 @@ export const updateEntrySchema = z.object({
     category: categorySchema.optional(),
     date: dateSchema.optional(),
     necessity: necessitySchema.optional(),
+    creditCardId: creditCardIdSchema.nullable().optional(),
   }),
 });
 
