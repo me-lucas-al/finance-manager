@@ -19,13 +19,16 @@ Ou escreva naturalmente, ex: "gastei 50 no almoço".
 
 ⚡ Comandos Rápidos:
 /desfazer - Remove o último lançamento
-/editar   - Instruções para corrigir o último lançamento
+/editar   - Corrige o último lançamento (ex.: /editar valor 45,90)
 /resumo   - Snapshot financeiro do mês
 /ajuda    - Mostra este menu de instruções`;
+
+export type LastEntryEditor = { execute(userId: string, argumentsText: string): Promise<string> };
 
 export class HandleBotCommandUseCase {
   constructor(
     private undoService: UndoLastEntryService,
+    private editLastEntry: LastEntryEditor,
     private ledger: LedgerService,
     private portfolio: PortfolioService,
     private goalRepo: GoalRepository
@@ -43,7 +46,7 @@ export class HandleBotCommandUseCase {
     }
 
     if (norm === '/editar') {
-      return `✏️ Para editar seu último lançamento: use /desfazer para remover e depois envie o novo formato correto (tipo | categoria | descrição | valor).`;
+      return this.editLastEntry.execute(userId, command.trim().slice(norm.length));
     }
 
     if (norm === '/resumo') {

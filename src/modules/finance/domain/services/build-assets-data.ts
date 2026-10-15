@@ -16,6 +16,7 @@ export function buildAssetsData(entries: LedgerEntry[], portfolio: Portfolio = E
     bankName: 'Manual',
     type: investment.category,
     amount: investment.amount,
+    date: investment.date,
     percentage: percentageOf(investment.amount, total),
   }));
 

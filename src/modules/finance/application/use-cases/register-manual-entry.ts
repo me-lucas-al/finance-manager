@@ -71,7 +71,7 @@ export class RegisterManualEntryUseCase {
   }
 
   private async persistExpense(userId: string, entry: ParsedEntry, dateString: string): Promise<RegisteredEntryResult> {
-    const necessity = await this.classifyNecessity.execute(userId, entry.category, entry.description);
+    const necessity = entry.necessity ?? (await this.classifyNecessity.execute(userId, entry.category, entry.description));
     const alerts = await this.patternAnalyzer.analyze(userId, entry, dateString.slice(0, 7));
     await this.transactionRepo.create({
       userId,

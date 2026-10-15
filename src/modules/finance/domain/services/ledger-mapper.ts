@@ -16,6 +16,8 @@ export function expenseToEntry(transaction: Transaction): LedgerEntry {
     category: transaction.category || transaction.categorySuggested || UNCATEGORIZED,
     amount: Number(transaction.amount),
     account: transaction.bank || MANUAL_ACCOUNT,
+    ...(transaction.necessity && { necessity: transaction.necessity }),
+    ...(transaction.source !== 'manual' && { imported: true as const }),
   };
 }
 

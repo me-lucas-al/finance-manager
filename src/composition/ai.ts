@@ -5,7 +5,15 @@ import { createAdvisorToolsFactory } from '@/modules/ai/application/tools/financ
 import { SupabaseAssistantMemoryRepository } from '@/modules/ai/infrastructure/supabase-assistant-memory-repository';
 import { SupabaseChatMessageRepository } from '@/modules/ai/infrastructure/supabase-chat-message-repository';
 import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
-import { deleteEntry, ledgerService, portfolioService, registerEntry, undoLastEntry, updateEntry } from './finance';
+import {
+  deleteEntry,
+  editLastEntry,
+  ledgerService,
+  portfolioService,
+  registerEntry,
+  undoLastEntry,
+  updateEntry,
+} from './finance';
 import { languageModel } from './language-model';
 import {
   goalRepository,
@@ -52,6 +60,6 @@ export function buildAdvisorServices() {
     llm: languageModel,
     registerEntry,
     advisorChat,
-    handleBotCommand: new HandleBotCommandUseCase(undoLastEntry, ledgerService, portfolioService, goalRepository),
+    handleBotCommand: new HandleBotCommandUseCase(undoLastEntry, editLastEntry, ledgerService, portfolioService, goalRepository),
   };
 }

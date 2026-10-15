@@ -2,7 +2,9 @@ import type { TransactionRepository } from '@/modules/open-finance/domain/reposi
 import type { IncomeRepository } from '../../domain/repositories/income-repository';
 import type { InvestmentRepository } from '../../domain/repositories/investment-repository';
 import type { EntryRef } from '../../domain/models/entry-changes';
-import { EntryNotFoundError } from '../../domain/models/entry-errors';
+import { EntryNotFoundError, EntryValidationError } from '../../domain/models/entry-errors';
+
+const IMPORTED_ENTRY_MESSAGE = 'Lançamentos importados do banco não podem ser alterados';
 
 export class OwnedEntryGuard {
   constructor(
@@ -14,6 +16,9 @@ export class OwnedEntryGuard {
   async assertOwned(userId: string, ref: EntryRef): Promise<void> {
     const owner = await this.findOwnerId(ref);
     if (owner !== userId) throw new EntryNotFoundError();
+    if (ref.kind !== 'expense') return;
+    const transaction = await this.transactionRepo.findById(ref.id);
+    if (transaction?.source !== 'manual') throw new EntryValidationError(IMPORTED_ENTRY_MESSAGE);
   }
 
   private async findOwnerId(ref: EntryRef): Promise<string | undefined> {
