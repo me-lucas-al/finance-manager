@@ -27,7 +27,7 @@ export class UpdateFixedEntryUseCase {
     const current = await findOwnedFixedEntry(this.rules, userId, fixedEntryId);
     const today = toLocalDateString(this.clock());
     const dueDayChanged = changes.dueDay !== undefined && changes.dueDay !== current.dueDay;
-    const updated = await this.rules.update(fixedEntryId, {
+    const updated = await this.rules.update(userId, fixedEntryId, {
       ...changes,
       description: trimmed(changes.description),
       category: trimmed(changes.category),
@@ -39,7 +39,7 @@ export class UpdateFixedEntryUseCase {
   }
 
   private async applyToLaunch(userId: string, rule: FixedEntry, changes: FixedEntryChanges, month: string): Promise<void> {
-    const launch = await this.lookup.findLaunch(rule.id, month);
+    const launch = await this.lookup.findLaunch(userId, rule.id, month);
     if (!launch) return;
     await this.updateEntry.execute(userId, launch, {
       amount: changes.amount,

@@ -19,12 +19,12 @@ export class DeleteFixedEntryUseCase {
   async execute(userId: string, fixedEntryId: string, options: DeleteFixedEntryOptions = {}): Promise<void> {
     await findOwnedFixedEntry(this.rules, userId, fixedEntryId);
     if (options.alsoDeleteCurrentMonth) await this.deleteCurrentMonthLaunch(userId, fixedEntryId);
-    await this.rules.delete(fixedEntryId);
+    await this.rules.delete(userId, fixedEntryId);
     await this.notifier.notifyEntriesChanged(userId);
   }
 
   private async deleteCurrentMonthLaunch(userId: string, fixedEntryId: string): Promise<void> {
-    const launch = await this.lookup.findLaunch(fixedEntryId, this.currentMonth());
+    const launch = await this.lookup.findLaunch(userId, fixedEntryId, this.currentMonth());
     if (launch) await this.deleteEntry.execute(userId, launch);
   }
 }

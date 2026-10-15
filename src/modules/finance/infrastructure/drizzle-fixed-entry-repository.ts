@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { fixedEntries } from '@/db/schema';
 import type { FixedEntry } from '../domain/models/fixed-entry';
@@ -24,8 +24,12 @@ export class DrizzleFixedEntryRepository implements FixedEntryRepository {
     return toFixedEntry(inserted);
   }
 
-  async findById(id: string): Promise<FixedEntry | null> {
-    const [found] = await db.select().from(fixedEntries).where(eq(fixedEntries.id, id)).limit(1);
+  async findById(userId: string, id: string): Promise<FixedEntry | null> {
+    const [found] = await db
+      .select()
+      .from(fixedEntries)
+      .where(and(eq(fixedEntries.id, id), eq(fixedEntries.userId, userId)))
+      .limit(1);
     return found ? toFixedEntry(found) : null;
   }
 
@@ -46,18 +50,18 @@ export class DrizzleFixedEntryRepository implements FixedEntryRepository {
     return rows.map((row) => row.userId);
   }
 
-  async update(id: string, data: FixedEntryUpdate): Promise<FixedEntry> {
+  async update(userId: string, id: string, data: FixedEntryUpdate): Promise<FixedEntry> {
     const { amount, ...rest } = data;
     const [updated] = await db
       .update(fixedEntries)
       .set({ ...rest, ...(amount === undefined ? {} : { amount: String(amount) }), updatedAt: new Date() })
-      .where(eq(fixedEntries.id, id))
+      .where(and(eq(fixedEntries.id, id), eq(fixedEntries.userId, userId)))
       .returning();
     if (!updated) throw new Error('Fixed entry not found');
     return toFixedEntry(updated);
   }
 
-  async delete(id: string): Promise<void> {
-    await db.delete(fixedEntries).where(eq(fixedEntries.id, id));
+  async delete(userId: string, id: string): Promise<void> {
+    await db.delete(fixedEntries).where(and(eq(fixedEntries.id, id), eq(fixedEntries.userId, userId)));
   }
 }

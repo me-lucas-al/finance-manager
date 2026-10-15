@@ -7,7 +7,7 @@ export async function findOwnedFixedEntry(
   userId: string,
   fixedEntryId: string
 ): Promise<FixedEntry> {
-  const rule = await rules.findById(fixedEntryId);
-  if (!rule || rule.userId !== userId) throw new EntryNotFoundError('Lançamento fixo não encontrado');
+  const rule = await rules.findById(userId, fixedEntryId);
+  if (!rule) throw new EntryNotFoundError('Lançamento fixo não encontrado');
   return rule;
 }

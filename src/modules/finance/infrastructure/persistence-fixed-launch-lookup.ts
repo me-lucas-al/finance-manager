@@ -22,13 +22,19 @@ export class PersistenceFixedLaunchLookup implements FixedLaunchLookup {
     return new Set([...expenses, ...incomeRows.flatMap((row) => (row.fixedEntryId ? [row.fixedEntryId] : []))]);
   }
 
-  async findLaunch(fixedEntryId: string, month: string): Promise<EntryRef | null> {
-    const expenseId = await this.findExpenseLaunchId(fixedEntryId, month);
+  async findLaunch(userId: string, fixedEntryId: string, month: string): Promise<EntryRef | null> {
+    const expenseId = await this.findExpenseLaunchId(userId, fixedEntryId, month);
     if (expenseId) return { kind: 'expense', id: expenseId };
     const [income] = await db
       .select({ id: incomes.id })
       .from(incomes)
-      .where(and(eq(incomes.fixedEntryId, fixedEntryId), eq(incomes.fixedReferenceMonth, month)))
+      .where(
+        and(
+          eq(incomes.userId, userId),
+          eq(incomes.fixedEntryId, fixedEntryId),
+          eq(incomes.fixedReferenceMonth, month)
+        )
+      )
       .limit(1);
     return income ? { kind: 'income', id: income.id } : null;
   }
@@ -44,10 +50,11 @@ export class PersistenceFixedLaunchLookup implements FixedLaunchLookup {
     return ((data ?? []) as LaunchedRow[]).map((row) => row.fixed_entry_id);
   }
 
-  private async findExpenseLaunchId(fixedEntryId: string, month: string): Promise<string | null> {
+  private async findExpenseLaunchId(userId: string, fixedEntryId: string, month: string): Promise<string | null> {
     const { data, error } = await getSupabaseAdmin()
       .from('transactions')
       .select('id')
+      .eq('user_id', userId)
       .eq('fixed_entry_id', fixedEntryId)
       .eq('fixed_reference_month', month)
       .limit(1)

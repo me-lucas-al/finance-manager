@@ -15,7 +15,7 @@ export class SetFixedEntryActiveUseCase {
     const current = await findOwnedFixedEntry(this.rules, userId, fixedEntryId);
     if (current.active === active) return current;
     const resumesFromToday = active ? { startsOn: toLocalDateString(this.clock()) } : {};
-    const updated = await this.rules.update(fixedEntryId, { active, ...resumesFromToday });
+    const updated = await this.rules.update(userId, fixedEntryId, { active, ...resumesFromToday });
     await this.notifier.notifyEntriesChanged(userId);
     return updated;
   }

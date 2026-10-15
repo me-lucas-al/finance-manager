@@ -16,8 +16,10 @@ export class FakeFixedLaunchLookup implements FixedLaunchLookup {
     return new Set(launches.filter((launch) => launch.userId === userId).map((launch) => launch.fixedEntryId));
   }
 
-  async findLaunch(fixedEntryId: string, month: string): Promise<EntryRef | null> {
-    const launch = (await this.listLaunches(month)).find((item) => item.fixedEntryId === fixedEntryId);
+  async findLaunch(userId: string, fixedEntryId: string, month: string): Promise<EntryRef | null> {
+    const launch = (await this.listLaunches(month)).find(
+      (item) => item.userId === userId && item.fixedEntryId === fixedEntryId
+    );
     return launch ? { kind: launch.kind, id: launch.id } : null;
   }
 

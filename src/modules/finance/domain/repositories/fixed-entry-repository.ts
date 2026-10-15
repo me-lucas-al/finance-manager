@@ -8,9 +8,9 @@ export type FixedEntryUpdate = Partial<
 
 export interface FixedEntryRepository {
   create(data: NewFixedEntry): Promise<FixedEntry>;
-  findById(id: string): Promise<FixedEntry | null>;
+  findById(userId: string, id: string): Promise<FixedEntry | null>;
   findAllByUserId(userId: string): Promise<FixedEntry[]>;
   findUserIdsWithActiveEntries(): Promise<string[]>;
-  update(id: string, data: FixedEntryUpdate): Promise<FixedEntry>;
-  delete(id: string): Promise<void>;
+  update(userId: string, id: string, data: FixedEntryUpdate): Promise<FixedEntry>;
+  delete(userId: string, id: string): Promise<void>;
 }

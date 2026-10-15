@@ -21,8 +21,8 @@ export class FakeFixedEntryRepository implements FixedEntryRepository {
     return item;
   }
 
-  async findById(id: string): Promise<FixedEntry | null> {
-    return this.items.find((item) => item.id === id) ?? null;
+  async findById(userId: string, id: string): Promise<FixedEntry | null> {
+    return this.items.find((item) => item.id === id && item.userId === userId) ?? null;
   }
 
   async findAllByUserId(userId: string): Promise<FixedEntry[]> {
@@ -33,14 +33,14 @@ export class FakeFixedEntryRepository implements FixedEntryRepository {
     return [...new Set(this.items.filter((item) => item.active).map((item) => item.userId))];
   }
 
-  async update(id: string, data: FixedEntryUpdate): Promise<FixedEntry> {
-    const index = this.items.findIndex((item) => item.id === id);
+  async update(userId: string, id: string, data: FixedEntryUpdate): Promise<FixedEntry> {
+    const index = this.items.findIndex((item) => item.id === id && item.userId === userId);
     if (index === -1) throw new Error('Fixed entry not found');
     this.items[index] = { ...this.items[index], ...definedOnly(data), updatedAt: new Date() };
     return this.items[index];
   }
 
-  async delete(id: string): Promise<void> {
-    this.items = this.items.filter((item) => item.id !== id);
+  async delete(userId: string, id: string): Promise<void> {
+    this.items = this.items.filter((item) => !(item.id === id && item.userId === userId));
   }
 }
