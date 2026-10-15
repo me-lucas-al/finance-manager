@@ -6,6 +6,8 @@ export type AiExtractionResult =
   | { success: false; needsClarification: true; question: string }
   | { success: false; needsClarification: false };
 
+const CARD_MENTION_PATTERN = /cart[aã]o|fatura|cr[eé]dito/i;
+
 const EXTRACTION_SCHEMA = `{
   "isFinancialEntry": boolean,
   "isAmbiguous": boolean,
@@ -45,6 +47,10 @@ Se o valor ou o tipo de transação for ambíguo ou faltar dado crítico para re
           needsClarification: true,
           question: parsed.clarificationQuestion || 'Poderia esclarecer o valor ou o tipo do lançamento?',
         };
+      }
+
+      if (parsed.type === 'expense' && CARD_MENTION_PATTERN.test(text)) {
+        return { success: false, needsClarification: false };
       }
 
       return {
