@@ -3,6 +3,7 @@ export * from './user-settings';
 export * from './financial-periods';
 export * from './incomes';
 export * from './fixed-entries';
+export * from './credit-cards';
 export * from './expenses';
 export * from './investments';
 export * from './holdings';
