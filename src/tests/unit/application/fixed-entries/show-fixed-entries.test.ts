@@ -47,7 +47,8 @@ describe('/fixos bot command', () => {
     ledger,
     portfolio,
     {} as never,
-    { execute: async () => 'lista de fixos' }
+    { execute: async () => 'lista de fixos' },
+    { execute: async () => '' }
   );
 
   it('answers with the fixed entries report', async () => {

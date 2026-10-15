@@ -6,6 +6,7 @@ import { calculateFinancialSnapshot } from '../../domain/services/calculate-fina
 import { formatMonthSummary } from '../services/month-summary-formatter';
 import { getCurrentMonth } from '@/lib/month';
 import type { ShowFixedEntriesUseCase } from '../fixed-entries/show-fixed-entries';
+import type { ShowCreditCardsUseCase } from '../credit-cards/show-credit-cards';
 
 const HELP_MESSAGE = `🤖 Comandos do Assistente Financeiro:
 
@@ -23,6 +24,7 @@ Ou escreva naturalmente, ex: "gastei 50 no almoço".
 /editar   - Corrige o último lançamento (ex.: /editar valor 45,90)
 /resumo   - Snapshot financeiro do mês
 /fixos    - Lançamentos fixos do mês (lançados e agendados)
+/cartoes  - Cartões de crédito e uso da fatura aberta
 /ajuda    - Mostra este menu de instruções`;
 
 export type LastEntryEditor = { execute(userId: string, argumentsText: string): Promise<string> };
@@ -34,7 +36,8 @@ export class HandleBotCommandUseCase {
     private ledger: LedgerService,
     private portfolio: PortfolioService,
     private goalRepo: GoalRepository,
-    private showFixedEntries: Pick<ShowFixedEntriesUseCase, 'execute'>
+    private showFixedEntries: Pick<ShowFixedEntriesUseCase, 'execute'>,
+    private showCreditCards: Pick<ShowCreditCardsUseCase, 'execute'>
   ) {}
 
   async execute(userId: string, command: string): Promise<string> {
@@ -54,6 +57,10 @@ export class HandleBotCommandUseCase {
 
     if (norm === '/fixos') {
       return this.showFixedEntries.execute(userId);
+    }
+
+    if (norm === '/cartoes' || norm === '/cartões') {
+      return this.showCreditCards.execute(userId);
     }
 
     if (norm === '/resumo') {

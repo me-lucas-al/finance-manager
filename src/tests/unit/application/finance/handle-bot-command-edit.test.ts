@@ -12,6 +12,7 @@ function buildUseCase(editLastEntry = { execute: vi.fn(async () => 'editado') })
     {} as LedgerService,
     {} as PortfolioService,
     {} as GoalRepository,
+    { execute: vi.fn() },
     { execute: vi.fn() }
   );
   return { useCase, editLastEntry };
