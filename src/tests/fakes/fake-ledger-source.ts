@@ -19,6 +19,8 @@ export const transaction = (id: string, occurredAt: string, amount: number, cate
   source: 'manual',
   necessity: null,
   telegramQuestionMessageId: null,
+  fixedEntryId: null,
+  fixedReferenceMonth: null,
   createdAt: '2026-01-01T00:00:00Z',
 });
 
@@ -31,6 +33,8 @@ export const income = (id: string, receivedAt: string, amount: string): Income =
   category: 'Salário',
   receivedAt: new Date(receivedAt),
   externalId: null,
+  fixedEntryId: null,
+  fixedReferenceMonth: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });

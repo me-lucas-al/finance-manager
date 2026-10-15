@@ -5,7 +5,23 @@ import { createAdvisorToolsFactory } from '@/modules/ai/application/tools/financ
 import { SupabaseAssistantMemoryRepository } from '@/modules/ai/infrastructure/supabase-assistant-memory-repository';
 import { SupabaseChatMessageRepository } from '@/modules/ai/infrastructure/supabase-chat-message-repository';
 import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
-import { deleteEntry, ledgerService, portfolioService, registerEntry, undoLastEntry, updateEntry } from './finance';
+import {
+  deleteEntry,
+  editLastEntry,
+  ledgerService,
+  portfolioService,
+  registerEntry,
+  undoLastEntry,
+  updateEntry,
+} from './finance';
+import {
+  createFixedEntry,
+  deleteFixedEntry,
+  listFixedEntries,
+  setFixedEntryActive,
+  showFixedEntries,
+  updateFixedEntry,
+} from './fixed-entries';
 import { languageModel } from './language-model';
 import {
   goalRepository,
@@ -33,6 +49,13 @@ export function buildAdvisorServices() {
     registerEntry,
     updateEntry,
     deleteEntry,
+    fixedEntries: {
+      list: listFixedEntries,
+      create: createFixedEntry,
+      update: updateFixedEntry,
+      setActive: setFixedEntryActive,
+      remove: deleteFixedEntry,
+    },
     deletion: new DeletionConfirmationService(requireDeletionSecret()),
     goalsUpdater: updateGoalsFromMessage,
     listCategories: listExpenseCategories,
@@ -52,6 +75,13 @@ export function buildAdvisorServices() {
     llm: languageModel,
     registerEntry,
     advisorChat,
-    handleBotCommand: new HandleBotCommandUseCase(undoLastEntry, ledgerService, portfolioService, goalRepository),
+    handleBotCommand: new HandleBotCommandUseCase(
+      undoLastEntry,
+      editLastEntry,
+      ledgerService,
+      portfolioService,
+      goalRepository,
+      showFixedEntries,
+    ),
   };
 }

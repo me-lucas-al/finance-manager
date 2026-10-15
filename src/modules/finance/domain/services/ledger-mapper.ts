@@ -16,6 +16,9 @@ export function expenseToEntry(transaction: Transaction): LedgerEntry {
     category: transaction.category || transaction.categorySuggested || UNCATEGORIZED,
     amount: Number(transaction.amount),
     account: transaction.bank || MANUAL_ACCOUNT,
+    ...(transaction.necessity && { necessity: transaction.necessity }),
+    ...(transaction.source !== 'manual' && { imported: true as const }),
+    fixed: Boolean(transaction.fixedReferenceMonth),
   };
 }
 
@@ -28,6 +31,8 @@ export function incomeToEntry(income: Income): LedgerEntry {
     category: income.category || UNCATEGORIZED,
     amount: Number(income.amount),
     account: MANUAL_ACCOUNT,
+    ...(income.externalId && { imported: true as const }),
+    fixed: Boolean(income.fixedReferenceMonth),
   };
 }
 
@@ -40,6 +45,7 @@ export function investmentToEntry(investment: Investment): LedgerEntry {
     category: investment.type || UNCATEGORIZED,
     amount: Number(investment.amount),
     account: MANUAL_ACCOUNT,
+    fixed: false,
   };
 }
 

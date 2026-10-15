@@ -1,4 +1,5 @@
 import { definedOnly } from '@/tests/fakes/defined-only';
+import { DuplicateFixedLaunchError } from '@/modules/finance/domain/models/fixed-launch-errors';
 import type {
   NewTransaction,
   Transaction,
@@ -11,8 +12,17 @@ export class FakeTransactionRepository implements TransactionRepository {
   private idCounter = 1;
 
   async create(data: NewTransaction): Promise<Transaction> {
+    const duplicate = this.items.some(
+      (item) =>
+        data.fixedEntryId &&
+        item.fixedEntryId === data.fixedEntryId &&
+        item.fixedReferenceMonth === data.fixedReferenceMonth
+    );
+    if (duplicate) throw new DuplicateFixedLaunchError();
     const item: Transaction = {
       ...data,
+      fixedEntryId: data.fixedEntryId ?? null,
+      fixedReferenceMonth: data.fixedReferenceMonth ?? null,
       id: String(this.idCounter++),
       source: data.source ?? 'manual',
       necessity: data.necessity ?? null,
@@ -41,9 +51,9 @@ export class FakeTransactionRepository implements TransactionRepository {
     return matching[0] ?? null;
   }
 
-  async findLatestByUserId(userId: string): Promise<Transaction | null> {
+  async findLatestEditableByUserId(userId: string): Promise<Transaction | null> {
     const matching = this.items
-      .filter((item) => item.userId === userId)
+      .filter((item) => item.userId === userId && item.source === 'manual' && !item.fixedReferenceMonth)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return matching[0] ?? null;
   }

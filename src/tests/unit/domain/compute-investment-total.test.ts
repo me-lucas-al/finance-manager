@@ -10,6 +10,7 @@ const contribution: LedgerEntry = {
   category: 'CDB',
   amount: 300,
   account: 'manual',
+  fixed: false,
 };
 
 describe('computeInvestmentTotal', () => {

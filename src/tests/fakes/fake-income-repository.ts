@@ -1,4 +1,5 @@
 import { definedOnly } from './defined-only';
+import { DuplicateFixedLaunchError } from '../../modules/finance/domain/models/fixed-launch-errors';
 import {
   IncomeRepository,
   IncomePage,
@@ -12,6 +13,13 @@ export class FakeIncomeRepository implements IncomeRepository {
   private counter = 1;
 
   async create(data: NewIncome): Promise<Income> {
+    const duplicate = this.items.some(
+      (i) =>
+        data.fixedEntryId &&
+        i.fixedEntryId === data.fixedEntryId &&
+        i.fixedReferenceMonth === data.fixedReferenceMonth
+    );
+    if (duplicate) throw new DuplicateFixedLaunchError();
     const item: Income = {
       id: data.id ?? String(this.counter++),
       userId: data.userId,
@@ -21,6 +29,8 @@ export class FakeIncomeRepository implements IncomeRepository {
       category: data.category,
       receivedAt: data.receivedAt,
       externalId: null,
+      fixedEntryId: data.fixedEntryId ?? null,
+      fixedReferenceMonth: data.fixedReferenceMonth ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -41,8 +51,8 @@ export class FakeIncomeRepository implements IncomeRepository {
     return updated;
   }
 
-  async findLatestByUserId(userId: string): Promise<Income | null> {
-    const list = this.items.filter((i) => i.userId === userId);
+  async findLatestEditableByUserId(userId: string): Promise<Income | null> {
+    const list = this.items.filter((i) => i.userId === userId && !i.externalId && !i.fixedReferenceMonth);
     return list[list.length - 1] ?? null;
   }
 

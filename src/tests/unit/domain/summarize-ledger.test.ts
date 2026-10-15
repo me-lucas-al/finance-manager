@@ -16,6 +16,7 @@ const entry = (id: string, kind: LedgerEntry['kind'], date: string, amount: numb
   category,
   amount,
   account: 'Manual',
+  fixed: false,
 });
 
 const ledger: LedgerEntry[] = [

@@ -1,10 +1,13 @@
 import { CreditCard } from 'lucide-react';
+import { EntryActionsMenu } from '@/components/entries/EntryActionsMenu';
 import { Amount } from '@/components/shared/Amount';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 import { ENTRY_KIND_STYLE, signedAmount } from './entry-kind-style';
+import { toEditableEntry } from './to-editable-entry';
 
 export function TransactionRow({ transaction }: { transaction: LiveTransactionItem }) {
   const { Icon, boxClass, iconClass, amountClass } = ENTRY_KIND_STYLE[transaction.type];
+  const editableEntry = toEditableEntry(transaction);
 
   return (
     <div className="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-800/40 transition-colors group">
@@ -19,13 +22,21 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
           <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5">
             {transaction.isCreditCard && <CreditCard className="h-3 w-3 text-zinc-400" />}
             <span>{transaction.account} · {transaction.category}</span>
+            {transaction.fixed && (
+              <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 text-[10px] font-medium text-blue-400">
+                Fixo
+              </span>
+            )}
           </div>
         </div>
       </div>
-      <Amount
-        value={signedAmount(transaction.type, transaction.amount)}
-        className={`text-sm font-semibold tabular-nums ${amountClass}`}
-      />
+      <div className="flex items-center gap-1">
+        <Amount
+          value={signedAmount(transaction.type, transaction.amount)}
+          className={`text-sm font-semibold tabular-nums ${amountClass}`}
+        />
+        {editableEntry && <EntryActionsMenu entry={editableEntry} />}
+      </div>
     </div>
   );
 }

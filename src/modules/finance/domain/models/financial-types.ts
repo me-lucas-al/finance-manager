@@ -1,3 +1,5 @@
+import type { TransactionNecessity } from '@/modules/open-finance/domain/repositories/transaction-repository';
+
 export interface LiveOverviewData {
   bankTotal: number;
   bankAccounts: Array<{
@@ -36,6 +38,9 @@ export interface LiveTransactionItem {
   amount: number;
   bank: string;
   isCreditCard: boolean;
+  necessity?: TransactionNecessity;
+  imported?: boolean;
+  fixed: boolean;
 }
 
 export interface LiveExpenseCategory {
@@ -54,6 +59,7 @@ export interface LiveMovementsData {
   categorizedExpenses: LiveExpenseCategory[];
   pendingExpenses: LiveExpenseCategory[];
   transactions: LiveTransactionItem[];
+  categoryOptions: string[];
 }
 
 export interface LiveAssetItem {
@@ -63,6 +69,7 @@ export interface LiveAssetItem {
   bankName: string;
   type: string;
   amount: number;
+  date?: string;
   percentage: number;
 }
 

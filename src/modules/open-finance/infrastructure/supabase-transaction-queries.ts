@@ -47,11 +47,13 @@ export async function fetchLatestPendingTransaction(userId: string): Promise<Tra
   return data ? toTransaction(data as TransactionRow) : null;
 }
 
-export async function fetchLatestTransaction(userId: string): Promise<Transaction | null> {
+export async function fetchLatestEditableTransaction(userId: string): Promise<Transaction | null> {
   const { data, error } = await getSupabaseAdmin()
     .from('transactions')
     .select()
     .eq('user_id', userId)
+    .eq('source', 'manual')
+    .is('fixed_reference_month', null)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();

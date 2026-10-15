@@ -23,6 +23,8 @@ export type NewIncome = {
   amount: number | string;
   category: string;
   receivedAt: Date;
+  fixedEntryId?: string;
+  fixedReferenceMonth?: string;
 };
 
 export type IncomeUpdate = Partial<Pick<NewIncome, 'description' | 'amount' | 'category' | 'receivedAt'>>;
@@ -31,7 +33,7 @@ export interface IncomeRepository {
   create(data: NewIncome): Promise<Income>;
   findById(id: string): Promise<Income | null>;
   update(id: string, data: IncomeUpdate): Promise<Income>;
-  findLatestByUserId(userId: string): Promise<Income | null>;
+  findLatestEditableByUserId(userId: string): Promise<Income | null>;
   delete(id: string): Promise<void>;
   findPageByUserId(userId: string, query: IncomeQuery): Promise<IncomePage>;
 }

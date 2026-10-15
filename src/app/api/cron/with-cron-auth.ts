@@ -5,7 +5,7 @@ type CronHandler = (req: NextRequest) => Promise<Response>;
 function isAuthorized(req: NextRequest): boolean {
   const authorization = req.headers.get('authorization');
   const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
+  if (!secret) return false;
   return authorization === `Bearer ${secret}`;
 }
 

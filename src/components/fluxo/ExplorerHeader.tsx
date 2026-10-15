@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
 import { ENTRY_KIND_STYLE } from './entry-kind-style';
+import { ExportPdfButton } from './ExportPdfButton';
 
 interface ExplorerHeaderProps {
   monthLabel: string;
@@ -10,6 +11,7 @@ interface ExplorerHeaderProps {
   totalIncome: number;
   totalExpenses: number;
   totalInvestments: number;
+  pdfHref: string;
   onPrevious: () => void;
   onNext: () => void;
 }
@@ -46,6 +48,7 @@ export function ExplorerHeader(props: ExplorerHeaderProps) {
             </div>
           );
         })}
+        <ExportPdfButton href={props.pdfHref} />
       </div>
     </div>
   );

@@ -1,28 +1,30 @@
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { getLiveMovementsData } from '@/composition/finance-views';
 import { getCurrentMonth, isValidMonthKey, monthLabel } from '@/lib/month';
+import { NewEntryButton } from '@/components/entries/NewEntryButton';
+import { parseStatementFilters, type RawParams } from '@/modules/finance/domain/services/statement-filter-params';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
 import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
 
-export default async function MovementsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ month?: string }>;
-}) {
-  const { month: rawMonth } = await searchParams;
-  const defaultMonth = getCurrentMonth();
-  const month = rawMonth && isValidMonthKey(rawMonth) ? rawMonth : defaultMonth;
+export default async function MovementsPage({ searchParams }: { searchParams: Promise<RawParams> }) {
+  const params = await searchParams;
+  const rawMonth = typeof params.month === 'string' ? params.month : undefined;
+  const month = rawMonth && isValidMonthKey(rawMonth) ? rawMonth : getCurrentMonth();
+  const filters = parseStatementFilters(params);
 
-  const data = await getLiveMovementsData(await requireUserId(), month);
+  const data = await getLiveMovementsData(await requireUserId(), month, filters);
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
       <div className="max-w-[1440px] mx-auto p-4 sm:p-6 md:p-8 space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-white">Fluxo de Caixa</h1>
-          <p className="text-sm text-zinc-400">
-            Despesas, receitas e movimentações das suas contas.
-          </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight text-white">Fluxo de Caixa</h1>
+            <p className="text-sm text-zinc-400">
+              Despesas, receitas e movimentações das suas contas.
+            </p>
+          </div>
+          <NewEntryButton label="Lançar" />
         </div>
 
         <ExpenseBreakdownCards
@@ -35,6 +37,8 @@ export default async function MovementsPage({
         <TransactionsExplorer
           month={month}
           monthLabel={monthLabel(month)}
+          filters={filters}
+          categoryOptions={data.categoryOptions}
           initialTransactions={data.transactions}
           totalIncome={data.totalIncome}
           totalExpenses={data.totalExpenses}
