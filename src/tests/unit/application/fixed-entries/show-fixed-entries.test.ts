@@ -43,6 +43,7 @@ describe('ShowFixedEntriesUseCase', () => {
 describe('/fixos bot command', () => {
   const bot = new HandleBotCommandUseCase(
     {} as never,
+    { execute: async () => '' },
     ledger,
     portfolio,
     {} as never,

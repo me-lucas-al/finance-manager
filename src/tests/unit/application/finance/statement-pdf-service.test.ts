@@ -15,6 +15,7 @@ const entry = (id: string, overrides: Partial<LedgerEntry>): LedgerEntry => ({
   category: 'Mercado',
   amount: 10,
   account: 'Manual',
+  fixed: false,
   ...overrides,
 });
 

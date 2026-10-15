@@ -11,6 +11,7 @@ const entry = (id: string, kind: LedgerEntry['kind'], date: string): LedgerEntry
   category: 'Outros',
   amount: 10,
   account: 'Manual',
+  fixed: false,
 });
 
 const period: PeriodView = { id: 'p1', startDate: '2026-01-15', endDate: '2026-02-14', closed: true };

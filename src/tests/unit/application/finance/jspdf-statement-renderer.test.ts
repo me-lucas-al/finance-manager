@@ -13,6 +13,7 @@ const manyEntries: LedgerEntry[] = Array.from({ length: 120 }, (_, index) => ({
   category: 'Alimentação',
   amount: 10 + index,
   account: 'Manual',
+  fixed: false,
 }));
 
 const render = (entries: LedgerEntry[]) =>
