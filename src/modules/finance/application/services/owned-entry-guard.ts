@@ -16,9 +16,13 @@ export class OwnedEntryGuard {
   async assertOwned(userId: string, ref: EntryRef): Promise<void> {
     const owner = await this.findOwnerId(ref);
     if (owner !== userId) throw new EntryNotFoundError();
-    if (ref.kind !== 'expense') return;
-    const transaction = await this.transactionRepo.findById(ref.id);
-    if (transaction?.source !== 'manual') throw new EntryValidationError(IMPORTED_ENTRY_MESSAGE);
+    if (await this.isImported(ref)) throw new EntryValidationError(IMPORTED_ENTRY_MESSAGE);
+  }
+
+  private async isImported(ref: EntryRef): Promise<boolean> {
+    if (ref.kind === 'expense') return (await this.transactionRepo.findById(ref.id))?.source !== 'manual';
+    if (ref.kind === 'income') return Boolean((await this.incomeRepo.findById(ref.id))?.externalId);
+    return false;
   }
 
   private async findOwnerId(ref: EntryRef): Promise<string | undefined> {

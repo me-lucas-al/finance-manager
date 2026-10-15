@@ -31,6 +31,7 @@ export function incomeToEntry(income: Income): LedgerEntry {
     category: income.category || UNCATEGORIZED,
     amount: Number(income.amount),
     account: MANUAL_ACCOUNT,
+    ...(income.externalId && { imported: true as const }),
     fixed: Boolean(income.fixedReferenceMonth),
   };
 }
