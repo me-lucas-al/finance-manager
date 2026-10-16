@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, numeric, smallint, uuid, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, numeric, smallint, uuid, index, unique } from 'drizzle-orm/pg-core';
 import { users } from './users';
 
 export const creditCards = pgTable('credit_cards', {
@@ -13,5 +13,6 @@ export const creditCards = pgTable('credit_cards', {
 }, (table) => {
   return {
     userIdIdx: index('credit_cards_user_id_idx').on(table.userId),
+    idUserIdKey: unique('credit_cards_id_user_id_key').on(table.id, table.userId),
   };
 });
