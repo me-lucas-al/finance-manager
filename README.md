@@ -47,7 +47,7 @@ Pergunte qualquer coisa sobre suas finanças diretamente no Telegram. O assisten
 - **Frontend & Backend**: Next.js 16 (App Router, Server Actions, `after()` API)
 - **Linguagem**: TypeScript (Strict Mode)
 - **Estilização**: Tailwind CSS v4 & shadcn/ui
-- **Banco de Dados**: Neon (Serverless Postgres) & Supabase
+- **Banco de Dados**: Supabase (PostgreSQL)
 - **ORM & Migrations**: Drizzle ORM & Supabase Migrations
 - **Inteligência Artificial**: Vercel AI SDK (`ai` v7) & Google Gemini (`gemini-3.6-flash`, `gemini-3.1-pro-preview`)
 - **Mensageria**: Telegram Bot API (Webhook serverless com idempotência)
