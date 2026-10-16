@@ -26,7 +26,6 @@
     "@ai-sdk/react": "4.0.108",
     "@base-ui/react": "^1.7.0",
     "@google/genai": "^2.19.0",
-    "@neondatabase/serverless": "^1.1.0",
     "@node-rs/argon2": "^2.1.0",
     "@supabase/supabase-js": "^2.112.4",
     "ai": "^7.0.105",

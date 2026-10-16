@@ -1,6 +1,6 @@
 -- Core tables for the Open Finance + AI migration (plano_migracao.xml, tarefa 1).
--- This is a NEW, separate Supabase Postgres project (not the app's Neon/Drizzle
--- database). Review before applying manually in the Supabase SQL editor.
+-- Applied to the app's single Supabase Postgres project, which also holds the
+-- Drizzle-managed tables.
 
 create extension if not exists pgcrypto;
 
@@ -71,9 +71,9 @@ alter table transactions enable row level security;
 alter table goals enable row level security;
 alter table alerts_log enable row level security;
 
--- Single-tenant infra: only this app's server-side code (service role key) ever
--- talks to this project, so every table is locked to service_role and the app
--- enforces user_id scoping itself (mirrors requireUserId() on the Neon side).
+-- Only this app's server-side code (service role key) ever talks to these
+-- tables, so each one is locked to service_role and the app enforces user_id
+-- scoping itself (see requireUserId()).
 create policy "service_role_only" on accounts for all to service_role using (true) with check (true);
 create policy "service_role_only" on transactions for all to service_role using (true) with check (true);
 create policy "service_role_only" on goals for all to service_role using (true) with check (true);
