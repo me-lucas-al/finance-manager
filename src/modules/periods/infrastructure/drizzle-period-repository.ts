@@ -18,6 +18,15 @@ export class DrizzlePeriodRepository implements PeriodRepository {
     );
     return result ?? null;
   }
+  async findByStartMonth(userId: string, month: string) {
+    const [result] = await db.select().from(financialPeriods).where(
+      and(
+        eq(financialPeriods.userId, userId),
+        sql`to_char(${financialPeriods.startDate} at time zone 'UTC' at time zone 'America/Sao_Paulo', 'YYYY-MM') = ${month}`
+      )
+    ).limit(1);
+    return result ?? null;
+  }
   async findOpenEndedBefore(date: Date) {
     return db.select().from(financialPeriods).where(
       and(eq(financialPeriods.status, 'OPEN'), lt(financialPeriods.endDate, date))
