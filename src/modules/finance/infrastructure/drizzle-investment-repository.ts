@@ -22,6 +22,7 @@ export class DrizzleInvestmentRepository implements InvestmentRepository {
       amount: String(data.amount),
       type: data.type,
       date: data.date,
+      referenceMonth: data.referenceMonth ?? null,
     }).returning();
     return inserted;
   }

@@ -31,6 +31,7 @@ export class FakeIncomeRepository implements IncomeRepository {
       externalId: null,
       fixedEntryId: data.fixedEntryId ?? null,
       fixedReferenceMonth: data.fixedReferenceMonth ?? null,
+      referenceMonth: data.referenceMonth ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

@@ -20,6 +20,7 @@ export class DrizzleIncomeRepository implements IncomeRepository {
         receivedAt: data.receivedAt,
         fixedEntryId: data.fixedEntryId ?? null,
         fixedReferenceMonth: data.fixedReferenceMonth ?? null,
+        referenceMonth: data.referenceMonth ?? null,
       }).returning();
       return inserted;
     } catch (error) {

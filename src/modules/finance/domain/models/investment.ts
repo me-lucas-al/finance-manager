@@ -7,6 +7,7 @@ export type Investment = {
   type: string;
   date: Date;
   externalId: string | null;
+  referenceMonth: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

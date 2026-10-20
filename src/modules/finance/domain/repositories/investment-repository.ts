@@ -23,6 +23,7 @@ export type NewInvestment = {
   amount: number | string;
   type: string;
   date: Date;
+  referenceMonth?: string;
 };
 
 export type InvestmentUpdate = Partial<Pick<NewInvestment, 'description' | 'amount' | 'type' | 'date'>>;
