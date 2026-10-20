@@ -9,7 +9,7 @@ async function main() {
 
   const { data, error } = await getSupabaseAdmin()
     .from('accounts')
-    .select('id, name, pluggy_item_id')
+    .select('id, bank, account_type, pluggy_item_id')
     .eq('user_id', userId);
   if (error) throw new Error(`Failed to list accounts: ${error.message}`);
 
