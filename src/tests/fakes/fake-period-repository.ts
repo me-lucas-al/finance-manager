@@ -25,6 +25,9 @@ export class FakePeriodRepository implements PeriodRepository {
   async findByStartMonth(userId: string, month: string): Promise<Period | null> {
     return this.items.find(i => i.userId === userId && toMonthKey(i.startDate) === month) || null;
   }
+  async findContaining(userId: string, date: Date): Promise<Period | null> {
+    return this.items.find(i => i.userId === userId && i.startDate <= date && date <= i.endDate) || null;
+  }
   async findOpenEndedBefore(date: Date): Promise<Period[]> {
     return this.items.filter(i => i.status === 'OPEN' && i.endDate < date);
   }

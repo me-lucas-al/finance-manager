@@ -1,4 +1,4 @@
-import { and, eq, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt, lte, sql } from 'drizzle-orm';
 import { PeriodRepository, NewPeriod } from '../domain/repositories/period-repository';
 import { db } from '../../../db';
 import { financialPeriods } from '../../../db/schema';
@@ -24,7 +24,13 @@ export class DrizzlePeriodRepository implements PeriodRepository {
         eq(financialPeriods.userId, userId),
         sql`to_char(${financialPeriods.startDate} at time zone 'UTC' at time zone 'America/Sao_Paulo', 'YYYY-MM') = ${month}`
       )
-    ).limit(1);
+    ).orderBy(desc(financialPeriods.startDate)).limit(1);
+    return result ?? null;
+  }
+  async findContaining(userId: string, date: Date) {
+    const [result] = await db.select().from(financialPeriods).where(
+      and(eq(financialPeriods.userId, userId), lte(financialPeriods.startDate, date), gte(financialPeriods.endDate, date))
+    ).orderBy(desc(financialPeriods.startDate)).limit(1);
     return result ?? null;
   }
   async findOpenEndedBefore(date: Date) {
