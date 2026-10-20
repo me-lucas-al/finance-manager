@@ -1,6 +1,7 @@
 import { toLocalDateString } from '@/lib/month';
 import type { Account } from '@/modules/open-finance/domain/repositories/account-repository';
 import type { TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
+import { toPeriodReference, type PeriodReference } from '@/modules/periods/domain/period-reference';
 import type { LedgerWriter } from '../domain/ledger-writer';
 import type { PluggyLedgerEntry } from '../domain/map-pluggy-transaction';
 import type { SyncPeriod } from '../domain/sync-period';
@@ -15,15 +16,16 @@ export class PersistLedgerEntry {
   ) {}
 
   async execute(userId: string, account: Account, entry: PluggyLedgerEntry, period: SyncPeriod): Promise<boolean> {
-    if (entry.kind === 'income') return this.persistIncome(userId, entry, period);
-    if (entry.kind === 'investment') return this.persistInvestment(userId, entry, period);
-    return this.persistExpense(userId, account, entry);
+    const reference = toPeriodReference(period);
+    if (entry.kind === 'income') return this.persistIncome(userId, entry, reference);
+    if (entry.kind === 'investment') return this.persistInvestment(userId, entry, reference);
+    return this.persistExpense(userId, account, entry, reference);
   }
 
-  private persistIncome(userId: string, entry: Extract<PluggyLedgerEntry, { kind: 'income' }>, period: SyncPeriod) {
+  private persistIncome(userId: string, entry: Extract<PluggyLedgerEntry, { kind: 'income' }>, reference: PeriodReference) {
     return this.ledger.addIncome({
       userId,
-      periodId: period.id,
+      ...reference,
       externalId: entry.externalId,
       amount: entry.amount,
       description: entry.description,
@@ -32,10 +34,10 @@ export class PersistLedgerEntry {
     });
   }
 
-  private persistInvestment(userId: string, entry: Extract<PluggyLedgerEntry, { kind: 'investment' }>, period: SyncPeriod) {
+  private persistInvestment(userId: string, entry: Extract<PluggyLedgerEntry, { kind: 'investment' }>, reference: PeriodReference) {
     return this.ledger.addInvestment({
       userId,
-      periodId: period.id,
+      ...reference,
       externalId: entry.externalId,
       amount: entry.amount,
       description: entry.description,
@@ -44,7 +46,12 @@ export class PersistLedgerEntry {
     });
   }
 
-  private async persistExpense(userId: string, account: Account, entry: Extract<PluggyLedgerEntry, { kind: 'expense' }>) {
+  private async persistExpense(
+    userId: string,
+    account: Account,
+    entry: Extract<PluggyLedgerEntry, { kind: 'expense' }>,
+    reference: PeriodReference,
+  ) {
     const alreadyStored = await this.transactions.findByPluggyId(entry.externalId);
     if (alreadyStored) return false;
 
@@ -64,6 +71,7 @@ export class PersistLedgerEntry {
         source: 'pluggy',
         necessity: null,
         telegramQuestionMessageId: null,
+        ...reference,
       });
       return true;
     } catch (error) {
