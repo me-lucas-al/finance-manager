@@ -9,7 +9,7 @@ import { ExpensePatternAnalyzer } from '../services/expense-pattern-analyzer';
 import { SpendingAlert } from '../../domain/models/spending-patterns';
 import { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
 import type { FixedLaunchLink } from '../../domain/models/fixed-entry';
-import { toLocalDateString } from '@/lib/month';
+import { dateAtNoon, toLocalDateString } from '@/lib/month';
 import { assertValidEntryDate } from '../../domain/parsers/parse-entry-date';
 import type { CardLinkValidator } from '../../domain/ports/card-link-validator';
 import { assertCardLink } from '../credit-cards/assert-card-link';
@@ -68,7 +68,7 @@ export class RegisterManualEntryUseCase {
   private async persistExpense(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
     const necessity = entry.necessity ?? (await this.classifyNecessity.execute(userId, entry.category, entry.description));
     const alerts = options.fixed ? [] : await this.patternAnalyzer.analyze(userId, entry, date.slice(0, 7));
-    const reference = toPeriodReference(await this.resolvePeriod.execute(userId));
+    const reference = toPeriodReference(await this.resolvePeriod.forDate(userId, dateAtNoon(date)));
     await this.transactionRepo.create(buildNewExpense(userId, entry, date, necessity, reference, options.fixed));
     return { ...entry, necessity, alerts };
   }

@@ -53,6 +53,7 @@ export const updateEntry = new UpdateEntryUseCase(
   classifyNecessity,
   entryChangeNotifier,
   cardLinkGuard,
+  resolveCurrentPeriod,
 );
 
 export const deleteEntry = new DeleteEntryUseCase(

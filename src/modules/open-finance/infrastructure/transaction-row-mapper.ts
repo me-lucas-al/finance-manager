@@ -100,5 +100,7 @@ export function buildTransactionPatch(
   if (data.necessity !== undefined) patch.necessity = data.necessity;
   if (data.telegramQuestionMessageId !== undefined) patch.telegram_question_message_id = data.telegramQuestionMessageId;
   if (data.creditCardId !== undefined) patch.credit_card_id = data.creditCardId;
+  if (data.periodId !== undefined) patch.period_id = data.periodId;
+  if (data.referenceMonth !== undefined) patch.reference_month = data.referenceMonth;
   return patch;
 }

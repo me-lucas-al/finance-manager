@@ -4,6 +4,8 @@ import type { InvestmentRepository } from '../../domain/repositories/investment-
 import type { EntryChangeNotifier } from '../../domain/ports/entry-change-notifier';
 import { validateEntryChanges, type EntryChanges, type EntryRef } from '../../domain/models/entry-changes';
 import { dateAtNoon } from '@/lib/month';
+import type { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
+import { toPeriodReference } from '@/modules/periods/domain/period-reference';
 import { OwnedEntryGuard } from '../services/owned-entry-guard';
 import type { CardLinkValidator } from '../../domain/ports/card-link-validator';
 import { assertCardLink } from '../credit-cards/assert-card-link';
@@ -17,7 +19,8 @@ export class UpdateEntryUseCase {
     private readonly guard: OwnedEntryGuard,
     private readonly classifyNecessity: ClassifyNecessityService,
     private readonly notifier: EntryChangeNotifier,
-    private readonly cardLinks: CardLinkValidator
+    private readonly cardLinks: CardLinkValidator,
+    private readonly periods: ResolveCurrentPeriodUseCase
   ) {}
 
   async execute(userId: string, ref: EntryRef, changes: EntryChanges): Promise<void> {
@@ -42,6 +45,11 @@ export class UpdateEntryUseCase {
     await this.updateExpense(userId, ref.id, changes);
   }
 
+  private async periodChange(userId: string, date?: string) {
+    if (!date) return {};
+    return toPeriodReference(await this.periods.forDate(userId, dateAtNoon(date)));
+  }
+
   private async updateExpense(userId: string, id: string, changes: EntryChanges): Promise<void> {
     const current = await this.transactionRepo.findById(id);
     const category = changes.category ?? current?.category ?? 'Outros';
@@ -53,6 +61,7 @@ export class UpdateEntryUseCase {
       category: changes.category,
       occurredAt: changes.date,
       creditCardId: changes.creditCardId,
+      ...(await this.periodChange(userId, changes.date)),
       necessity: changes.necessity ?? (reclassify ? await this.classifyNecessity.execute(userId, category, description) : undefined),
     });
   }

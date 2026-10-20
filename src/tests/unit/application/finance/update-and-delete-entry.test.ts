@@ -1,3 +1,4 @@
+import { buildFakePeriodResolver } from '@/tests/fakes/fake-period-resolver';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
@@ -36,7 +37,8 @@ describe('update and delete entries', () => {
       guard,
       new ClassifyNecessityService(transactionRepo, language),
       notifier,
-      noopCardLinkValidator
+      noopCardLinkValidator,
+      buildFakePeriodResolver()
     );
     remove = new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier);
   });

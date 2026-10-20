@@ -1,3 +1,4 @@
+import { buildFakePeriodResolver } from '@/tests/fakes/fake-period-resolver';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
@@ -37,7 +38,7 @@ describe('informed necessity on expenses', () => {
       noopCardLinkValidator
     );
     const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
-    update = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, noopEntryChangeNotifier, noopCardLinkValidator);
+    update = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, noopEntryChangeNotifier, noopCardLinkValidator, buildFakePeriodResolver());
   });
 
   const expense = { type: 'expense' as const, category: 'Lazer', description: 'Cinema', amount: 40 };
