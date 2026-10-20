@@ -3,6 +3,7 @@ import { TransactionRepository, TransactionNecessity } from '@/modules/open-fina
 import { IncomeRepository } from '../../domain/repositories/income-repository';
 import { InvestmentRepository } from '../../domain/repositories/investment-repository';
 import { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
+import { toPeriodReference } from '@/modules/periods/domain/period-reference';
 import { ClassifyNecessityService } from '../services/classify-necessity-service';
 import { ExpensePatternAnalyzer } from '../services/expense-pattern-analyzer';
 import { SpendingAlert } from '../../domain/models/spending-patterns';
@@ -53,21 +54,22 @@ export class RegisterManualEntryUseCase {
   }
 
   private async persistIncome(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
-    const period = await this.resolvePeriod.execute(userId);
-    await this.incomeRepo.create(buildNewIncome(userId, period.id, entry, date, options.fixed));
+    const reference = toPeriodReference(await this.resolvePeriod.execute(userId));
+    await this.incomeRepo.create(buildNewIncome(userId, reference, entry, date, options.fixed));
     return { ...entry, alerts: [] };
   }
 
   private async persistInvestment(userId: string, entry: ParsedEntry, date: string): Promise<RegisteredEntryResult> {
-    const period = await this.resolvePeriod.execute(userId);
-    await this.investmentRepo.create(buildNewInvestment(userId, period.id, entry, date));
+    const reference = toPeriodReference(await this.resolvePeriod.execute(userId));
+    await this.investmentRepo.create(buildNewInvestment(userId, reference, entry, date));
     return { ...entry, alerts: [] };
   }
 
   private async persistExpense(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
     const necessity = entry.necessity ?? (await this.classifyNecessity.execute(userId, entry.category, entry.description));
     const alerts = options.fixed ? [] : await this.patternAnalyzer.analyze(userId, entry, date.slice(0, 7));
-    await this.transactionRepo.create(buildNewExpense(userId, entry, date, necessity, options.fixed));
+    const reference = toPeriodReference(await this.resolvePeriod.execute(userId));
+    await this.transactionRepo.create(buildNewExpense(userId, entry, date, necessity, reference, options.fixed));
     return { ...entry, necessity, alerts };
   }
 }
