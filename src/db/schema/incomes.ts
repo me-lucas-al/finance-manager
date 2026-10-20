@@ -15,12 +15,14 @@ export const incomes = pgTable('incomes', {
   externalId: text('external_id'),
   fixedEntryId: text('fixed_entry_id'),
   fixedReferenceMonth: text('fixed_reference_month'),
+  referenceMonth: text('reference_month'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {
   return {
     userIdIdx: index('incomes_user_id_idx').on(table.userId),
     periodIdIdx: index('incomes_period_id_idx').on(table.periodId),
+    userPeriodDateIdx: index('incomes_user_period_date_idx').on(table.userId, table.periodId, table.receivedAt.desc()),
     externalIdIdx: uniqueIndex('incomes_user_external_id_idx').on(table.userId, table.externalId),
     fixedEntryMonthIdx: uniqueIndex('incomes_fixed_entry_month_uidx')
       .on(table.fixedEntryId, table.fixedReferenceMonth)

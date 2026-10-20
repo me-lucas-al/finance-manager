@@ -11,12 +11,14 @@ export const investments = pgTable('investments', {
   type: text('type').notNull(),
   date: timestamp('date').notNull(),
   externalId: text('external_id'),
+  referenceMonth: text('reference_month'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {
   return {
     userIdIdx: index('investments_user_id_idx').on(table.userId),
     periodIdIdx: index('investments_period_id_idx').on(table.periodId),
+    userPeriodDateIdx: index('investments_user_period_date_idx').on(table.userId, table.periodId, table.date.desc()),
     externalIdIdx: uniqueIndex('investments_user_external_id_idx').on(table.userId, table.externalId),
   };
 });
