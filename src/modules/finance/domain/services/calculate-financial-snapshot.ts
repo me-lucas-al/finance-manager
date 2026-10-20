@@ -1,4 +1,5 @@
-import { FinancialSnapshot, CategoryMetric } from '../models/financial-snapshot';
+import { FinancialSnapshot } from '../models/financial-snapshot';
+import { buildCategoryMetrics } from './build-category-metrics';
 import type { LedgerEntry } from '../models/ledger-entry';
 import { Goal } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { getCurrentMonth, shiftMonth } from '@/lib/month';
@@ -18,25 +19,6 @@ const SAVINGS_RATE_PERCENT = 100;
 
 function categoryMap(entries: LedgerEntry[]): Record<string, number> {
   return Object.fromEntries(totalsByCategory(entries, 'expense').map(({ category, total }) => [category, total]));
-}
-
-function buildCategoryMetrics(
-  current: Record<string, number>,
-  previous: Record<string, number>,
-  goals: Goal[]
-): CategoryMetric[] {
-  return Array.from(new Set([...Object.keys(current), ...Object.keys(previous)])).map((category) => {
-    const currentAmount = current[category] ?? 0;
-    const previousAmount = previous[category] ?? 0;
-    const goal = goals.find((item) => item.category?.toLowerCase() === category.toLowerCase());
-    return {
-      category,
-      currentAmount,
-      previousAmount,
-      diffPercentage: previousAmount > 0 ? Math.round(((currentAmount - previousAmount) / previousAmount) * 100) : 0,
-      goalAmount: goal ? Number(goal.targetAmount) : undefined,
-    };
-  });
 }
 
 export function calculateFinancialSnapshot(input: SnapshotInput): FinancialSnapshot {
