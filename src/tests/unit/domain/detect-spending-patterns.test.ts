@@ -22,6 +22,8 @@ function makeMockTx(amount: number, category: string): Transaction {
     fixedEntryId: null,
     fixedReferenceMonth: null,
     creditCardId: null,
+    periodId: null,
+    referenceMonth: null,
     createdAt: new Date().toISOString(),
   };
 }

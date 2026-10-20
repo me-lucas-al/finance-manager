@@ -24,6 +24,8 @@ export class FakeTransactionRepository implements TransactionRepository {
       fixedEntryId: data.fixedEntryId ?? null,
       fixedReferenceMonth: data.fixedReferenceMonth ?? null,
       creditCardId: data.creditCardId ?? null,
+      periodId: data.periodId ?? null,
+      referenceMonth: data.referenceMonth ?? null,
       id: String(this.idCounter++),
       source: data.source ?? 'manual',
       necessity: data.necessity ?? null,

@@ -22,6 +22,8 @@ export const transaction = (id: string, occurredAt: string, amount: number, cate
   fixedEntryId: null,
   fixedReferenceMonth: null,
   creditCardId: null,
+  periodId: null,
+  referenceMonth: null,
   createdAt: '2026-01-01T00:00:00Z',
 });
 
@@ -36,6 +38,7 @@ export const income = (id: string, receivedAt: string, amount: string): Income =
   externalId: null,
   fixedEntryId: null,
   fixedReferenceMonth: null,
+  referenceMonth: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });
@@ -49,6 +52,7 @@ export const investment = (id: string, date: string, amount: string): Investment
   type: 'CDB',
   date: new Date(date),
   externalId: null,
+  referenceMonth: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });
