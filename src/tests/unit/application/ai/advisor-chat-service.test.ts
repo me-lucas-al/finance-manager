@@ -3,11 +3,10 @@ import { AdvisorChatService } from '@/modules/ai/application/services/advisor-ch
 import { ChatMemoryService } from '@/modules/ai/application/services/chat-memory-service';
 import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
 import { fakePortfolioSource } from '@/tests/fakes/fake-portfolio-source';
-import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import { createFakePeriodLedger } from '@/tests/fakes/fake-period-ledger';
 import { FakeChatMessageRepository } from '@/tests/fakes/fake-chat-message-repository';
 import { FakeAssistantMemoryRepository } from '@/tests/fakes/fake-assistant-memory-repository';
 import { FakeLanguageModel } from '@/tests/fakes/fake-language-model';
-import { sampleLedgerSource } from '@/tests/fakes/fake-ledger-source';
 import { FakeGoalRepository } from '@/tests/fakes/fake-goal-repository';
 
 describe('AdvisorChatService', () => {
@@ -23,7 +22,7 @@ describe('AdvisorChatService', () => {
       chatMemory: new ChatMemoryService(chatRepo, new FakeAssistantMemoryRepository(), llm),
       chatRepo,
       llm,
-      ledger: new LedgerService(sampleLedgerSource),
+      periodLedger: createFakePeriodLedger().service,
       portfolio: new PortfolioService(fakePortfolioSource()),
       goalRepo: new FakeGoalRepository(),
       buildTools: () => [],
@@ -82,7 +81,7 @@ describe('AdvisorChatService', () => {
       chatMemory: new ChatMemoryService(chatRepo, new FakeAssistantMemoryRepository(), llm),
       chatRepo,
       llm,
-      ledger: new LedgerService(sampleLedgerSource),
+      periodLedger: createFakePeriodLedger().service,
       portfolio: new PortfolioService(fakePortfolioSource()),
       goalRepo: new FakeGoalRepository(),
       buildTools: ({ turnId }) => {

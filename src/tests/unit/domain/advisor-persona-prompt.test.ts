@@ -4,7 +4,7 @@ import { buildAdvisorSystemPrompt, type PromptContext } from '@/modules/ai/domai
 const context: PromptContext = {
   currentDate: '15 de outubro de 2026',
   currentIsoDate: '2026-10-15',
-  currentMonth: '2026-10',
+  period: { referenceMonth: '2026-10', startDate: '15/10/2026', endDate: '14/11/2026', daysLeft: 30 },
   facts: [],
   channel: 'telegram',
   snapshot: {

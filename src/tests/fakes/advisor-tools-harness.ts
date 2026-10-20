@@ -1,7 +1,6 @@
 import { vi } from 'vitest';
 import { buildAdvisorTools } from '@/modules/ai/application/tools/financial-advisor-tools';
 import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
-import { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import type { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import type { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import type { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
@@ -9,7 +8,7 @@ import type { AdvisorFixedEntryServices } from '@/modules/ai/application/tools/a
 import { DeletionConfirmationService } from '@/modules/ai/application/services/deletion-confirmation-service';
 import type { AdvisorCreditCardServices } from '@/modules/ai/application/tools/advisor-card-types';
 import { fakePortfolioSource } from './fake-portfolio-source';
-import { sampleLedgerSource } from './fake-ledger-source';
+import { createFakePeriodLedger } from './fake-period-ledger';
 import { FakeGoalRepository } from './fake-goal-repository';
 import { FakeSavingsGoalRepository } from './fake-savings-goal-repository';
 import { FakeAssistantMemoryRepository } from './fake-assistant-memory-repository';
@@ -34,7 +33,7 @@ export function createAdvisorToolsHarness() {
 
   const tools = buildAdvisorTools({
     userId: 'user-1',
-    ledger: new LedgerService(sampleLedgerSource),
+    periodLedger: createFakePeriodLedger().service,
     portfolio: new PortfolioService(fakePortfolioSource()),
     goalRepo,
     savingsGoalRepo: new FakeSavingsGoalRepository(),

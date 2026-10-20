@@ -1,16 +1,13 @@
 import { ToolDefinition } from '../../domain/models/language-model';
-import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import type { PeriodLedgerService } from '@/modules/finance/application/services/period-ledger-service';
 import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
-import { computeBankBalance } from '@/modules/finance/domain/services/compute-bank-balance';
-import { computeInvestmentTotal } from '@/modules/finance/domain/services/compute-investment-total';
-import { entriesInMonth, totalsOf } from '@/modules/finance/domain/services/summarize-ledger';
-import { getCurrentMonth } from '@/lib/month';
+import { bankBalanceFromTotals, investedTotalFromTotals } from '@/modules/finance/domain/services/portfolio-totals';
 import { SEM_PARAMETROS_SCHEMA } from './advisor-query-schemas';
 import { buildInvestmentsTool } from './advisor-investments-tool';
 
 export type AdvisorBalanceDeps = {
   userId: string;
-  ledger: LedgerService;
+  periodLedger: PeriodLedgerService;
   portfolio: PortfolioService;
 };
 
@@ -19,14 +16,19 @@ export function buildAdvisorBalanceTools(deps: AdvisorBalanceDeps): ToolDefiniti
     {
       name: 'consultar_saldo',
       description:
-        'Retorna o saldo atual em conta, o patrimônio investido e os totais do mês atual. Use para qualquer pergunta sobre quanto o usuário tem.',
+        'Retorna o saldo atual em conta, o patrimônio investido e os totais do período atual. Use para qualquer pergunta sobre quanto o usuário tem.',
       parameters: SEM_PARAMETROS_SCHEMA,
       execute: async () => {
-        const [entries, portfolio] = await Promise.all([deps.ledger.load(deps.userId), deps.portfolio.load(deps.userId)]);
+        const window = await deps.periodLedger.currentWindow(deps.userId);
+        const [allTime, current, portfolio] = await Promise.all([
+          deps.periodLedger.totals(deps.userId),
+          deps.periodLedger.totals(deps.userId, window.id),
+          deps.portfolio.load(deps.userId),
+        ]);
         return {
-          saldoTotal: computeBankBalance(entries, portfolio),
-          totalInvestido: computeInvestmentTotal(entries, portfolio),
-          mesAtual: totalsOf(entriesInMonth(entries, getCurrentMonth())),
+          saldoTotal: bankBalanceFromTotals(allTime, portfolio),
+          totalInvestido: investedTotalFromTotals(allTime, portfolio),
+          periodoAtual: current,
         };
       },
     },

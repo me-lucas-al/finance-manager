@@ -27,7 +27,7 @@ const KIND_PROPERTY = {
 export const BUSCAR_LANCAMENTOS_SCHEMA = {
   type: 'object',
   properties: {
-    periodo: { type: 'string', description: 'Mês no formato YYYY-MM' },
+    periodo: { type: 'string', description: 'Período que começa neste mês (YYYY-MM)' },
     categoria: { type: 'string', description: 'Nome da categoria' },
     tipo: KIND_PROPERTY,
     texto: { type: 'string', description: 'Termo na descrição, ex.: nome do estabelecimento' },
@@ -38,7 +38,7 @@ export const BUSCAR_LANCAMENTOS_SCHEMA = {
 export const TOTAL_POR_CATEGORIA_SCHEMA = {
   type: 'object',
   properties: {
-    periodo: { type: 'string', description: 'Mês no formato YYYY-MM (padrão: mês atual)' },
+    periodo: { type: 'string', description: 'Período que começa neste mês (YYYY-MM). Padrão: período atual' },
     tipo: KIND_PROPERTY,
   },
 };
@@ -46,8 +46,8 @@ export const TOTAL_POR_CATEGORIA_SCHEMA = {
 export const COMPARAR_PERIODOS_SCHEMA = {
   type: 'object',
   properties: {
-    periodoA: { type: 'string', description: 'Primeiro mês (YYYY-MM)' },
-    periodoB: { type: 'string', description: 'Segundo mês (YYYY-MM)' },
+    periodoA: { type: 'string', description: 'Período que começa neste mês (YYYY-MM)' },
+    periodoB: { type: 'string', description: 'Período que começa neste mês (YYYY-MM)' },
   },
   required: ['periodoA', 'periodoB'],
 };

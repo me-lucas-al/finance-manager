@@ -8,6 +8,7 @@ import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases
 import {
   deleteEntry,
   editLastEntry,
+  periodLedgerService,
   ledgerService,
   portfolioService,
   registerEntry,
@@ -42,7 +43,7 @@ function requireDeletionSecret(): string {
 
 export function buildAdvisorServices() {
   const buildTools = createAdvisorToolsFactory({
-    ledger: ledgerService,
+    periodLedger: periodLedgerService,
     portfolio: portfolioService,
     goalRepo: goalRepository,
     savingsGoalRepo: savingsGoalRepository,
@@ -67,7 +68,7 @@ export function buildAdvisorServices() {
     chatMemory: new ChatMemoryService(chatMessageRepository, assistantMemoryRepository, languageModel),
     chatRepo: chatMessageRepository,
     llm: languageModel,
-    ledger: ledgerService,
+    periodLedger: periodLedgerService,
     portfolio: portfolioService,
     goalRepo: goalRepository,
     buildTools,

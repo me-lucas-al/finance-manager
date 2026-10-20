@@ -1,5 +1,5 @@
 import { ToolDefinition } from '../../domain/models/language-model';
-import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import { PeriodLedgerService } from '@/modules/finance/application/services/period-ledger-service';
 import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
 import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
 import { SavingsGoalRepository } from '@/modules/open-finance/domain/repositories/savings-goal-repository';
@@ -19,7 +19,7 @@ import { buildAdvisorCardTools } from './advisor-card-tools';
 import type { AdvisorCreditCardServices } from './advisor-card-types';
 
 export type AdvisorToolCollaborators = {
-  ledger: LedgerService;
+  periodLedger: PeriodLedgerService;
   portfolio: PortfolioService;
   goalRepo: GoalRepository;
   savingsGoalRepo: SavingsGoalRepository;

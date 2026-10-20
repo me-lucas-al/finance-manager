@@ -2,18 +2,19 @@ import { ChatMemoryService } from './chat-memory-service';
 import { ChatMessageRepository, ChatChannel } from '../../domain/repositories/chat-message-repository';
 import { ILanguageModel, ChatOptions, LanguageModelMessage } from '../../domain/models/language-model';
 import { GoalRepository } from '@/modules/open-finance/domain/repositories/goal-repository';
-import { LedgerService } from '@/modules/finance/application/services/ledger-service';
+import { PeriodLedgerService } from '@/modules/finance/application/services/period-ledger-service';
 import { PortfolioService } from '@/modules/finance/application/services/portfolio-service';
-import { calculateFinancialSnapshot } from '@/modules/finance/domain/services/calculate-financial-snapshot';
+import { calculateSnapshotFromTotals } from '@/modules/finance/domain/services/calculate-snapshot-from-totals';
 import { buildAdvisorSystemPrompt } from '../../domain/prompts/advisor-persona-prompt';
+import { toPromptPeriod } from '../../domain/prompts/prompt-period';
 import { AdvisorToolsFactory } from '../tools/financial-advisor-tools';
-import { getCurrentMonth, toLocalDateString } from '@/lib/month';
+import { toLocalDateString } from '@/lib/month';
 
 export type AdvisorChatDeps = {
   chatMemory: ChatMemoryService;
   chatRepo: ChatMessageRepository;
   llm: ILanguageModel;
-  ledger: LedgerService;
+  periodLedger: PeriodLedgerService;
   portfolio: PortfolioService;
   goalRepo: GoalRepository;
   buildTools: AdvisorToolsFactory;
@@ -48,19 +49,19 @@ export class AdvisorChatService {
   }
 
   private async prepare(userId: string, userMessage: string, channel: ChatChannel): Promise<PreparedChat> {
-    const currentMonth = getCurrentMonth();
-    const [{ messages, facts }, entries, portfolio, goals] = await Promise.all([
+    const now = new Date();
+    const [{ messages, facts }, { window, aggregates }, portfolio] = await Promise.all([
       this.deps.chatMemory.prepareContext(userId),
-      this.deps.ledger.load(userId),
+      this.deps.periodLedger.snapshotData(userId),
       this.deps.portfolio.load(userId),
-      this.deps.goalRepo.findAllByUserIdAndMonth(userId, `${currentMonth}-01`),
     ]);
+    const goals = await this.deps.goalRepo.findAllByUserIdAndMonth(userId, `${window.referenceMonth}-01`);
 
     const systemPrompt = buildAdvisorSystemPrompt({
-      currentDate: new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-      currentIsoDate: toLocalDateString(new Date()),
-      currentMonth,
-      snapshot: calculateFinancialSnapshot({ entries, goals, portfolio, referenceMonth: currentMonth }),
+      currentDate: now.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      currentIsoDate: toLocalDateString(now),
+      period: toPromptPeriod(window, now),
+      snapshot: calculateSnapshotFromTotals({ aggregates, goals, portfolio }),
       facts,
       channel,
     });
