@@ -34,7 +34,7 @@ export function buildAdvisorSystemPrompt(ctx: PromptContext): string {
 Data atual: ${ctx.currentDate} (${ctx.currentIsoDate}).
 Período financeiro atual: ${ctx.period.startDate} a ${ctx.period.endDate} (mês de referência ${ctx.period.referenceMonth}; faltam ${ctx.period.daysLeft} dias para fechar). "Mês" para o usuário significa este período.
 
-Snapshot Financeiro (calculado no sistema, é o mesmo número do dashboard, use estes números):
+Snapshot Financeiro (calculado no sistema; leitura direta do banco por período financeiro, considerando só lançamentos manuais quando o usuário está no modo manual; use estes números):
 - Entradas do período: R$ ${currentMonth.totalIncome.toFixed(2)}
 - Saídas do período: R$ ${currentMonth.totalExpenses.toFixed(2)}
 - Resultado do período (entradas − saídas − investimentos): R$ ${currentMonth.netBalance.toFixed(2)}

@@ -16,8 +16,6 @@ import {
   periodIdStartingIn,
 } from './advisor-period-arg';
 
-export type { AdvisorQueryDeps };
-
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 

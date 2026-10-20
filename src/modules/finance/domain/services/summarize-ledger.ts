@@ -68,4 +68,4 @@ export function totalsByCategory(entries: LedgerEntry[], kind: LedgerKind): Cate
   );
 }
 
-export const EMPTY_TOTALS: LedgerTotals = { income: 0, expenses: 0, investments: 0, balance: 0 };
+export const EMPTY_TOTALS: LedgerTotals = Object.freeze({ income: 0, expenses: 0, investments: 0, balance: 0 });
