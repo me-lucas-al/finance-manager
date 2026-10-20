@@ -42,8 +42,7 @@ export class PeriodLedgerService {
   }
 
   async snapshotData(userId: string): Promise<PeriodSnapshotData> {
-    const manualOnly = await this.modes.isManualMode(userId);
-    const window = await this.currentWindow(userId);
+    const [manualOnly, window] = await Promise.all([this.modes.isManualMode(userId), this.currentWindow(userId)]);
     const [previous, twoAgo] = await Promise.all(
       [1, 2].map((back) => this.windowForMonth(userId, shiftMonth(window.referenceMonth, -back))),
     );
