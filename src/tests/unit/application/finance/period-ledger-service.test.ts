@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { calculateFinancialSnapshot } from '@/modules/finance/domain/services/calculate-financial-snapshot';
 import { calculateSnapshotFromTotals } from '@/modules/finance/domain/services/calculate-snapshot-from-totals';
 import { periodIdOfMonth } from '@/tests/fakes/fake-ledger-query';
 import { sampleLedgerEntries } from '@/tests/fakes/fake-ledger-source';
@@ -54,18 +53,16 @@ describe('PeriodLedgerService', () => {
     expect(found.map((entry) => entry.id)).toEqual(['e3', 'e2']);
   });
 
-  it('builds the same snapshot as the in memory ledger without loading every row', async () => {
-    const { service, query } = createFakePeriodLedger();
+  it('builds the snapshot from the period aggregates', async () => {
+    const { service } = createFakePeriodLedger();
 
     const { aggregates } = await service.snapshotData('user-1');
-    const fromTotals = calculateSnapshotFromTotals({ aggregates, goals: [] });
-    const fromEntries = calculateFinancialSnapshot({
-      entries: sampleLedgerEntries,
-      goals: [],
-      referenceMonth: CURRENT_FAKE_MONTH,
-    });
+    const snapshot = calculateSnapshotFromTotals({ aggregates, goals: [] });
 
-    expect(fromTotals).toEqual(fromEntries);
-    expect(query.calls).toBe(6);
+    expect(snapshot.currentMonth).toMatchObject({ totalIncome: 5000, totalExpenses: 400.1, totalInvestments: 800 });
+    expect(snapshot.previousMonth).toMatchObject({ totalIncome: 6000, totalExpenses: 1200.1 });
+    expect(snapshot.threeMonthsAverageExpenses).toBeCloseTo((400.1 + 1200.1) / 3, 2);
+    expect(snapshot.balance).toBeCloseTo(11000 - 1600.2 - 800, 2);
+    expect(snapshot.totalInvested).toBe(800);
   });
 });

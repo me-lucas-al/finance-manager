@@ -51,4 +51,14 @@ describe('sync-transactions cron', () => {
 
     expect(body).toEqual({ ok: false, items: 2, skipped: 1, failed: 1 });
   });
+
+  it('skips owners that have not chosen a data mode yet', async () => {
+    getState.mockResolvedValue({ dataMode: null });
+    const { GET } = await import('@/app/api/cron/sync-transactions/route');
+
+    const body = await (await GET(authorizedRequest())).json();
+
+    expect(syncItem).not.toHaveBeenCalled();
+    expect(body).toEqual({ ok: true, items: 2, skipped: 2, failed: 0 });
+  });
 });
