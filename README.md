@@ -47,7 +47,7 @@ Pergunte qualquer coisa sobre suas finanças diretamente no Telegram. O assisten
 - **Frontend & Backend**: Next.js 16 (App Router, Server Actions, `after()` API)
 - **Linguagem**: TypeScript (Strict Mode)
 - **Estilização**: Tailwind CSS v4 & shadcn/ui
-- **Banco de Dados**: Supabase (PostgreSQL)
+- **Banco de Dados**: Supabase (Postgres único)
 - **ORM & Migrations**: Drizzle ORM & Supabase Migrations
 - **Inteligência Artificial**: Vercel AI SDK (`ai` v7) & Google Gemini (`gemini-3.6-flash`, `gemini-3.1-pro-preview`)
 - **Mensageria**: Telegram Bot API (Webhook serverless com idempotência)
@@ -76,8 +76,8 @@ cp .env.example .env
 
 Campos essenciais:
 ```env
-# Banco de Dados
-DATABASE_URL=postgresql://user:password@hostname/dbname
+# Banco de Dados (pooler do Supabase, modo transaction, porta 6543)
+DATABASE_URL=postgresql://postgres.<ref>:<senha>@<regiao>.pooler.supabase.com:6543/postgres
 NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
 
