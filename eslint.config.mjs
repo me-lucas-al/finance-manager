@@ -8,6 +8,7 @@ const EFFECT_ALLOWLIST = [
   "src/components/ServiceWorkerRegister.tsx",
   "src/components/onboarding/useCarouselProgress.ts",
   "src/components/onboarding/useTelegramLinkPolling.ts",
+  "src/components/whatsapp/useWhatsappPairing.ts",
   "src/components/ui/**",
 ];
 
