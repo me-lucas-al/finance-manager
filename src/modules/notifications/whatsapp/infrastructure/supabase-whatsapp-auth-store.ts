@@ -1,11 +1,13 @@
 import { getSupabaseAdmin } from '@/shared/infrastructure/supabase-admin';
 import type { AuthEntries, WhatsappAuthStore } from '../domain/whatsapp-auth-store';
 
+const TABLE = 'whatsapp_auth_keys';
+
 export class SupabaseWhatsappAuthStore implements WhatsappAuthStore {
   async readMany(userId: string, names: string[]): Promise<Record<string, string>> {
     if (names.length === 0) return {};
     const { data, error } = await getSupabaseAdmin()
-      .from('whatsapp_auth_keys')
+      .from(TABLE)
       .select('name, value')
       .eq('user_id', userId)
       .in('name', names);
@@ -20,15 +22,16 @@ export class SupabaseWhatsappAuthStore implements WhatsappAuthStore {
     );
     const removed = Object.keys(entries).filter((name) => entries[name] === null);
     if (saved.length > 0) {
-      const { error } = await supabase.from('whatsapp_auth_keys').upsert(saved);
+      const { error } = await supabase.from(TABLE).upsert(saved);
       if (error) throw new Error(`Failed to save WhatsApp auth keys: ${error.message}`);
     }
-    if (removed.length > 0) {
-      await supabase.from('whatsapp_auth_keys').delete().eq('user_id', userId).in('name', removed);
-    }
+    if (removed.length === 0) return;
+    const { error } = await supabase.from(TABLE).delete().eq('user_id', userId).in('name', removed);
+    if (error) throw new Error(`Failed to delete WhatsApp auth keys: ${error.message}`);
   }
 
   async clear(userId: string): Promise<void> {
-    await getSupabaseAdmin().from('whatsapp_auth_keys').delete().eq('user_id', userId);
+    const { error } = await getSupabaseAdmin().from(TABLE).delete().eq('user_id', userId);
+    if (error) throw new Error(`Failed to clear WhatsApp auth keys: ${error.message}`);
   }
 }

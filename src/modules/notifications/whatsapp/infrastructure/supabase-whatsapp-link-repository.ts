@@ -3,11 +3,12 @@ import type { WhatsappLink, WhatsappLinkRepository } from '../domain/whatsapp-li
 
 export class SupabaseWhatsappLinkRepository implements WhatsappLinkRepository {
   async findByUserId(userId: string): Promise<WhatsappLink | null> {
-    const { data } = await getSupabaseAdmin()
+    const { data, error } = await getSupabaseAdmin()
       .from('whatsapp_links')
       .select('user_id, jid, linked_at')
       .eq('user_id', userId)
       .maybeSingle();
+    if (error) throw new Error(`Failed to read WhatsApp link: ${error.message}`);
     if (!data) return null;
     return { userId: data.user_id, jid: data.jid, linkedAt: data.linked_at };
   }
@@ -20,6 +21,7 @@ export class SupabaseWhatsappLinkRepository implements WhatsappLinkRepository {
   }
 
   async remove(userId: string): Promise<void> {
-    await getSupabaseAdmin().from('whatsapp_links').delete().eq('user_id', userId);
+    const { error } = await getSupabaseAdmin().from('whatsapp_links').delete().eq('user_id', userId);
+    if (error) throw new Error(`Failed to remove WhatsApp link: ${error.message}`);
   }
 }
