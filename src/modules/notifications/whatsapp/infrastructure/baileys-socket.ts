@@ -5,10 +5,32 @@ import { loadAuthState } from './baileys-auth-state';
 
 const logger = pino({ level: 'silent' });
 
-export async function openSocket(store: WhatsappAuthStore, userId: string): Promise<WASocket> {
-  const [{ state, saveCreds }, { version }] = await Promise.all([
+export type OpenedSocket = {
+  socket: WASocket;
+  registered: boolean;
+  flush: () => Promise<void>;
+};
+
+export type SocketOpener = (store: WhatsappAuthStore, userId: string) => Promise<OpenedSocket>;
+
+type WaVersion = Awaited<ReturnType<typeof fetchLatestBaileysVersion>>['version'];
+
+let cachedVersion: Promise<WaVersion> | null = null;
+
+function latestVersion(): Promise<WaVersion> {
+  cachedVersion ??= fetchLatestBaileysVersion()
+    .then(({ version }) => version)
+    .catch((error) => {
+      cachedVersion = null;
+      throw error;
+    });
+  return cachedVersion;
+}
+
+export const openSocket: SocketOpener = async (store, userId) => {
+  const [{ state, saveCreds, flush }, version] = await Promise.all([
     loadAuthState(store, userId),
-    fetchLatestBaileysVersion(),
+    latestVersion(),
   ]);
   const socket = makeWASocket({
     auth: state,
@@ -18,6 +40,8 @@ export async function openSocket(store: WhatsappAuthStore, userId: string): Prom
     syncFullHistory: false,
     markOnlineOnConnect: false,
   });
-  socket.ev.on('creds.update', saveCreds);
-  return socket;
-}
+  socket.ev.on('creds.update', () => {
+    saveCreds().catch((error) => console.error('Failed to save WhatsApp credentials:', error));
+  });
+  return { socket, registered: Boolean(state.creds.registered), flush };
+};

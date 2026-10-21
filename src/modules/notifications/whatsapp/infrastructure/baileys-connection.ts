@@ -4,6 +4,8 @@ import { WhatsappLoggedOutError } from '../domain/whatsapp-sender';
 const OPEN_TIMEOUT_MS = 20_000;
 const FLUSH_MS = 2_000;
 
+export type ConnectionUpdate = { connection?: string; qr?: string } & CloseInfo;
+
 type CloseInfo = { lastDisconnect?: { error?: Error & { output?: { statusCode?: number } } } };
 
 export const closeStatusCode = (update: CloseInfo): number | undefined =>
@@ -17,7 +19,7 @@ export const ownJidOf = (socket: WASocket): string | null => {
 export function waitForOpen(socket: WASocket): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => finish(new Error('WhatsApp connection timed out')), OPEN_TIMEOUT_MS);
-    const listener = (update: { connection?: string } & CloseInfo) => {
+    const listener = (update: ConnectionUpdate) => {
       if (update.connection === 'open') return finish();
       if (update.connection !== 'close') return;
       const loggedOut = closeStatusCode(update) === DisconnectReason.loggedOut;
