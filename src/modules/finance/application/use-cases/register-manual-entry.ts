@@ -54,13 +54,13 @@ export class RegisterManualEntryUseCase {
   }
 
   private async persistIncome(userId: string, entry: ParsedEntry, date: string, options: RegisterEntryOptions): Promise<RegisteredEntryResult> {
-    const reference = toPeriodReference(await this.resolvePeriod.execute(userId));
+    const reference = toPeriodReference(await this.resolvePeriod.forDate(userId, dateAtNoon(date)));
     await this.incomeRepo.create(buildNewIncome(userId, reference, entry, date, options.fixed));
     return { ...entry, alerts: [] };
   }
 
   private async persistInvestment(userId: string, entry: ParsedEntry, date: string): Promise<RegisteredEntryResult> {
-    const reference = toPeriodReference(await this.resolvePeriod.execute(userId));
+    const reference = toPeriodReference(await this.resolvePeriod.forDate(userId, dateAtNoon(date)));
     await this.investmentRepo.create(buildNewInvestment(userId, reference, entry, date));
     return { ...entry, alerts: [] };
   }

@@ -35,11 +35,11 @@ export class UpdateEntryUseCase {
     const { amount, description, category, date } = changes;
     const movedAt = date ? dateAtNoon(date) : undefined;
     if (ref.kind === 'income') {
-      await this.incomeRepo.update(ref.id, { amount, description, category, receivedAt: movedAt });
+      await this.incomeRepo.update(ref.id, { amount, description, category, receivedAt: movedAt, ...(await this.periodChange(userId, date)) });
       return;
     }
     if (ref.kind === 'investment') {
-      await this.investmentRepo.update(ref.id, { amount, description, type: category, date: movedAt });
+      await this.investmentRepo.update(ref.id, { amount, description, type: category, date: movedAt, ...(await this.periodChange(userId, date)) });
       return;
     }
     await this.updateExpense(userId, ref.id, changes);

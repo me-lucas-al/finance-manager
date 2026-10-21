@@ -71,3 +71,15 @@ describe('expense period follows its date', () => {
     expect(moved?.referenceMonth).toBe('2026-01');
   });
 });
+
+describe('income and investment period follow their date', () => {
+  it('stamps a back dated income and investment with the period of that date', async () => {
+    const { registerEntry, incomeRepo, investmentRepo } = buildFakeEntryServices();
+
+    await registerEntry.execute('user-1', { type: 'income', category: 'Salário', description: 'Empresa', amount: 100, date: '2026-01-10' });
+    await registerEntry.execute('user-1', { type: 'investment', category: 'CDB', description: 'Aporte', amount: 50, date: '2026-01-10' });
+
+    expect(incomeRepo.items[0].periodId).toEqual(expect.any(String));
+    expect(investmentRepo.items[0].periodId).toEqual(expect.any(String));
+  });
+});

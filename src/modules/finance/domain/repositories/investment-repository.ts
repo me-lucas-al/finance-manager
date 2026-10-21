@@ -26,7 +26,7 @@ export type NewInvestment = {
   referenceMonth?: string;
 };
 
-export type InvestmentUpdate = Partial<Pick<NewInvestment, 'description' | 'amount' | 'type' | 'date'>>;
+export type InvestmentUpdate = Partial<Pick<NewInvestment, 'description' | 'amount' | 'type' | 'date' | 'periodId' | 'referenceMonth'>>;
 
 export interface InvestmentRepository {
   create(data: NewInvestment): Promise<Investment>;

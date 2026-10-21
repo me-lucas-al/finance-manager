@@ -28,7 +28,7 @@ export type NewIncome = {
   referenceMonth?: string;
 };
 
-export type IncomeUpdate = Partial<Pick<NewIncome, 'description' | 'amount' | 'category' | 'receivedAt'>>;
+export type IncomeUpdate = Partial<Pick<NewIncome, 'description' | 'amount' | 'category' | 'receivedAt' | 'periodId' | 'referenceMonth'>>;
 
 export interface IncomeRepository {
   create(data: NewIncome): Promise<Income>;
