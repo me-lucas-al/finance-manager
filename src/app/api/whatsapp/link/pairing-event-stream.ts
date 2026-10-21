@@ -9,20 +9,31 @@ async function toPayload(event: PairingEvent): Promise<object> {
   return { type: 'qr', image: await QRCode.toDataURL(event.qr, { margin: 1, width: QR_WIDTH }) };
 }
 
-export function pairingEventStream(events: AsyncIterable<PairingEvent>): ReadableStream<Uint8Array> {
+export function pairingEventStream(
+  events: AsyncIterable<PairingEvent>,
+  onCancel: () => void,
+): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   const frame = (payload: object) => encoder.encode(`data: ${JSON.stringify(payload)}\n\n`);
+  let cancelled = false;
 
   return new ReadableStream({
     async start(controller) {
       try {
-        for await (const event of events) controller.enqueue(frame(await toPayload(event)));
+        for await (const event of events) {
+          if (cancelled) break;
+          controller.enqueue(frame(await toPayload(event)));
+        }
       } catch (error) {
         console.error('WhatsApp pairing stream failed:', error);
-        controller.enqueue(frame(FAILURE));
+        if (!cancelled) controller.enqueue(frame(FAILURE));
       } finally {
-        controller.close();
+        if (!cancelled) controller.close();
       }
+    },
+    cancel() {
+      cancelled = true;
+      onCancel();
     },
   });
 }

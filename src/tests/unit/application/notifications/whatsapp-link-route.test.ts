@@ -65,3 +65,23 @@ describe('WhatsApp link route', () => {
     expect(frames).toEqual([{ type: 'failed', reason: 'Não foi possível conectar o WhatsApp.' }]);
   });
 });
+
+describe('pairing event stream cancel', () => {
+  it('tells the caller when the client goes away and stops writing', async () => {
+    const { pairingEventStream } = await import('@/app/api/whatsapp/link/pairing-event-stream');
+    const onCancel = vi.fn();
+    const stream = pairingEventStream(
+      (async function* () {
+        yield { type: 'qr', qr: 'a' } as PairingEvent;
+        yield { type: 'qr', qr: 'b' } as PairingEvent;
+      })(),
+      onCancel,
+    );
+
+    const reader = stream.getReader();
+    await reader.read();
+    await reader.cancel();
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+});

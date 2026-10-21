@@ -10,7 +10,10 @@ export async function GET(request: Request) {
   const userId = session?.user?.id;
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  return new Response(pairingEventStream(linkWhatsapp.execute(userId, request.signal)), {
+  const pairing = new AbortController();
+  request.signal.addEventListener('abort', () => pairing.abort());
+
+  return new Response(pairingEventStream(linkWhatsapp.execute(userId, pairing.signal), () => pairing.abort()), {
     headers: {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',
