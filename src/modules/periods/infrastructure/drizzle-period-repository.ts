@@ -22,7 +22,7 @@ export class DrizzlePeriodRepository implements PeriodRepository {
     const [result] = await db.select().from(financialPeriods).where(
       and(
         eq(financialPeriods.userId, userId),
-        sql`to_char(${financialPeriods.startDate} at time zone 'UTC' at time zone 'America/Sao_Paulo', 'YYYY-MM') = ${month}`
+        sql`to_char(${financialPeriods.startDate}, 'YYYY-MM') = ${month}`
       )
     ).orderBy(desc(financialPeriods.startDate)).limit(1);
     return result ?? null;

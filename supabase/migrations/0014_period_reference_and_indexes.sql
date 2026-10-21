@@ -9,21 +9,21 @@ set period_id = p.id
 from financial_periods p
 where t.period_id is null
   and p.user_id = t.user_id
-  and t.occurred_at >= (p.start_date at time zone 'UTC' at time zone 'America/Sao_Paulo')::date
-  and t.occurred_at <= (p.end_date at time zone 'UTC' at time zone 'America/Sao_Paulo')::date;
+  and t.occurred_at >= p.start_date::date
+  and t.occurred_at <= p.end_date::date;
 
 update transactions t
-set reference_month = to_char(p.start_date at time zone 'UTC' at time zone 'America/Sao_Paulo', 'YYYY-MM')
+set reference_month = to_char(p.start_date, 'YYYY-MM')
 from financial_periods p
 where t.reference_month is null and p.id = t.period_id;
 
 update incomes i
-set reference_month = to_char(p.start_date at time zone 'UTC' at time zone 'America/Sao_Paulo', 'YYYY-MM')
+set reference_month = to_char(p.start_date, 'YYYY-MM')
 from financial_periods p
 where i.reference_month is null and p.id = i.period_id;
 
 update investments v
-set reference_month = to_char(p.start_date at time zone 'UTC' at time zone 'America/Sao_Paulo', 'YYYY-MM')
+set reference_month = to_char(p.start_date, 'YYYY-MM')
 from financial_periods p
 where v.reference_month is null and p.id = v.period_id;
 

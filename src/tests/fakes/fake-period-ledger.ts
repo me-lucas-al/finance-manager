@@ -10,8 +10,8 @@ export const CURRENT_FAKE_MONTH = '2026-03';
 const periodStartingIn = (userId: string, month: string): Period => ({
   id: periodIdOfMonth(month),
   userId,
-  startDate: new Date(`${month}-15T03:00:00Z`),
-  endDate: new Date(`${month}-28T02:59:59Z`),
+  startDate: new Date(`${month}-15T00:00:00`),
+  endDate: new Date(`${month}-28T23:59:59`),
   status: month === CURRENT_FAKE_MONTH ? 'OPEN' : 'CLOSED',
   closedAt: null,
   createdAt: new Date(),

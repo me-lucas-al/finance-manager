@@ -3,8 +3,8 @@ import { daysLeftInPeriod, toPeriodWindow } from '@/modules/periods/domain/perio
 
 const window = toPeriodWindow({
   id: 'p1',
-  startDate: new Date('2026-10-15T03:00:00.000Z'),
-  endDate: new Date('2026-11-15T02:59:59.999Z'),
+  startDate: new Date(2026, 9, 15),
+  endDate: new Date(2026, 10, 14, 23, 59, 59, 999),
 });
 
 describe('daysLeftInPeriod', () => {
