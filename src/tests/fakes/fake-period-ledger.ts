@@ -6,6 +6,7 @@ import { FakeLedgerQuery, periodIdOfMonth } from './fake-ledger-query';
 import { sampleLedgerEntries } from './fake-ledger-source';
 
 export const CURRENT_FAKE_MONTH = '2026-03';
+const FIRST_FAKE_MONTH = '2026-01';
 
 const periodStartingIn = (userId: string, month: string): Period => ({
   id: periodIdOfMonth(month),
@@ -27,7 +28,7 @@ export function createFakePeriodLedger(options: FakePeriodLedgerOptions = {}) {
     query,
     { isManualMode: async () => options.manualMode ?? false },
     currentPeriod as unknown as ResolveCurrentPeriodUseCase,
-    { findByStartMonth: async (userId, month) => periodStartingIn(userId, month) },
+    { findByStartMonth: async (userId, month) => (month >= FIRST_FAKE_MONTH && month <= CURRENT_FAKE_MONTH ? periodStartingIn(userId, month) : null) },
   );
   return { service, query };
 }

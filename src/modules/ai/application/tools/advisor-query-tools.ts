@@ -1,5 +1,4 @@
 import { ToolDefinition } from '../../domain/models/language-model';
-import { EMPTY_TOTALS } from '@/modules/finance/domain/services/summarize-ledger';
 import {
   BUSCAR_LANCAMENTOS_SCHEMA,
   TOTAL_POR_CATEGORIA_SCHEMA,
@@ -14,6 +13,7 @@ import {
   hasInvalidMonth,
   periodIdOrCurrent,
   periodIdStartingIn,
+  noPeriodStartingIn,
 } from './advisor-period-arg';
 
 const DEFAULT_LIMIT = 20;
@@ -22,7 +22,7 @@ const MAX_LIMIT = 50;
 async function searchEntries(deps: AdvisorQueryDeps, args: BuscarLancamentosArgs) {
   const limit = Math.min(Math.max(Number(args.limite) || DEFAULT_LIMIT, 1), MAX_LIMIT);
   const periodId = args.periodo ? await periodIdStartingIn(deps, args.periodo) : undefined;
-  if (args.periodo && !periodId) return [];
+  if (args.periodo && !periodId) return noPeriodStartingIn(args.periodo);
   const entries = await deps.periodLedger.search(deps.userId, {
     periodId: periodId ?? undefined,
     kind: args.tipo,
@@ -35,7 +35,7 @@ async function searchEntries(deps: AdvisorQueryDeps, args: BuscarLancamentosArgs
 
 async function totalsStartingIn(deps: AdvisorQueryDeps, month: string) {
   const periodId = await periodIdStartingIn(deps, month);
-  return periodId ? deps.periodLedger.totals(deps.userId, periodId) : EMPTY_TOTALS;
+  return periodId ? deps.periodLedger.totals(deps.userId, periodId) : null;
 }
 
 export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[] {
@@ -59,7 +59,7 @@ export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[]
         const args = (rawArgs ?? {}) as TotalPorCategoriaArgs;
         if (hasInvalidMonth(args.periodo)) return INVALID_MONTH;
         const periodId = await periodIdOrCurrent(deps, args.periodo);
-        if (!periodId) return {};
+        if (!periodId) return noPeriodStartingIn(args.periodo ?? '');
         const totals = await deps.periodLedger.totalsByCategory(deps.userId, args.tipo ?? 'expense', periodId);
         return Object.fromEntries(totals.map(({ category, total }) => [category, total]));
       },
@@ -76,6 +76,8 @@ export function buildAdvisorQueryTools(deps: AdvisorQueryDeps): ToolDefinition[]
           totalsStartingIn(deps, args.periodoA),
           totalsStartingIn(deps, args.periodoB),
         ]);
+        if (!first) return noPeriodStartingIn(args.periodoA);
+        if (!second) return noPeriodStartingIn(args.periodoB);
         return {
           [args.periodoA]: first,
           [args.periodoB]: second,

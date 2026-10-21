@@ -20,3 +20,5 @@ export async function periodIdOrCurrent(deps: AdvisorQueryDeps, month: string | 
   if (month) return periodIdStartingIn(deps, month);
   return (await deps.periodLedger.currentWindow(deps.userId)).id;
 }
+
+export const noPeriodStartingIn = (month: string) => ({ erro: `Nenhum período financeiro começa em ${month}` });

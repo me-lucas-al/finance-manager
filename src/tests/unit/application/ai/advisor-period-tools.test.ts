@@ -2,11 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { createAdvisorToolsHarness } from '@/tests/fakes/advisor-tools-harness';
 
 describe('Advisor period tools', () => {
-  it('returns nothing for a period that does not exist', async () => {
+  it('reports an error for a period that does not exist', async () => {
     const { run } = createAdvisorToolsHarness();
 
-    expect(await run('buscar_lancamentos', { periodo: '2025-01' })).toEqual([]);
-    expect(await run('total_por_categoria', { periodo: '2025-01' })).toEqual({});
+    expect(await run('buscar_lancamentos', { periodo: '2025-01' })).toHaveProperty('erro');
+    expect(await run('total_por_categoria', { periodo: '2025-01' })).toHaveProperty('erro');
+    expect(await run('comparar_periodos', { periodoA: '2025-01', periodoB: '2026-03' })).toHaveProperty('erro');
   });
 
   it('defaults category totals to the current period', async () => {
