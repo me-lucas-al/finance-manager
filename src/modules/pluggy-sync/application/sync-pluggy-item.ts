@@ -4,6 +4,8 @@ import type { EntryChangeNotifier } from '@/modules/finance/domain/ports/entry-c
 import type { Account, AccountRepository } from '@/modules/open-finance/domain/repositories/account-repository';
 import type { ResolveCurrentPeriodUseCase } from '@/modules/periods/application/use-cases/resolve-current-period';
 import { mapPluggyTransactions, type TransactionSource } from '../domain/map-pluggy-transactions';
+import type { ImportAnnouncer, ImportedEntry } from '../domain/import-announcer';
+import { toImportedEntry } from '../domain/to-imported-entry';
 import type { SyncPeriod } from '../domain/sync-period';
 import type { PersistLedgerEntry } from './persist-ledger-entry';
 import type { SyncAccountBalances } from './sync-account-balances';
@@ -19,6 +21,7 @@ export class SyncPluggyItemUseCase {
     private syncBalances: SyncAccountBalances,
     private resolvePeriod: ResolveCurrentPeriodUseCase,
     private notifier: EntryChangeNotifier,
+    private announcer: ImportAnnouncer,
   ) {}
 
   async syncItem(userId: string, itemId: string): Promise<{ imported: number }> {
@@ -30,9 +33,10 @@ export class SyncPluggyItemUseCase {
     const period = await this.resolvePeriod.execute(userId);
     try {
       const imported = await this.importTransactions(userId, itemAccounts, period);
+      await this.announcer.announce(userId, imported);
       await this.syncHoldings.execute(userId, itemId);
       await this.syncBalances.execute(itemId, await this.accounts.findAllByPluggyItemId(itemId));
-      return { imported };
+      return { imported: imported.length };
     } finally {
       await this.notifier.notifyEntriesChanged(userId);
     }
@@ -51,14 +55,14 @@ export class SyncPluggyItemUseCase {
     return perAccount.flat();
   }
 
-  private async importTransactions(userId: string, accounts: Account[], period: SyncPeriod): Promise<number> {
+  private async importTransactions(userId: string, accounts: Account[], period: SyncPeriod): Promise<ImportedEntry[]> {
     const userAccounts = await this.accounts.findAllByUserId(userId);
     const hasCreditCardPurchases = userAccounts.some((account) => account.accountType === CREDIT_CARD);
     const sources = await this.collectSources(accounts, period);
 
-    let imported = 0;
+    const imported: ImportedEntry[] = [];
     for (const { origin, entry } of mapPluggyTransactions(sources, hasCreditCardPurchases)) {
-      if (await this.persistEntry.execute(userId, origin, entry, period)) imported++;
+      if (await this.persistEntry.execute(userId, origin, entry, period)) imported.push(toImportedEntry(entry, origin));
     }
     await Promise.all(accounts.map((account) => this.markSynced(account)));
     return imported;
