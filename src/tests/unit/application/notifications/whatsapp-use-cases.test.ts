@@ -27,7 +27,7 @@ describe('WhatsApp use cases', () => {
   });
 
   const collect = async (events: PairingEvent[]) => {
-    const useCase = new LinkWhatsappUseCase(new FakeWhatsappPairing(events), links);
+    const useCase = new LinkWhatsappUseCase(new FakeWhatsappPairing(events), links, store);
     const seen: PairingEvent[] = [];
     for await (const event of useCase.execute('u1', new AbortController().signal)) seen.push(event);
     return seen;
