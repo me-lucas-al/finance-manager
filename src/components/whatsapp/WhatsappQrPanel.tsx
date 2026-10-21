@@ -16,11 +16,14 @@ export function WhatsappQrPanel({ qrImage, onCancel }: WhatsappQrPanelProps) {
         {qrImage ? (
           <Image src={qrImage} alt="QR code para conectar o WhatsApp" width={QR_SIZE} height={QR_SIZE} unoptimized />
         ) : (
-          <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+          <div className="flex flex-col items-center gap-2 text-xs text-zinc-500">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            Gerando QR code...
+          </div>
         )}
       </div>
       <p className="max-w-xs text-center text-xs text-zinc-400">
-        No celular, abra o WhatsApp, vá em Aparelhos conectados, toque em Conectar um aparelho e escaneie o código.
+        No celular, abra o WhatsApp, vá em Aparelhos conectados, toque em Conectar um aparelho e escaneie o código. O código é renovado sozinho a cada poucos segundos.
       </p>
       <Button type="button" variant="outline" size="sm" onClick={onCancel}>
         Cancelar

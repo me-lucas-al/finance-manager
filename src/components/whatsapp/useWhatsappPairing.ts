@@ -9,6 +9,14 @@ type PairingMessage =
   | { type: 'connected' }
   | { type: 'failed'; reason: string };
 
+function parseMessage(raw: string): PairingMessage | null {
+  try {
+    return JSON.parse(raw) as PairingMessage;
+  } catch {
+    return null;
+  }
+}
+
 const CONNECTION_LOST = 'A conexão com o servidor foi interrompida. Tente novamente.';
 
 export function useWhatsappPairing(onConnected: () => void) {
@@ -47,7 +55,10 @@ export function useWhatsappPairing(onConnected: () => void) {
     setStatus('starting');
     const source = new EventSource('/api/whatsapp/link');
     sourceRef.current = source;
-    source.onmessage = (event) => handle(JSON.parse(event.data) as PairingMessage);
+    source.onmessage = (event) => {
+      const message = parseMessage(event.data);
+      if (message) handle(message);
+    };
     source.onerror = () => fail(CONNECTION_LOST);
   };
 

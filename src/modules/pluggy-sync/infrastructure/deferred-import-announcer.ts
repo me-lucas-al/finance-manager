@@ -13,7 +13,7 @@ export class DeferredImportAnnouncer implements ImportAnnouncer {
     try {
       after(deliver);
     } catch {
-      await deliver();
+      void deliver();
     }
   }
 
