@@ -52,7 +52,9 @@ create index if not exists incomes_user_period_date_idx
 create index if not exists investments_user_period_date_idx
   on investments (user_id, period_id, date desc);
 
-create or replace view ledger_view with (security_invoker = true) as
+drop view if exists ledger_view;
+
+create view ledger_view with (security_invoker = true) as
 select 'expense'::text as kind, t.id::text as id, t.user_id, t.period_id, t.reference_month,
        t.occurred_at::timestamp as date, t.description, t.category, t.amount, t.source
 from transactions t

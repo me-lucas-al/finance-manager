@@ -4,6 +4,7 @@ create table if not exists whatsapp_links (
   linked_at timestamptz not null default now()
 );
 alter table whatsapp_links enable row level security;
+drop policy if exists "service_role_only" on whatsapp_links;
 create policy "service_role_only" on whatsapp_links for all to service_role using (true) with check (true);
 
 create table if not exists whatsapp_auth_keys (
@@ -14,4 +15,5 @@ create table if not exists whatsapp_auth_keys (
   primary key (user_id, name)
 );
 alter table whatsapp_auth_keys enable row level security;
+drop policy if exists "service_role_only" on whatsapp_auth_keys;
 create policy "service_role_only" on whatsapp_auth_keys for all to service_role using (true) with check (true);
