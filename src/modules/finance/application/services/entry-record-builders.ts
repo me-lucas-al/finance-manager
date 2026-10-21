@@ -1,14 +1,15 @@
 import { dateAtNoon } from '@/lib/month';
+import type { PeriodReference } from '@/modules/periods/domain/period-reference';
 import type { NewTransaction, TransactionNecessity } from '@/modules/open-finance/domain/repositories/transaction-repository';
 import type { NewIncome } from '../../domain/repositories/income-repository';
 import type { NewInvestment } from '../../domain/repositories/investment-repository';
 import type { ParsedEntry } from '../../domain/parsers/parse-entry-message';
 import type { FixedLaunchLink } from '../../domain/models/fixed-entry';
 
-export function buildNewIncome(userId: string, periodId: string, entry: ParsedEntry, date: string, fixed?: FixedLaunchLink): NewIncome {
+export function buildNewIncome(userId: string, reference: PeriodReference, entry: ParsedEntry, date: string, fixed?: FixedLaunchLink): NewIncome {
   return {
     userId,
-    periodId,
+    ...reference,
     amount: entry.amount,
     description: entry.description,
     category: entry.category,
@@ -17,10 +18,10 @@ export function buildNewIncome(userId: string, periodId: string, entry: ParsedEn
   };
 }
 
-export function buildNewInvestment(userId: string, periodId: string, entry: ParsedEntry, date: string): NewInvestment {
+export function buildNewInvestment(userId: string, reference: PeriodReference, entry: ParsedEntry, date: string): NewInvestment {
   return {
     userId,
-    periodId,
+    ...reference,
     amount: entry.amount,
     description: entry.description,
     type: entry.category,
@@ -33,10 +34,12 @@ export function buildNewExpense(
   entry: ParsedEntry,
   date: string,
   necessity: TransactionNecessity,
+  reference: PeriodReference,
   fixed?: FixedLaunchLink
 ): NewTransaction {
   return {
     userId,
+    ...reference,
     pluggyTransactionId: null,
     accountId: null,
     bank: 'Manual',

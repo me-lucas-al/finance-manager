@@ -25,6 +25,8 @@ export type TransactionRow = {
   fixed_entry_id: string | null;
   fixed_reference_month: string | null;
   credit_card_id: string | null;
+  period_id: string | null;
+  reference_month: string | null;
   created_at: string;
 };
 
@@ -74,6 +76,8 @@ export function toTransaction(row: TransactionRow): Transaction {
     fixedEntryId: row.fixed_entry_id ?? null,
     fixedReferenceMonth: row.fixed_reference_month ?? null,
     creditCardId: row.credit_card_id ?? null,
+    periodId: row.period_id ?? null,
+    referenceMonth: row.reference_month ?? null,
     createdAt: row.created_at,
   };
 }
@@ -96,5 +100,7 @@ export function buildTransactionPatch(
   if (data.necessity !== undefined) patch.necessity = data.necessity;
   if (data.telegramQuestionMessageId !== undefined) patch.telegram_question_message_id = data.telegramQuestionMessageId;
   if (data.creditCardId !== undefined) patch.credit_card_id = data.creditCardId;
+  if (data.periodId !== undefined) patch.period_id = data.periodId;
+  if (data.referenceMonth !== undefined) patch.reference_month = data.referenceMonth;
   return patch;
 }

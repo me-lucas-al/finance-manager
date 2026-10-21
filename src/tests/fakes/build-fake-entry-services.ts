@@ -1,3 +1,4 @@
+import { buildFakePeriodResolver } from './fake-period-resolver';
 import { vi } from 'vitest';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
@@ -45,7 +46,7 @@ export function buildFakeEntryServices() {
       notifier,
       cardLinks
     ),
-    updateEntry: new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classifyNecessity, notifier, cardLinks),
+    updateEntry: new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classifyNecessity, notifier, cardLinks, buildFakePeriodResolver()),
     deleteEntry: new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier),
   };
 }

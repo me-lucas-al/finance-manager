@@ -1,3 +1,4 @@
+import { buildFakePeriodResolver } from '@/tests/fakes/fake-period-resolver';
 import { vi } from 'vitest';
 import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
@@ -46,7 +47,7 @@ export function createFixedEntryHarness(initialNow = new Date('2026-03-10T15:00:
     noopCardLinkValidator
   );
   const guard = new OwnedEntryGuard(transactionRepo, incomeRepo, investmentRepo);
-  const updateEntry = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, notifier, noopCardLinkValidator);
+  const updateEntry = new UpdateEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, classify, notifier, noopCardLinkValidator, buildFakePeriodResolver());
   const deleteEntry = new DeleteEntryUseCase(transactionRepo, incomeRepo, investmentRepo, guard, notifier);
   const lookup = new FakeFixedLaunchLookup({
     transactions: () => transactionRepo.findAllByUserId(FIXED_USER),

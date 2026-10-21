@@ -9,6 +9,7 @@ export type Income = {
   externalId: string | null;
   fixedEntryId: string | null;
   fixedReferenceMonth: string | null;
+  referenceMonth: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

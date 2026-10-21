@@ -1,6 +1,7 @@
 type EntryBase = {
   userId: string;
   periodId: string;
+  referenceMonth: string;
   externalId: string;
   amount: number;
   description: string;

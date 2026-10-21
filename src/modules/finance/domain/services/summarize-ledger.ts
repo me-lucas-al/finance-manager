@@ -67,3 +67,5 @@ export function totalsByCategory(entries: LedgerEntry[], kind: LedgerKind): Cate
     (a, b) => b.total - a.total
   );
 }
+
+export const EMPTY_TOTALS: LedgerTotals = Object.freeze({ income: 0, expenses: 0, investments: 0, balance: 0 });

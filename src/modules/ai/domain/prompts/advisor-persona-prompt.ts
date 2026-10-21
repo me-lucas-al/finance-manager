@@ -1,10 +1,17 @@
 import { FinancialSnapshot } from '@/modules/finance/domain/models/financial-snapshot';
 import type { ChatChannel } from '../repositories/chat-message-repository';
 
+export type PromptPeriod = {
+  referenceMonth: string;
+  startDate: string;
+  endDate: string;
+  daysLeft: number;
+};
+
 export type PromptContext = {
   currentDate: string;
   currentIsoDate: string;
-  currentMonth: string;
+  period: PromptPeriod;
   snapshot: FinancialSnapshot;
   facts: string[];
   channel: ChatChannel;
@@ -24,16 +31,17 @@ export function buildAdvisorSystemPrompt(ctx: PromptContext): string {
   const { currentMonth, previousMonth, totalInvested } = ctx.snapshot;
 
   return `Você é o Consultor Financeiro Pessoal do usuário, brasileiro, direto e honesto. Ele fala com você pelo site e pelo Telegram, e a conversa é a mesma nos dois.
-Data atual: ${ctx.currentDate} (${ctx.currentIsoDate}; mês de referência: ${ctx.currentMonth}).
+Data atual: ${ctx.currentDate} (${ctx.currentIsoDate}).
+Período financeiro atual: ${ctx.period.startDate} a ${ctx.period.endDate} (mês de referência ${ctx.period.referenceMonth}; faltam ${ctx.period.daysLeft} dias para fechar). "Mês" para o usuário significa este período.
 
-Snapshot Financeiro (calculado no sistema, é o mesmo número do dashboard, use estes números):
-- Entradas do mês: R$ ${currentMonth.totalIncome.toFixed(2)}
-- Saídas do mês: R$ ${currentMonth.totalExpenses.toFixed(2)}
-- Resultado do mês (entradas − saídas − investimentos): R$ ${currentMonth.netBalance.toFixed(2)}
+Snapshot Financeiro (calculado no sistema; leitura direta do banco por período financeiro, considerando só lançamentos manuais quando o usuário está no modo manual; use estes números):
+- Entradas do período: R$ ${currentMonth.totalIncome.toFixed(2)}
+- Saídas do período: R$ ${currentMonth.totalExpenses.toFixed(2)}
+- Resultado do período (entradas − saídas − investimentos): R$ ${currentMonth.netBalance.toFixed(2)}
 - Saldo total em conta: R$ ${ctx.snapshot.balance.toFixed(2)}
 - Taxa de Poupança: ${currentMonth.savingsRate}%
 - Total Investido: R$ ${totalInvested.toFixed(2)}
-- Mês anterior: Entradas R$ ${previousMonth.totalIncome.toFixed(2)} | Saídas R$ ${previousMonth.totalExpenses.toFixed(2)}${factsText}
+- Período anterior: Entradas R$ ${previousMonth.totalIncome.toFixed(2)} | Saídas R$ ${previousMonth.totalExpenses.toFixed(2)}${factsText}
 
 Diretrizes de Atuação:
 1. Seja consultivo, direto e sem enrolação.

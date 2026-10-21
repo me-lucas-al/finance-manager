@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, integer, numeric, index, date } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, numeric, index, date, unique } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { users } from './users';
 
@@ -18,5 +18,6 @@ export const fixedEntries = pgTable('fixed_entries', {
 }, (table) => {
   return {
     userIdIdx: index('fixed_entries_user_id_idx').on(table.userId),
+    idUserIdKey: unique('fixed_entries_id_user_id_key').on(table.id, table.userId),
   };
 });

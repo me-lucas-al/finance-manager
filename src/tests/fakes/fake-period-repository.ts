@@ -1,3 +1,4 @@
+import { wallMonthKey } from '@/modules/periods/domain/period-window';
 import { Period, NewPeriod, PeriodRepository } from '@/modules/periods/domain/repositories/period-repository';
 
 export class FakePeriodRepository implements PeriodRepository {
@@ -20,6 +21,12 @@ export class FakePeriodRepository implements PeriodRepository {
   }
   async findOpenByUserId(userId: string): Promise<Period | null> {
     return this.items.find(i => i.userId === userId && i.status === 'OPEN') || null;
+  }
+  async findByStartMonth(userId: string, month: string): Promise<Period | null> {
+    return this.items.find(i => i.userId === userId && wallMonthKey(i.startDate) === month) || null;
+  }
+  async findContaining(userId: string, date: Date): Promise<Period | null> {
+    return this.items.find(i => i.userId === userId && i.startDate <= date && date <= i.endDate) || null;
   }
   async findOpenEndedBefore(date: Date): Promise<Period[]> {
     return this.items.filter(i => i.status === 'OPEN' && i.endDate < date);

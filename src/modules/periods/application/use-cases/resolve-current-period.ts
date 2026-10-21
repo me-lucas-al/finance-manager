@@ -8,6 +8,11 @@ export class ResolveCurrentPeriodUseCase {
     private settingRepo: SettingRepository
   ) {}
 
+  async forDate(userId: string, date: Date) {
+    const containing = await this.periodRepo.findContaining(userId, date);
+    return containing ?? this.execute(userId);
+  }
+
   async execute(userId: string, referenceDate: Date = new Date()) {
     const existingOpen = await this.periodRepo.findOpenByUserId(userId);
     if (existingOpen) return existingOpen;

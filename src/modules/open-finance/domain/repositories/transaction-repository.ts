@@ -21,14 +21,15 @@ export type Transaction = {
   fixedEntryId: string | null;
   fixedReferenceMonth: string | null;
   creditCardId: string | null;
+  periodId: string | null;
+  referenceMonth: string | null;
   createdAt: string;
 };
 
-export type NewTransaction = Omit<
-  Transaction,
-  'id' | 'createdAt' | 'fixedEntryId' | 'fixedReferenceMonth' | 'creditCardId'
-> &
-  Partial<Pick<Transaction, 'fixedEntryId' | 'fixedReferenceMonth' | 'creditCardId'>>;
+type OptionalOnCreate = 'fixedEntryId' | 'fixedReferenceMonth' | 'creditCardId' | 'periodId' | 'referenceMonth';
+
+export type NewTransaction = Omit<Transaction, 'id' | 'createdAt' | OptionalOnCreate> &
+  Partial<Pick<Transaction, OptionalOnCreate>>;
 export type TransactionSortField = 'date' | 'description' | 'amount';
 
 export type TransactionFilters = {
