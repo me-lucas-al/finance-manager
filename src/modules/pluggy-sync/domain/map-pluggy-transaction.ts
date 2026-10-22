@@ -1,3 +1,4 @@
+import { translateCategory } from './translate-category';
 import { classifyTransaction, type ClassifiedTransactionType, type RawTransactionLike } from './classification';
 
 export type PluggyTransactionLike = {
@@ -24,7 +25,7 @@ export function entryFromClassification(
   classification: ClassifiedTransactionType,
 ): PluggyLedgerEntry | null {
   const base = { externalId: tx.id, amount: Math.abs(tx.amount), description: tx.description, date: new Date(tx.date) };
-  const category = tx.category || 'Outros';
+  const category = translateCategory(tx.category);
 
   if (classification === 'INCOME') return { kind: 'income', ...base, category };
   if (classification === 'EXPENSE') return { kind: 'expense', ...base, category };
