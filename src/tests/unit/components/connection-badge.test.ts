@@ -1,11 +1,11 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, it, expect } from 'vitest';
-import { WhatsappStatusBadge } from '@/components/whatsapp/WhatsappStatusBadge';
+import { ConnectionBadge } from '@/components/shared/ConnectionBadge';
 
-const render = (connected: boolean) => renderToStaticMarkup(createElement(WhatsappStatusBadge, { connected }));
+const render = (connected: boolean) => renderToStaticMarkup(createElement(ConnectionBadge, { connected }));
 
-describe('WhatsappStatusBadge', () => {
+describe('ConnectionBadge', () => {
   it('shows a green dot and the connected label', () => {
     const html = render(true);
 
