@@ -23,3 +23,19 @@ describe('translateCategory', () => {
     expect(translateCategory('   ')).toBe('Outros');
   });
 });
+
+describe('translateCategory safety', () => {
+  it('never returns inherited object properties', () => {
+    expect(translateCategory('constructor')).toBe('constructor');
+    expect(translateCategory('toString')).toBe('toString');
+    expect(translateCategory('__proto__')).toBe('__proto__');
+  });
+
+  it('collapses repeated spaces before looking the name up', () => {
+    expect(translateCategory('Transfer   -  PIX')).toBe('Transferências');
+  });
+
+  it('maps income without a known source to Outros', () => {
+    expect(translateCategory('Non-recurring income')).toBe('Outros');
+  });
+});
