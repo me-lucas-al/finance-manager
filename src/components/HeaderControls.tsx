@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { User, LogOut, Target, BarChart3, Calendar, Settings } from 'lucide-react';
 import {
   DropdownMenu,
@@ -20,14 +19,11 @@ export function HeaderControls({ user }: { user: HeaderUser }) {
       <DropdownMenu>
         <UserMenuTrigger user={user} />
         <DropdownMenuContent align="end" className="w-60 bg-[#121318] border-zinc-800 text-zinc-200 shadow-2xl p-1.5">
-          <DropdownMenuLabel className="font-normal p-0">
-            <Link href="/profile" className="block rounded-md px-3 py-2 transition hover:bg-zinc-800">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-semibold leading-none text-white">{user.name}</p>
-                <p className="text-xs leading-none text-zinc-400 truncate">{user.email}</p>
-                <p className="text-[11px] leading-none text-blue-400">Ver meu perfil</p>
-              </div>
-            </Link>
+          <DropdownMenuLabel className="font-normal px-3 py-2">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-semibold leading-none text-white">{user.name}</p>
+              <p className="text-xs leading-none text-zinc-400 truncate">{user.email}</p>
+            </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-zinc-800" />
           <HeaderMenuLink href="/profile" icon={<User className="h-4 w-4 text-blue-400" />} label="Meu Perfil" />

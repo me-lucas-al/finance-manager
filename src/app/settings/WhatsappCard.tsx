@@ -6,7 +6,7 @@ export function WhatsappCard({ initiallyConnected }: { initiallyConnected: boole
     <Card>
       <CardHeader>
         <CardTitle>WhatsApp</CardTitle>
-        <CardDescription>Receba no WhatsApp o aviso das novas transações importadas do banco.</CardDescription>
+        <CardDescription>Receba no WhatsApp o aviso das novas transações importadas do banco. Os avisos chegam na conversa com você mesmo.</CardDescription>
       </CardHeader>
       <CardContent>
         <WhatsappConnection initiallyConnected={initiallyConnected} />

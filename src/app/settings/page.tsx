@@ -14,7 +14,7 @@ export default async function SettingsPage() {
     <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Meu Perfil & Configurações</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Configurações</h1>
           <p className="text-xs text-zinc-400 mt-1">Gerencie suas informações pessoais e preferências</p>
         </div>
 
