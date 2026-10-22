@@ -14,9 +14,10 @@ const QR_SIZE = 240;
 const AREA = 'flex h-60 w-60 flex-col items-center justify-center gap-2';
 
 export function WhatsappQrArea({ status, qrImage, error, onRetry }: WhatsappQrAreaProps) {
+  if (status === 'idle') return <div className={AREA} />;
   if (status === 'connected') {
     return (
-      <div className={`${AREA} text-emerald-600`}>
+      <div role="status" className={`${AREA} text-emerald-600`}>
         <CheckCircle2 className="h-12 w-12" />
         <p className="text-sm font-medium">WhatsApp conectado!</p>
       </div>
@@ -25,7 +26,9 @@ export function WhatsappQrArea({ status, qrImage, error, onRetry }: WhatsappQrAr
   if (status === 'failed') {
     return (
       <div className={`${AREA} text-center`}>
-        <p className="text-xs text-red-600">{error}</p>
+        <p role="alert" className="text-xs text-red-600">
+          {error}
+        </p>
         <Button size="sm" onClick={onRetry}>
           Gerar novo código
         </Button>
@@ -34,7 +37,7 @@ export function WhatsappQrArea({ status, qrImage, error, onRetry }: WhatsappQrAr
   }
   if (!qrImage) {
     return (
-      <div className={`${AREA} text-xs text-zinc-500`}>
+      <div role="status" className={`${AREA} text-xs text-zinc-500`}>
         <Loader2 className="h-6 w-6 animate-spin" />
         Gerando QR code...
       </div>

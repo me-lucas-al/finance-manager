@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConnectionBadge } from '@/components/shared/ConnectionBadge';
-import { disconnectWhatsapp } from '@/app/actions/whatsapp';
+import { disconnectWhatsapp, refreshWhatsappPages } from '@/app/actions/whatsapp';
 import { WhatsappConnectDialog } from './WhatsappConnectDialog';
 import { useWhatsappPairing } from './useWhatsappPairing';
 
@@ -13,7 +13,10 @@ export function WhatsappConnection({ initiallyConnected }: { initiallyConnected:
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const pairing = useWhatsappPairing(() => setConnected(true));
+  const pairing = useWhatsappPairing(() => {
+    setConnected(true);
+    void refreshWhatsappPages();
+  });
 
   const openDialog = () => {
     setDialogOpen(true);

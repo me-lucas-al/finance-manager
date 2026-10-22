@@ -30,3 +30,17 @@ describe('WhatsappQrArea', () => {
     expect(render('connected')).toContain('WhatsApp conectado!');
   });
 });
+
+describe('WhatsappQrArea states', () => {
+  it('stays empty while idle instead of showing the loading message', () => {
+    const html = render('idle');
+
+    expect(html).not.toContain('Gerando QR code');
+    expect(html).not.toContain('Gerar novo código');
+  });
+
+  it('marks errors as alerts and progress as status', () => {
+    expect(render('failed', null, 'x')).toContain('role="alert"');
+    expect(render('starting')).toContain('role="status"');
+  });
+});
