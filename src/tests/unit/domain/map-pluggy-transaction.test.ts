@@ -7,7 +7,7 @@ describe('mapPluggyTransaction', () => {
   it('maps bank debits to expenses using the absolute amount', () => {
     const entry = mapPluggyTransaction({ ...base, type: 'DEBIT', amount: -50 }, { isCreditCard: false });
 
-    expect(entry).toMatchObject({ kind: 'expense', externalId: 'tx-1', amount: 50, category: 'Groceries' });
+    expect(entry).toMatchObject({ kind: 'expense', externalId: 'tx-1', amount: 50, category: 'Alimentação' });
   });
 
   it('maps bank credits to incomes', () => {
@@ -16,7 +16,7 @@ describe('mapPluggyTransaction', () => {
       { isCreditCard: false },
     );
 
-    expect(entry).toMatchObject({ kind: 'income', amount: 3000, category: 'Salary' });
+    expect(entry).toMatchObject({ kind: 'income', amount: 3000, category: 'Salário' });
   });
 
   it('maps investment contributions to investments', () => {
