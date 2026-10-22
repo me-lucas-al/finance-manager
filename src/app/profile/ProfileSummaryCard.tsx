@@ -6,10 +6,22 @@ import { userRepository } from '@/composition/users';
 import { dataModeStore } from '@/composition/onboarding';
 import { ProfileHeader } from '@/app/settings/ProfileHeader';
 import { DATA_MODE_LABELS } from '@/app/settings/data-mode-labels';
+import { UnavailableCard } from './UnavailableCard';
+
+async function loadSummary(userId: string) {
+  try {
+    const [user, { dataMode }] = await Promise.all([userRepository.findById(userId), dataModeStore.getState(userId)]);
+    return user ? { user, dataMode } : null;
+  } catch (error) {
+    console.error('Failed to load the profile summary:', error);
+    return null;
+  }
+}
 
 export async function ProfileSummaryCard({ userId }: { userId: string }) {
-  const [user, { dataMode }] = await Promise.all([userRepository.findById(userId), dataModeStore.getState(userId)]);
-  if (!user) return null;
+  const summary = await loadSummary(userId);
+  if (!summary) return <UnavailableCard title="Perfil" />;
+  const { user, dataMode } = summary;
 
   return (
     <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm">
