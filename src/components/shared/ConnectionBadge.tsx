@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export function WhatsappStatusBadge({ connected }: { connected: boolean }) {
+export function ConnectionBadge({ connected }: { connected: boolean }) {
   return (
     <span
       role="status"
@@ -13,7 +13,7 @@ export function WhatsappStatusBadge({ connected }: { connected: boolean }) {
     >
       <span
         aria-hidden="true"
-        data-testid="whatsapp-status-dot"
+        data-testid="connection-status-dot"
         className={cn('h-2 w-2 rounded-full', connected ? 'bg-emerald-400' : 'bg-red-500')}
       />
       {connected ? 'Conectado' : 'Desconectado'}

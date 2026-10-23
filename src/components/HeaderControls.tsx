@@ -1,6 +1,6 @@
 'use client';
 
-import { User, LogOut, Target, BarChart3, Calendar } from 'lucide-react';
+import { User, LogOut, Target, BarChart3, Calendar, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,8 @@ export function HeaderControls({ user }: { user: HeaderUser }) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-zinc-800" />
-          <HeaderMenuLink href="/settings" icon={<User className="h-4 w-4 text-blue-400" />} label="Meu Perfil & Configurações" />
+          <HeaderMenuLink href="/profile" icon={<User className="h-4 w-4 text-blue-400" />} label="Meu Perfil" />
+          <HeaderMenuLink href="/settings" icon={<Settings className="h-4 w-4 text-zinc-400" />} label="Configurações" />
           <HeaderMenuLink href="/goals" icon={<Target className="h-4 w-4 text-zinc-400" />} label="Metas" />
           <HeaderMenuLink href="/reports" icon={<BarChart3 className="h-4 w-4 text-zinc-400" />} label="Relatórios" />
           <HeaderMenuLink href="/periods" icon={<Calendar className="h-4 w-4 text-zinc-400" />} label="Calendário Financeiro" />
