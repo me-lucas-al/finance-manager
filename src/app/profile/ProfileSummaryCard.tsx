@@ -6,6 +6,7 @@ import { userRepository } from '@/composition/users';
 import { dataModeStore } from '@/composition/onboarding';
 import { ProfileHeader } from '@/app/settings/ProfileHeader';
 import { DATA_MODE_LABELS } from '@/app/settings/data-mode-labels';
+import { SignOutButton } from './SignOutButton';
 import { UnavailableCard } from './UnavailableCard';
 
 async function loadSummary(userId: string) {
@@ -32,10 +33,13 @@ export async function ProfileSummaryCard({ userId }: { userId: string }) {
             <p>{user.email}</p>
             {dataMode ? <p>Fonte de dados: {DATA_MODE_LABELS[dataMode].name}</p> : null}
           </div>
-          <Link href="/settings" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-            <Settings className="h-4 w-4" />
-            Editar perfil e configurações
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/settings" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+              <Settings className="h-4 w-4" />
+              Editar perfil e configurações
+            </Link>
+            <SignOutButton />
+          </div>
         </div>
       </CardContent>
     </Card>
