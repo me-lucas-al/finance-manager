@@ -1,9 +1,6 @@
 import { formatCurrency } from '@/lib/format';
 import type { CreditCardUsage } from '../../domain/models/credit-card';
 
-export const PLUGGY_CARDS_MESSAGE =
-  'Seus cartões vêm do banco conectado (Pluggy). O cadastro manual de cartões só existe no modo manual.';
-
 export const NO_CARDS_MESSAGE =
   'Você ainda não tem cartões cadastrados. Cadastre pelo menu Cartões do site ou peça por aqui, por exemplo: "cadastrar cartão Nubank limite 5000".';
 

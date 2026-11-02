@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PLUGGY_MODE_REFUSAL } from '@/modules/ai/application/tools/advisor-card-mode';
 import { createAdvisorToolsHarness } from '@/tests/fakes/advisor-tools-harness';
 
 type Harness = ReturnType<typeof createAdvisorToolsHarness>;
@@ -12,7 +11,7 @@ describe('registrar_lancamento with a credit card', () => {
     harness = createAdvisorToolsHarness();
   });
 
-  it('forwards the card id to the entry use case in manual mode', async () => {
+  it('forwards the card id to the entry use case', async () => {
     await harness.run('registrar_lancamento', { ...expense, cartao_id: 'card-1' });
 
     expect(harness.registerEntry.execute).toHaveBeenCalledWith(
@@ -25,23 +24,6 @@ describe('registrar_lancamento with a credit card', () => {
     await harness.run('registrar_lancamento', expense);
 
     expect(harness.registerEntry.execute.mock.calls[0][1]).not.toHaveProperty('creditCardId');
-  });
-
-  it('refuses a card in pluggy mode and registers nothing', async () => {
-    harness.creditCards.readDataMode.mockResolvedValue('pluggy');
-
-    const result = await harness.run('registrar_lancamento', { ...expense, cartao_id: 'card-1' });
-
-    expect(result).toEqual({ erro: PLUGGY_MODE_REFUSAL });
-    expect(harness.registerEntry.execute).not.toHaveBeenCalled();
-  });
-
-  it('still registers entries without a card in pluggy mode', async () => {
-    harness.creditCards.readDataMode.mockResolvedValue('pluggy');
-
-    await harness.run('registrar_lancamento', expense);
-
-    expect(harness.registerEntry.execute).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -65,14 +47,5 @@ describe('editar_lancamento with a credit card', () => {
     const [unlink, untouched] = harness.updateEntry.execute.mock.calls.map((call) => call[2]);
     expect(unlink.creditCardId).toBeNull();
     expect(untouched.creditCardId).toBeUndefined();
-  });
-
-  it('refuses a card in pluggy mode', async () => {
-    harness.creditCards.readDataMode.mockResolvedValue('pluggy');
-
-    const result = await harness.run('editar_lancamento', { id: 'e1', tipo: 'expense', cartao_id: 'card-1' });
-
-    expect(result).toEqual({ erro: PLUGGY_MODE_REFUSAL });
-    expect(harness.updateEntry.execute).not.toHaveBeenCalled();
   });
 });

@@ -10,7 +10,7 @@ describe('excluir_cartao two-step deletion', () => {
     buildExcluirCartaoTool({
       userId,
       turnId,
-      creditCards: { readDataMode: async () => 'manual', remove: { execute: remove } } as unknown as AdvisorCreditCardServices,
+      creditCards: { remove: { execute: remove } } as unknown as AdvisorCreditCardServices,
       deletion,
     });
 

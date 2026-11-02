@@ -24,7 +24,6 @@ export function createAdvisorToolsHarness() {
   const goalsUpdater = stubUseCase('ok');
   const deletion = new DeletionConfirmationService('test-secret');
   const creditCards = {
-    readDataMode: vi.fn().mockResolvedValue('manual'),
     list: stubUseCase([]),
     create: stubUseCase({ id: 'card-1' }),
     update: stubUseCase(undefined),

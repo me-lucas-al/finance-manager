@@ -1,5 +1,3 @@
-export type CreditCardSource = 'pluggy' | 'manual';
-
 export type CreditCardSummary = {
   id: string;
   name: string;
@@ -10,7 +8,6 @@ export type CreditCardSummary = {
 };
 
 export type CreditCardOverview = {
-  source: CreditCardSource;
   total: number;
   usedPercentage: number;
   limit: number;

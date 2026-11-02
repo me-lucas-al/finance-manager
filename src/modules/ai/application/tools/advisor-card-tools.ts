@@ -1,5 +1,5 @@
 import type { ToolDefinition } from '../../domain/models/language-model';
-import { runInManualMode } from './advisor-card-mode';
+import { reportFailure } from './advisor-failure-reporter';
 import { buildExcluirCartaoTool } from './advisor-card-delete-tool';
 import {
   CADASTRAR_CARTAO_SCHEMA,
@@ -19,7 +19,7 @@ export function buildAdvisorCardTools(deps: AdvisorCardDeps): ToolDefinition[] {
         'Lista os cartões de crédito cadastrados com limite, dia de fechamento e quanto da fatura aberta já foi usado. Use sempre que o usuário falar de cartão, fatura ou crédito e o cartão não estiver claro.',
       parameters: LISTAR_CARTOES_SCHEMA,
       execute: () =>
-        runInManualMode(deps, async () =>
+        reportFailure(async () =>
           (await creditCards.list.execute(userId)).map(({ card, used, percentage, cycle }) => ({
             id: card.id,
             nome: card.name,
@@ -39,7 +39,7 @@ export function buildAdvisorCardTools(deps: AdvisorCardDeps): ToolDefinition[] {
       parameters: CADASTRAR_CARTAO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as CadastrarCartaoArgs;
-        return runInManualMode(deps, async () => {
+        return reportFailure(async () => {
           const card = await creditCards.create.execute(userId, {
             name: args.nome,
             creditLimit: Number(args.limite),
@@ -56,7 +56,7 @@ export function buildAdvisorCardTools(deps: AdvisorCardDeps): ToolDefinition[] {
       parameters: EDITAR_CARTAO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as EditarCartaoArgs;
-        return runInManualMode(deps, async () => {
+        return reportFailure(async () => {
           await creditCards.update.execute(userId, args.id, {
             name: args.nome,
             creditLimit: args.limite,
