@@ -19,14 +19,13 @@ const periodStartingIn = (userId: string, month: string): Period => ({
   updatedAt: new Date(),
 });
 
-export type FakePeriodLedgerOptions = { entries?: LedgerEntry[]; manualMode?: boolean };
+export type FakePeriodLedgerOptions = { entries?: LedgerEntry[] };
 
 export function createFakePeriodLedger(options: FakePeriodLedgerOptions = {}) {
   const query = new FakeLedgerQuery(options.entries ?? sampleLedgerEntries);
   const currentPeriod = { execute: async (userId: string) => periodStartingIn(userId, CURRENT_FAKE_MONTH) };
   const service = new PeriodLedgerService(
     query,
-    { isManualMode: async () => options.manualMode ?? false },
     currentPeriod as unknown as ResolveCurrentPeriodUseCase,
     { findByStartMonth: async (userId, month) => (month >= FIRST_FAKE_MONTH && month <= CURRENT_FAKE_MONTH ? periodStartingIn(userId, month) : null) },
   );

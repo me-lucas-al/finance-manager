@@ -31,8 +31,8 @@ export class FakeLedgerQuery implements LedgerQuery {
   }
 
   private within(scope: LedgerScope): LedgerEntry[] {
-    return this.entries
-      .filter((entry) => !scope.periodId || periodIdOfMonth(entry.date.slice(0, 7)) === scope.periodId)
-      .filter((entry) => !scope.manualOnly || !entry.imported);
+    return this.entries.filter(
+      (entry) => !scope.periodId || periodIdOfMonth(entry.date.slice(0, 7)) === scope.periodId,
+    );
   }
 }

@@ -15,13 +15,11 @@ import { DrizzleInvestmentRepository } from '@/modules/finance/infrastructure/dr
 import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-entry-change-notifier';
 import { PersistenceLedgerSource } from '@/modules/finance/infrastructure/persistence-ledger-source';
 import { PersistenceLedgerQuery } from '@/modules/finance/infrastructure/persistence-ledger-query';
-import { StoreDataModeReader } from '@/modules/finance/infrastructure/store-data-mode-reader';
 import { PersistencePortfolioSource } from '@/modules/finance/infrastructure/persistence-portfolio-source';
 import { toLocalDateString } from '@/lib/month';
 import { cardLinkGuard } from './credit-cards';
 import { languageModel } from './language-model';
 import { accountRepository, goalRepository, transactionRepository } from './open-finance';
-import { dataModeStore } from './onboarding';
 import { periodRepository, resolveCurrentPeriod } from './periods';
 
 export const incomeRepository = new DrizzleIncomeRepository();
@@ -72,7 +70,6 @@ export const editLastEntry = new EditLastEntryService(latestEntryFinder, updateE
 
 export const periodLedgerService = new PeriodLedgerService(
   new PersistenceLedgerQuery(),
-  new StoreDataModeReader(dataModeStore),
   resolveCurrentPeriod,
   periodRepository,
 );
