@@ -3,7 +3,6 @@ import type { WebhookEventPayload } from 'pluggy-sdk';
 import { fetchItemOwner } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import { accountRepository } from '@/composition/open-finance';
 import { pluggySync } from '@/composition/pluggy-sync';
-import { isPluggyMode } from '../pluggy-mode';
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.PLUGGY_WEBHOOK_SECRET;
@@ -38,9 +37,6 @@ export async function POST(req: NextRequest) {
     if (itemId && (payload.event === 'transactions/created' || payload.event === 'item/updated')) {
       const userId = await resolveItemOwner(itemId);
       if (!userId) {
-        return NextResponse.json({ ok: true });
-      }
-      if (!(await isPluggyMode(userId))) {
         return NextResponse.json({ ok: true });
       }
       await pluggySync.syncItem(userId, itemId);

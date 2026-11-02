@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { pluggyModeRequiredResponse } from '../pluggy-mode';
 import { getPluggyConnectToken } from '@/modules/pluggy-sync/infrastructure/pluggy/connect-token';
 
 export async function POST() {
@@ -9,9 +8,6 @@ export async function POST() {
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
-  const modeResponse = await pluggyModeRequiredResponse(userId);
-  if (modeResponse) return modeResponse;
 
   try {
     const accessToken = await getPluggyConnectToken(userId);

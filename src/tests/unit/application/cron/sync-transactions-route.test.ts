@@ -3,11 +3,9 @@ import { NextRequest } from 'next/server';
 
 const listItemOwners = vi.fn();
 const syncItem = vi.fn();
-const getState = vi.fn();
 
 vi.mock('@/composition/open-finance', () => ({ accountRepository: { listItemOwners } }));
 vi.mock('@/composition/pluggy-sync', () => ({ pluggySync: { syncItem } }));
-vi.mock('@/composition/onboarding', () => ({ dataModeStore: { getState } }));
 
 const authorizedRequest = () =>
   new NextRequest('http://localhost/api/cron/sync-transactions', { headers: { authorization: 'Bearer top-secret' } });
@@ -18,13 +16,10 @@ describe('sync-transactions cron', () => {
   beforeEach(() => {
     process.env.CRON_SECRET = 'top-secret';
     listItemOwners.mockReset().mockResolvedValue([
-      { pluggyItemId: 'item-manual', userId: 'manual-user' },
-      { pluggyItemId: 'item-pluggy', userId: 'pluggy-user' },
+      { pluggyItemId: 'item-a', userId: 'user-a' },
+      { pluggyItemId: 'item-b', userId: 'user-b' },
     ]);
     syncItem.mockReset().mockResolvedValue(undefined);
-    getState.mockReset().mockImplementation(async (userId: string) => ({
-      dataMode: userId === 'pluggy-user' ? 'pluggy' : 'manual',
-    }));
   });
 
   afterEach(() => {
@@ -32,14 +27,15 @@ describe('sync-transactions cron', () => {
     else process.env.CRON_SECRET = originalSecret;
   });
 
-  it('syncs only items whose owner is in pluggy mode', async () => {
+  it('syncs every connected item with its owner', async () => {
     const { GET } = await import('@/app/api/cron/sync-transactions/route');
 
     const body = await (await GET(authorizedRequest())).json();
 
-    expect(syncItem).toHaveBeenCalledTimes(1);
-    expect(syncItem).toHaveBeenCalledWith('pluggy-user', 'item-pluggy');
-    expect(body).toEqual({ ok: true, items: 2, skipped: 1, failed: 0 });
+    expect(syncItem).toHaveBeenCalledTimes(2);
+    expect(syncItem).toHaveBeenCalledWith('user-a', 'item-a');
+    expect(syncItem).toHaveBeenCalledWith('user-b', 'item-b');
+    expect(body).toEqual({ ok: true, items: 2, failed: 0 });
   });
 
   it('reports failures without stopping the run', async () => {
@@ -49,16 +45,7 @@ describe('sync-transactions cron', () => {
 
     const body = await (await GET(authorizedRequest())).json();
 
-    expect(body).toEqual({ ok: false, items: 2, skipped: 1, failed: 1 });
-  });
-
-  it('skips owners that have not chosen a data mode yet', async () => {
-    getState.mockResolvedValue({ dataMode: null });
-    const { GET } = await import('@/app/api/cron/sync-transactions/route');
-
-    const body = await (await GET(authorizedRequest())).json();
-
-    expect(syncItem).not.toHaveBeenCalled();
-    expect(body).toEqual({ ok: true, items: 2, skipped: 2, failed: 0 });
+    expect(syncItem).toHaveBeenCalledTimes(2);
+    expect(body).toEqual({ ok: false, items: 2, failed: 1 });
   });
 });
