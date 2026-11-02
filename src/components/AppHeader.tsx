@@ -1,6 +1,6 @@
 import type { HeaderUser } from '@/types/user';
 import { NewEntryButton } from './entries/NewEntryButton';
-import { HeaderControls } from './HeaderControls';
+import { ProfileLink } from './header/ProfileLink';
 import { Logo } from './Logo';
 import { Navigation } from './Navigation';
 
@@ -15,7 +15,7 @@ export function AppHeader({ user }: { user: HeaderUser | null }) {
         {user && (
           <div className="flex items-center gap-3">
             <NewEntryButton />
-            <HeaderControls user={user} />
+            <ProfileLink user={user} />
           </div>
         )}
       </div>
