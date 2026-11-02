@@ -59,7 +59,7 @@ export function SettingsForm(props: SettingsFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="initialBalance">Saldo inicial (modo manual)</Label>
+        <Label htmlFor="initialBalance">Saldo inicial (usado enquanto não há banco conectado)</Label>
         <Input id="initialBalance" name="initialBalance" type="number" step="0.01" defaultValue={props.initialBalance} />
       </div>
 

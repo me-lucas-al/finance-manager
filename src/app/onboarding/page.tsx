@@ -12,5 +12,5 @@ export default async function OnboardingPage() {
   const state = await getOnboardingState();
   if (state.completed) redirect('/');
 
-  return <OnboardingFlow initialMode={state.dataMode} telegramLinked={state.telegramLinked} />;
+  return <OnboardingFlow telegramLinked={state.telegramLinked} />;
 }
