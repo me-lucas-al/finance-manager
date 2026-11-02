@@ -4,6 +4,8 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { completeOnboarding } from '@/app/actions/onboarding';
 
+const FINISH_FAILURE_MESSAGE = 'Não foi possível concluir a configuração. Tente novamente.';
+
 export function useFinishOnboarding() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -11,13 +13,14 @@ export function useFinishOnboarding() {
 
   const finish = () =>
     startTransition(async () => {
-      const result = await completeOnboarding();
-      if (result.error) {
-        setError(result.error);
-        return;
+      try {
+        await completeOnboarding();
+        router.push('/');
+        router.refresh();
+      } catch (err) {
+        console.error('Failed to complete onboarding', err);
+        setError(FINISH_FAILURE_MESSAGE);
       }
-      router.push('/');
-      router.refresh();
     });
 
   return { finish, error, isPending };

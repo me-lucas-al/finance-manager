@@ -1,6 +1,6 @@
 import { getOnboardingState } from '@/app/actions/onboarding';
 import { getWhatsappConnection } from '@/app/actions/whatsapp';
-import { DataSourceCard } from './DataSourceCard';
+import { BankConnectionCard } from './BankConnectionCard';
 import { TelegramCard } from './TelegramCard';
 import { WhatsappCard } from './WhatsappCard';
 
@@ -11,7 +11,7 @@ export async function IntegrationsSection() {
     <>
       <TelegramCard initiallyLinked={onboarding.telegramLinked} />
       <WhatsappCard initiallyConnected={whatsapp.connected} />
-      {onboarding.dataMode && <DataSourceCard currentMode={onboarding.dataMode} />}
+      <BankConnectionCard />
     </>
   );
 }

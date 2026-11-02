@@ -1,7 +1,7 @@
 import type { LedgerEntry, LedgerKind } from '../models/ledger-entry';
 import type { CategoryTotal, LedgerTotals } from '../services/summarize-ledger';
 
-export type LedgerScope = { periodId?: string; manualOnly: boolean };
+export type LedgerScope = { periodId?: string };
 
 export type LedgerSearch = LedgerScope & {
   kind?: LedgerKind;

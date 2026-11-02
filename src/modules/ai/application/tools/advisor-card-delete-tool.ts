@@ -1,5 +1,5 @@
 import type { ToolDefinition } from '../../domain/models/language-model';
-import { runInManualMode } from './advisor-card-mode';
+import { reportFailure } from './advisor-failure-reporter';
 import { EXCLUIR_CARTAO_SCHEMA, ExcluirCartaoArgs } from './advisor-card-schemas';
 import type { AdvisorCardDeps } from './advisor-card-types';
 
@@ -15,7 +15,7 @@ export function buildExcluirCartaoTool(deps: AdvisorCardDeps): ToolDefinition {
     execute: async (rawArgs: unknown) => {
       const args = rawArgs as ExcluirCartaoArgs;
       const target = { userId: deps.userId, kind: 'credit-card', id: args.id };
-      return runInManualMode(deps, async () => {
+      return reportFailure(async () => {
         if (!args.confirmacao) {
           return {
             status: 'confirmacao_necessaria',

@@ -5,7 +5,6 @@ export function buildManualCardOverview(usages: CreditCardUsage[]): CreditCardOv
   const total = usages.reduce((sum, usage) => sum + usage.used, 0);
   const limit = usages.reduce((sum, usage) => sum + usage.card.creditLimit, 0);
   return {
-    source: 'manual',
     total,
     limit,
     usedPercentage: limit > 0 ? Math.round((total / limit) * 100) : 0,

@@ -3,8 +3,6 @@ import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-ca
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import { DeleteEntryUseCase } from '@/modules/finance/application/use-cases/delete-entry';
 import { reportFailure } from './advisor-failure-reporter';
-import { isManualMode, PLUGGY_MODE_REFUSAL } from './advisor-card-mode';
-import type { AdvisorCreditCardServices } from './advisor-card-types';
 import { DeletionConfirmationService } from '../services/deletion-confirmation-service';
 import {
   REGISTRAR_LANCAMENTO_SCHEMA,
@@ -21,7 +19,6 @@ export type AdvisorEntryDeps = {
   updateEntry: UpdateEntryUseCase;
   deleteEntry: DeleteEntryUseCase;
   deletion: DeletionConfirmationService;
-  creditCards: Pick<AdvisorCreditCardServices, 'readDataMode'>;
   turnId: string;
 };
 
@@ -37,7 +34,6 @@ export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[]
       parameters: REGISTRAR_LANCAMENTO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as RegistrarLancamentoArgs;
-        if (args.cartao_id && !(await isManualMode(deps))) return { erro: PLUGGY_MODE_REFUSAL };
         return reportFailure(() =>
           deps.registerEntry.execute(deps.userId, {
             type: args.tipo,
@@ -57,7 +53,6 @@ export function buildAdvisorEntryTools(deps: AdvisorEntryDeps): ToolDefinition[]
       parameters: EDITAR_LANCAMENTO_SCHEMA,
       execute: async (rawArgs: unknown) => {
         const args = rawArgs as EditarLancamentoArgs;
-        if (args.cartao_id && !(await isManualMode(deps))) return { erro: PLUGGY_MODE_REFUSAL };
         return reportFailure(async () => {
           await deps.updateEntry.execute(
             deps.userId,

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { recordItemConnection } from '@/composition/open-finance';
 import { pluggySync } from '@/composition/pluggy-sync';
-import { pluggyModeRequiredResponse } from '../pluggy-mode';
 import { fetchItemOwner } from '@/modules/pluggy-sync/infrastructure/pluggy/pluggy-items';
 import { AccountOwnedByAnotherUserError } from '@/modules/open-finance/application/use-cases/record-item-connection';
 
@@ -12,9 +11,6 @@ export async function POST(req: NextRequest) {
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
-  const modeResponse = await pluggyModeRequiredResponse(userId);
-  if (modeResponse) return modeResponse;
 
   let itemId: string | undefined;
   try {

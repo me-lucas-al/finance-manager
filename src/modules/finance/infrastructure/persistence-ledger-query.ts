@@ -16,7 +16,6 @@ const escapeLike = (text: string): string => text.replace(/[\\%_]/g, '\\$&');
 function scopeConditions(userId: string, scope: LedgerScope): SQL[] {
   const conditions = [sql`user_id = ${userId}`];
   if (scope.periodId) conditions.push(sql`period_id = ${scope.periodId}`);
-  if (scope.manualOnly) conditions.push(sql`source = 'manual'`);
   return conditions;
 }
 

@@ -34,15 +34,14 @@ describe('PeriodLedgerService', () => {
     expect(totals).toMatchObject({ income: 6000, expenses: 1200.1, investments: 0 });
   });
 
-  it('ignores imported rows in manual mode and keeps them otherwise', async () => {
-    const entries = [...sampleLedgerEntries, importedExpense];
-    const manual = createFakePeriodLedger({ entries, manualMode: true }).service;
-    const connected = createFakePeriodLedger({ entries, manualMode: false }).service;
+  it('counts imported and manual rows together', async () => {
+    const { service } = createFakePeriodLedger({ entries: [...sampleLedgerEntries, importedExpense] });
     const period = periodIdOfMonth(CURRENT_FAKE_MONTH);
 
-    expect((await manual.totals('user-1', period)).expenses).toBe(400.1);
-    expect((await connected.totals('user-1', period)).expenses).toBe(900.1);
-    expect(await manual.search('user-1', { text: 'banco', limit: 10 })).toEqual([]);
+    expect((await service.totals('user-1', period)).expenses).toBe(900.1);
+    expect(await service.search('user-1', { text: 'banco', limit: 10 })).toEqual([
+      expect.objectContaining({ id: 'bank-1', imported: true }),
+    ]);
   });
 
   it('limits and orders searches newest first', async () => {

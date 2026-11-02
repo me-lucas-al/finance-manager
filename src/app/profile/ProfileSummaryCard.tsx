@@ -3,16 +3,13 @@ import { Settings } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
 import { userRepository } from '@/composition/users';
-import { dataModeStore } from '@/composition/onboarding';
 import { ProfileHeader } from '@/app/settings/ProfileHeader';
-import { DATA_MODE_LABELS } from '@/app/settings/data-mode-labels';
 import { SignOutButton } from './SignOutButton';
 import { UnavailableCard } from './UnavailableCard';
 
-async function loadSummary(userId: string) {
+async function loadUser(userId: string) {
   try {
-    const [user, { dataMode }] = await Promise.all([userRepository.findById(userId), dataModeStore.getState(userId)]);
-    return user ? { user, dataMode } : null;
+    return await userRepository.findById(userId);
   } catch (error) {
     console.error('Failed to load the profile summary:', error);
     return null;
@@ -20,9 +17,8 @@ async function loadSummary(userId: string) {
 }
 
 export async function ProfileSummaryCard({ userId }: { userId: string }) {
-  const summary = await loadSummary(userId);
-  if (!summary) return <UnavailableCard title="Perfil" />;
-  const { user, dataMode } = summary;
+  const user = await loadUser(userId);
+  if (!user) return <UnavailableCard title="Perfil" />;
 
   return (
     <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm">
@@ -31,7 +27,6 @@ export async function ProfileSummaryCard({ userId }: { userId: string }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1 text-xs text-zinc-400">
             <p>{user.email}</p>
-            {dataMode ? <p>Fonte de dados: {DATA_MODE_LABELS[dataMode].name}</p> : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/settings" className={buttonVariants({ variant: 'outline', size: 'sm' })}>

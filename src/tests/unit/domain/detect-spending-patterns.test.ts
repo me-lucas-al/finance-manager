@@ -83,6 +83,7 @@ describe('detectSpendingPatterns', () => {
       category: 'Lazer',
       recentTransactions: past,
       categoryLimit: 500,
+      referenceMonth: '2026-10',
     });
 
     expect(report.hasAlerts).toBe(true);

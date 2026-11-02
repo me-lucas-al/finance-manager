@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createCreditCardOverviewService } from '@/modules/finance/application/services/credit-card-overview-service';
 import type { CreditCardUsage } from '@/modules/finance/domain/models/credit-card';
-import type { DataMode } from '@/modules/users/domain/models/user';
 import { makeCreditCard } from '@/tests/fakes/credit-card-fixture';
 
 const pluggyCards = {
@@ -26,44 +25,28 @@ const manualUsage: CreditCardUsage[] = [
   },
 ];
 
-function build(mode: DataMode | null) {
-  const listUsage = vi.fn(async () => manualUsage);
-  const service = createCreditCardOverviewService({ readDataMode: async () => mode, listUsage });
-  return { service, listUsage };
-}
+const buildService = (usages: CreditCardUsage[]) => {
+  const listUsage = vi.fn(async () => usages);
+  return { service: createCreditCardOverviewService({ listUsage }), listUsage };
+};
 
-describe('credit card overview by data mode', () => {
-  it('shows only Pluggy cards in pluggy mode and never reads manual cards', async () => {
-    const { service, listUsage } = build('pluggy');
-
-    const overview = await service('user-1', pluggyCards);
-
-    expect(overview).toEqual({ source: 'pluggy', total: 900, limit: 3000, usedPercentage: 30, cards: pluggyCards.cards });
-    expect(listUsage).not.toHaveBeenCalled();
-  });
-
-  it('keeps the Pluggy view before the user picks a mode', async () => {
-    const { service } = build(null);
-
-    expect((await service('user-1', pluggyCards)).source).toBe('pluggy');
-  });
-
-  it('shows only manual cards in manual mode, ignoring Pluggy data', async () => {
-    const { service, listUsage } = build('manual');
+describe('credit card overview', () => {
+  it('adds the manual cards to the ones imported from Pluggy', async () => {
+    const { service, listUsage } = buildService(manualUsage);
 
     const overview = await service('user-1', pluggyCards);
 
     expect(listUsage).toHaveBeenCalledWith('user-1');
-    expect(overview).toMatchObject({ source: 'manual', total: 800, limit: 4000, usedPercentage: 20 });
-    expect(overview.cards.map((card) => card.id)).toEqual(['m1', 'm2']);
+    expect(overview).toMatchObject({ total: 1700, limit: 7000, usedPercentage: 24 });
+    expect(overview.cards.map((card) => card.id)).toEqual(['p1', 'm1', 'm2']);
   });
 
   it('describes each manual card with digits, limit and usage', async () => {
-    const { service } = build('manual');
+    const { service } = buildService(manualUsage);
 
     const { cards } = await service('user-1', pluggyCards);
 
-    expect(cards[0]).toEqual({
+    expect(cards[1]).toEqual({
       id: 'm1',
       name: 'Nubank',
       digits: '•••• 4321',
@@ -71,14 +54,33 @@ describe('credit card overview by data mode', () => {
       limit: 2000,
       usedPercentage: 25,
     });
-    expect(cards[1].digits).toBe('');
+    expect(cards[2].digits).toBe('');
   });
 
-  it('returns an empty manual overview when there are no cards', async () => {
-    const service = createCreditCardOverviewService({ readDataMode: async () => 'manual', listUsage: async () => [] });
+  it('keeps only the Pluggy cards when there are no manual ones', async () => {
+    const { service } = buildService([]);
 
     expect(await service('user-1', pluggyCards)).toEqual({
-      source: 'manual',
+      total: 900,
+      limit: 3000,
+      usedPercentage: 30,
+      cards: pluggyCards.cards,
+    });
+  });
+
+  it('keeps only the manual cards when the bank has none', async () => {
+    const { service } = buildService(manualUsage);
+
+    const overview = await service('user-1', { cardTotal: 0, cardLimit: 0, cardUsedPercentage: 0, cards: [] });
+
+    expect(overview).toMatchObject({ total: 800, limit: 4000, usedPercentage: 20 });
+    expect(overview.cards.map((card) => card.id)).toEqual(['m1', 'm2']);
+  });
+
+  it('returns an empty overview when there are no cards at all', async () => {
+    const { service } = buildService([]);
+
+    expect(await service('user-1', { cardTotal: 0, cardLimit: 0, cardUsedPercentage: 0, cards: [] })).toEqual({
       total: 0,
       limit: 0,
       usedPercentage: 0,
