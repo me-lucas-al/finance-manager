@@ -3,7 +3,9 @@ import { pluggySync } from '@/composition/pluggy-sync';
 import { accountRepository } from '@/composition/open-finance';
 import { withCronAuth } from '../with-cron-auth';
 
-export const GET = withCronAuth(async () => {
+export const maxDuration = 300;
+
+export const GET =withCronAuth(async () => {
   try {
     const owners = await accountRepository.listItemOwners();
     const items = new Map(owners.map(({ pluggyItemId, userId }) => [pluggyItemId, userId]));

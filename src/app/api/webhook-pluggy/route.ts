@@ -4,6 +4,8 @@ import { fetchItemOwner } from '@/modules/pluggy-sync/infrastructure/pluggy/plug
 import { accountRepository } from '@/composition/open-finance';
 import { pluggySync } from '@/composition/pluggy-sync';
 
+export const maxDuration = 300;
+
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.PLUGGY_WEBHOOK_SECRET;
   if (!secret) return false;
