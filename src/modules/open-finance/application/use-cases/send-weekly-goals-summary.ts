@@ -48,7 +48,7 @@ Dados da semana/mês:
 - Metas definidas: ${JSON.stringify(categoryTargets)}
 Instruções:
 Destaque o total, as maiores categorias, os supérfluos ('bobeiras') e forneça 3 sugestões práticas e diretas para economizar nos próximos dias. Seja honesto e direto.`;
-        message = await this.llm.generateText(prompt, { tier: 'pro', maxTokens: 1200 });
+        message = await this.llm.generateText(prompt, { tier: 'pro', maxTokens: 2048 });
       } catch {
         message = buildDeterministicSummary({
           totalSpent,

@@ -22,7 +22,7 @@ export type AdvisorChatDeps = {
 
 type PreparedChat = { messages: LanguageModelMessage[]; options: ChatOptions };
 
-const MAX_REPLY_TOKENS = 2048;
+const MAX_REPLY_TOKENS = 4096;
 
 export class AdvisorChatService {
   constructor(private deps: AdvisorChatDeps) {}

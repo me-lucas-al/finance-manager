@@ -8,6 +8,8 @@ import {
   ToolDefinition,
 } from '../domain/models/language-model';
 
+const DEFAULT_MAX_OUTPUT_TOKENS = 2048;
+
 function getModelName(tier: 'flash' | 'pro' = 'flash'): string {
   if (tier === 'pro') return 'gemini-3.1-pro-preview';
   return 'gemini-3.6-flash';
@@ -45,7 +47,7 @@ function buildChatRequest(messages: LanguageModelMessage[], options?: ChatOption
       .map((m) => ({ role: m.role, content: m.content })),
     tools: mapTools(options?.tools),
     stopWhen: isStepCount(options?.tools ? 4 : 1),
-    maxOutputTokens: options?.maxTokens ?? 800,
+    maxOutputTokens: options?.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
     temperature: options?.temperature ?? 0.3,
   };
 }
@@ -58,7 +60,7 @@ export class GeminiLanguageModel implements ILanguageModel {
       model,
       instructions: options?.systemPrompt,
       prompt,
-      maxOutputTokens: options?.maxTokens ?? 800,
+      maxOutputTokens: options?.maxTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
       temperature: options?.temperature ?? 0.2,
     });
     return result.text;
