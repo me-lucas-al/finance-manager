@@ -1,6 +1,7 @@
 import { requireUserId } from '@/modules/auth/infrastructure/require-user-id';
 import { getLiveMovementsData } from '@/composition/finance-views';
-import { getCurrentMonth, isValidMonthKey, monthLabel } from '@/lib/month';
+import { readCurrentStatementMonth, resolveStatementPeriod } from '@/composition/statement-period';
+import { isValidMonthKey } from '@/lib/month';
 import { NewEntryButton } from '@/components/entries/NewEntryButton';
 import { parseStatementFilters, type RawParams } from '@/modules/finance/domain/services/statement-filter-params';
 import { ExpenseBreakdownCards } from '@/components/fluxo/ExpenseBreakdownCards';
@@ -9,10 +10,15 @@ import { TransactionsExplorer } from '@/components/fluxo/TransactionsExplorer';
 export default async function MovementsPage({ searchParams }: { searchParams: Promise<RawParams> }) {
   const params = await searchParams;
   const rawMonth = typeof params.month === 'string' ? params.month : undefined;
-  const month = rawMonth && isValidMonthKey(rawMonth) ? rawMonth : getCurrentMonth();
+  const userId = await requireUserId();
+  const currentMonth = await readCurrentStatementMonth(userId);
+  const month = rawMonth && isValidMonthKey(rawMonth) ? rawMonth : currentMonth;
   const filters = parseStatementFilters(params);
 
-  const data = await getLiveMovementsData(await requireUserId(), month, filters);
+  const [data, period] = await Promise.all([
+    getLiveMovementsData(userId, month, filters),
+    resolveStatementPeriod(userId, month),
+  ]);
 
   return (
     <div className="flex-1 min-h-screen bg-[#09090b] text-[#fafafa]">
@@ -36,7 +42,8 @@ export default async function MovementsPage({ searchParams }: { searchParams: Pr
 
         <TransactionsExplorer
           month={month}
-          monthLabel={monthLabel(month)}
+          currentMonth={currentMonth}
+          monthLabel={period.label}
           filters={filters}
           categoryOptions={data.categoryOptions}
           initialTransactions={data.transactions}

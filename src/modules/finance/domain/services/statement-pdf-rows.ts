@@ -1,6 +1,5 @@
 import { formatCurrency } from '@/lib/format';
 import { formatDateBr } from '@/lib/format-date-time';
-import { monthLabel } from '@/lib/month';
 import type { LedgerEntry, LedgerKind } from '../models/ledger-entry';
 import { ALL_OPTION, type StatementFilters } from '../models/statement-filters';
 import type { StatementColumn, StatementDocument, StatementGroup } from '../models/statement-document';
@@ -9,7 +8,7 @@ import { totalsOf, type LedgerTotals } from './summarize-ledger';
 
 export type StatementBuildInput = {
   entries: LedgerEntry[];
-  month: string;
+  periodLabel: string;
   filters: StatementFilters;
   accumulatedBalance: number;
   userLabel: string;
@@ -74,7 +73,7 @@ export function buildStatementDocument(input: StatementBuildInput): StatementDoc
   return {
     appName: APP_NAME,
     userLabel: input.userLabel,
-    monthLabel: monthLabel(input.month),
+    monthLabel: input.periodLabel,
     generatedAt: input.generatedAt,
     filtersLabel: describeFilters(input.filters),
     summary: [
@@ -82,7 +81,7 @@ export function buildStatementDocument(input: StatementBuildInput): StatementDoc
       { label: 'Despesas', value: formatCurrency(totals.expenses) },
       { label: 'Investimentos', value: formatCurrency(totals.investments) },
       { label: 'Resultado do período', value: formatCurrency(totals.balance) },
-      { label: 'Saldo acumulado até o fim do mês', value: formatCurrency(input.accumulatedBalance) },
+      { label: 'Saldo acumulado até o fim do período', value: formatCurrency(input.accumulatedBalance) },
     ],
     columns: COLUMN_DEFINITIONS.map(({ header, align }) => ({ header, align })),
     groups: groupByDate(input.entries),

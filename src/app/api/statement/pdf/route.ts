@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { statementPdfService } from '@/composition/statement';
-import { getCurrentMonth, isValidMonthKey } from '@/lib/month';
+import { readCurrentStatementMonth } from '@/composition/statement-period';
+import { isValidMonthKey } from '@/lib/month';
 import { authorizeUser } from '@/modules/auth/infrastructure/authorize-user';
 import { parseStatementFilters } from '@/modules/finance/domain/services/statement-filter-params';
 import { statementUserLabel } from './statement-user-label';
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   if (authorization.response) return authorization.response;
 
   const params = Object.fromEntries(new URL(request.url).searchParams);
-  const month = params.month ?? getCurrentMonth();
+  const month = params.month ?? (await readCurrentStatementMonth(authorization.userId));
   if (!isValidMonthKey(month)) {
     return NextResponse.json({ error: 'Mês inválido. Use YYYY-MM.' }, { status: 400, headers: NO_STORE });
   }

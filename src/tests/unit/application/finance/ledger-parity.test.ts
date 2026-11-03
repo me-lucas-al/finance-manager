@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { LedgerService } from '@/modules/finance/application/services/ledger-service';
 import { buildOverviewData } from '@/modules/finance/domain/services/build-overview-data';
+import { monthRange } from '@/modules/finance/domain/models/date-range';
 import { buildMovementsData } from '@/modules/finance/domain/services/build-movements-data';
 import { buildAssetsData } from '@/modules/finance/domain/services/build-assets-data';
 import { totalsOf, entriesInMonth } from '@/modules/finance/domain/services/summarize-ledger';
@@ -23,8 +24,8 @@ describe('single ledger feeds every screen', () => {
     const expectedBalance = 11000 - 1600.2 - 800;
 
     const overview = buildOverviewData(entries, '2026-03');
-    const february = buildMovementsData(entries, '2026-02');
-    const march = buildMovementsData(entries, '2026-03');
+    const february = buildMovementsData(entries, monthRange('2026-02'));
+    const march = buildMovementsData(entries, monthRange('2026-03'));
     const assets = buildAssetsData(entries);
     const timeline = buildEvolutionTimeline(entries, '2026-03');
 
@@ -41,7 +42,7 @@ describe('single ledger feeds every screen', () => {
   it('keeps category spending equal between movements and goals chart', async () => {
     const entries = await loadEntries();
 
-    const march = buildMovementsData(entries, '2026-03');
+    const march = buildMovementsData(entries, monthRange('2026-03'));
     const goalChart = buildCategoryVsGoal(entries, '2026-03', [{ category: 'Mercado', targetAmount: 500 }]);
 
     for (const category of march.categorizedExpenses) {

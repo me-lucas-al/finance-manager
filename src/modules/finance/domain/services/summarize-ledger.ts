@@ -1,4 +1,5 @@
 import { shiftMonth } from '@/lib/month';
+import type { DateRange } from '../models/date-range';
 import type { LedgerEntry, LedgerKind } from '../models/ledger-entry';
 
 export type LedgerTotals = {
@@ -25,6 +26,10 @@ export function entriesInMonth(entries: LedgerEntry[], month: string): LedgerEnt
   return entries.filter((entry) => monthOf(entry) === month);
 }
 
+export function entriesInRange(entries: LedgerEntry[], range: DateRange): LedgerEntry[] {
+  return entries.filter((entry) => entry.date >= range.from && entry.date <= range.to);
+}
+
 export function entriesOfKind(entries: LedgerEntry[], kind: LedgerKind): LedgerEntry[] {
   return entries.filter((entry) => entry.kind === kind);
 }
@@ -47,6 +52,10 @@ export function totalsOf(entries: LedgerEntry[]): LedgerTotals {
 
 export function balanceThrough(entries: LedgerEntry[], month: string): number {
   return totalsOf(entries.filter((entry) => monthOf(entry) <= month)).balance;
+}
+
+export function balanceThroughDate(entries: LedgerEntry[], lastDate: string): number {
+  return totalsOf(entries.filter((entry) => entry.date <= lastDate)).balance;
 }
 
 export function monthlyEvolution(entries: LedgerEntry[], lastMonth: string, monthCount: number): MonthlyEvolution[] {
