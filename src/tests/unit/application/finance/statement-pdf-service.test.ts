@@ -72,17 +72,17 @@ describe('StatementPdfService', () => {
 
   it('renders the entries of a period that crosses two months, labelled with that period', async () => {
     const period: StatementPeriodResolver = async () => ({
-      range: { from: '2026-02-15', to: '2026-03-14' },
-      label: 'Fevereiro de 2026 · 15/02 a 14/03',
+      range: { from: '2026-02-10', to: '2026-03-09' },
+      label: 'Fevereiro de 2026 · 10/02 a 09/03',
     });
     const { service, render } = setup(period);
 
     await service.generate({ userId: 'u1', userLabel: 'Lucas', month: '2026-02', filters: DEFAULT_STATEMENT_FILTERS });
 
     const document = render.mock.calls[0][0];
-    expect(rowDescriptions(document)).toEqual(['a', 'b']);
-    expect(document.monthLabel).toBe('Fevereiro de 2026 · 15/02 a 14/03');
-    expect(document.summary.at(-1)?.value).toBe(formatCurrency(totalsOf([ledger[0], ledger[1], ledger[3]]).balance));
+    expect(rowDescriptions(document)).toEqual(['a', 'd']);
+    expect(document.monthLabel).toBe('Fevereiro de 2026 · 10/02 a 09/03');
+    expect(document.summary.at(-1)?.value).toBe(formatCurrency(totalsOf([ledger[0], ledger[3]]).balance));
   });
 
   it('shows the same selection as the screen for the same filters', async () => {

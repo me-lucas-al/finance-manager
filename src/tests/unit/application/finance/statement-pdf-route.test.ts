@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { monthRange } from '@/modules/finance/domain/models/date-range';
 
 const authMock = vi.fn();
 vi.mock('@/auth', () => ({ auth: authMock }));
 
 const loadLedgerMock = vi.fn();
 vi.mock('@/composition/finance-loaders', () => ({ loadLedger: loadLedgerMock }));
+
+vi.mock('@/composition/statement-period', () => ({
+  readCurrentStatementMonth: async () => '2026-03',
+  resolveStatementPeriod: async (_userId: string, month: string) => ({ range: monthRange(month), label: month }),
+}));
 
 const { GET } = await import('../../../../app/api/statement/pdf/route');
 const { statementUserLabel } = await import('../../../../app/api/statement/pdf/statement-user-label');
