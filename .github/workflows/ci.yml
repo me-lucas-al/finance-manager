@@ -104,7 +104,7 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.0.0
 
       - name: Link project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
@@ -112,7 +112,7 @@ jobs:
       # 0001-0006 were applied by hand before this job existed; record them as
       # applied so only newer migrations are executed. Safe to repeat.
       - name: Baseline already-applied migrations
-        run: supabase migration repair --status applied 0001 0002 0003 0004 0005 0006 --password "$SUPABASE_DB_PASSWORD"
+        run: supabase migration repair --status applied 0001 0002 0003 0004 0005 0006 --remote --password "$SUPABASE_DB_PASSWORD"
 
       - name: Push migrations
-        run: supabase db push --password "$SUPABASE_DB_PASSWORD"
+        run: supabase db push --remote --password "$SUPABASE_DB_PASSWORD"
