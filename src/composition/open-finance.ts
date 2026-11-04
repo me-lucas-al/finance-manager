@@ -5,6 +5,7 @@ import { createExpenseCategoriesLister } from '@/modules/open-finance/applicatio
 import { AskFinancialGoalsUseCase } from '@/modules/open-finance/application/use-cases/ask-financial-goals';
 import { UpsertGoalUseCase } from '@/modules/open-finance/application/use-cases/manage-goal';
 import { RecordGoalsReplyUseCase } from '@/modules/open-finance/application/use-cases/record-goals-reply';
+import { ListConnectedBanksUseCase } from '@/modules/open-finance/application/use-cases/list-connected-banks';
 import { RecordItemConnectionUseCase } from '@/modules/open-finance/application/use-cases/record-item-connection';
 import { SendWeeklyGoalsSummaryUseCase } from '@/modules/open-finance/application/use-cases/send-weekly-goals-summary';
 import { UpdateGoalsFromMessageUseCase } from '@/modules/open-finance/application/use-cases/update-goals-from-message';
@@ -38,6 +39,7 @@ export const applyGoalsReplyDeps: ApplyGoalsReplyDeps = {
 export const upsertGoal = new UpsertGoalUseCase(goalRepository);
 export const updateGoalsFromMessage = new UpdateGoalsFromMessageUseCase(applyGoalsReplyDeps);
 export const recordItemConnection = new RecordItemConnectionUseCase(accountRepository);
+export const listConnectedBanks = new ListConnectedBanksUseCase(accountRepository);
 
 export const askFinancialGoals = new AskFinancialGoalsUseCase(
   goalRepository,

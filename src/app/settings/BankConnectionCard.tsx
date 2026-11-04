@@ -1,17 +1,24 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ConnectBankButton } from '@/components/onboarding/ConnectBankButton';
+import { ConnectedBanksList } from '@/components/banks/ConnectedBanksList';
+import { getConnectedBanks } from '@/app/actions/connected-banks';
+import { ConnectAnotherBank } from './ConnectAnotherBank';
 
-export function BankConnectionCard() {
+export async function BankConnectionCard() {
+  const banks = await getConnectedBanks();
+
   return (
     <Card className="md:col-span-2">
       <CardHeader>
-        <CardTitle>Banco (Pluggy)</CardTitle>
+        <CardTitle>Bancos conectados (Pluggy)</CardTitle>
         <CardDescription>
-          Receitas, despesas e investimentos são importados do seu banco. Lançamentos manuais complementam o que vem do banco.
+          Receitas, despesas e investimentos são importados dos seus bancos. Lançamentos manuais complementam o que vem deles.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ConnectBankButton label="Conectar outro banco" />
+      <CardContent className="space-y-4">
+        <ConnectedBanksList banks={banks} />
+        <div className="flex justify-center sm:justify-start">
+          <ConnectAnotherBank hasBanks={(banks?.length ?? 0) > 0} />
+        </div>
       </CardContent>
     </Card>
   );

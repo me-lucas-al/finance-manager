@@ -20,7 +20,7 @@ const render = (entries: LedgerEntry[]) =>
   new JsPdfStatementRenderer().render(
     buildStatementDocument({
       entries,
-      month: '2026-03',
+      periodLabel: 'Março de 2026',
       filters: DEFAULT_STATEMENT_FILTERS,
       accumulatedBalance: 100,
       userLabel: 'Lucas Souza',

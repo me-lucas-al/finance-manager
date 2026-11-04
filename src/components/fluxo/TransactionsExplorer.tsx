@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAmountFormatter } from '@/hooks/useAmountFormatter';
-import { getCurrentMonth, shiftMonth } from '@/lib/month';
+import { shiftMonth } from '@/lib/month';
 import type { LiveTransactionItem } from '@/modules/finance/domain/models/financial-types';
 import type { StatementFilters } from '@/modules/finance/domain/models/statement-filters';
 import { signedAmount } from '@/modules/finance/domain/services/signed-amount';
@@ -16,6 +16,7 @@ import { useStatementFilters } from './useStatementFilters';
 
 interface TransactionsExplorerProps {
   month: string;
+  currentMonth: string;
   monthLabel: string;
   filters: StatementFilters;
   categoryOptions: string[];
@@ -27,6 +28,7 @@ interface TransactionsExplorerProps {
 
 export function TransactionsExplorer({
   month,
+  currentMonth,
   monthLabel,
   filters,
   categoryOptions,
@@ -54,7 +56,7 @@ export function TransactionsExplorer({
       <CardContent className="p-6 space-y-5">
         <ExplorerHeader
           monthLabel={monthLabel}
-          isNextDisabled={nextMonth > getCurrentMonth()}
+          isNextDisabled={nextMonth > currentMonth}
           totalIncome={totalIncome}
           totalExpenses={totalExpenses}
           totalInvestments={totalInvestments}

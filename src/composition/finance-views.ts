@@ -3,10 +3,11 @@ import { createMovementsDataService } from '@/modules/finance/application/servic
 import { createOverviewDataService } from '@/modules/finance/application/services/overview-data-service';
 import { listCreditCards } from './credit-cards';
 import { loadLedger, loadPortfolio } from './finance-loaders';
+import { resolveStatementPeriod } from './statement-period';
 
 const loadCardNames = async (userId: string) =>
   Object.fromEntries((await listCreditCards.execute(userId)).map((card) => [card.id, card.name]));
 
 export const getLiveOverviewData = createOverviewDataService(loadLedger, loadPortfolio);
-export const getLiveMovementsData = createMovementsDataService(loadLedger, loadCardNames);
+export const getLiveMovementsData = createMovementsDataService(loadLedger, resolveStatementPeriod, loadCardNames);
 export const getLiveInvestmentsData = createAssetsDataService(loadLedger, loadPortfolio);

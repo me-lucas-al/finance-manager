@@ -40,7 +40,7 @@ export class ChatMemoryService {
     const summaryPrompt = `Resuma brevemente em no máximo 2 parágrafos os pontos e decisões financeiras principais deste histórico antigo:\n${textToSummarize}`;
 
     try {
-      const summaryText = await this.llm.generateText(summaryPrompt, { tier: 'flash', maxTokens: 250 });
+      const summaryText = await this.llm.generateText(summaryPrompt, { tier: 'flash', maxTokens: 600 });
       await this.chatRepo.deleteByIds(toDeleteIds);
       await this.chatRepo.create({
         userId,

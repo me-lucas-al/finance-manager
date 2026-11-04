@@ -26,7 +26,7 @@ const entries = [
 const build = (overrides = {}) =>
   buildStatementDocument({
     entries,
-    month: '2026-03',
+    periodLabel: 'Março de 2026',
     filters: DEFAULT_STATEMENT_FILTERS,
     accumulatedBalance: 1234.5,
     userLabel: 'Lucas',

@@ -36,7 +36,7 @@ export class SendMonthlyClosingSummaryUseCase {
     if (!snapshot) return;
 
     try {
-      const message = await this.llm.generateText(buildAiPrompt(snapshot), { tier: 'pro', maxTokens: 800 });
+      const message = await this.llm.generateText(buildAiPrompt(snapshot), { tier: 'pro', maxTokens: 2048 });
       await this.messenger.sendMessage(userId, message);
     } catch (error) {
       console.error('Failed to send monthly closing summary via AI', error);
