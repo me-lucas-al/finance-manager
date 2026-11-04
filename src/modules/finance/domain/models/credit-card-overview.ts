@@ -13,3 +13,8 @@ export type CreditCardOverview = {
   limit: number;
   cards: CreditCardSummary[];
 };
+
+export type CreditCardOverviews = {
+  connected: CreditCardOverview;
+  manual: CreditCardOverview;
+};

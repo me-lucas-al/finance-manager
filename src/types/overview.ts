@@ -13,6 +13,7 @@ export interface BankOverview {
 
 export type {
   CreditCardOverview,
+  CreditCardOverviews,
   CreditCardSummary,
 } from '@/modules/finance/domain/models/credit-card-overview';
 
