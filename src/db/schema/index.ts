@@ -12,3 +12,4 @@ export * from './push-subscriptions';
 export * from './notifications';
 export * from './period-snapshots';
 export * from './password-reset-tokens';
+export * from './outbox';

@@ -20,6 +20,7 @@ import {
 } from '@/modules/open-finance/infrastructure/supabase-repositories';
 import { assistantMemoryRepository } from './memory';
 import { entryChangeNotifier } from './notifier';
+import { outboxRepository } from './outbox-repo';
 import { languageModel } from './language-model';
 import { telegramMessenger } from './telegram';
 import { settingRepository } from './users';
@@ -61,6 +62,7 @@ export const recordGoalsReply = new RecordGoalsReplyUseCase(
 export const askTransactionReason = new AskTransactionReasonUseCase(
   transactionRepository,
   telegramMessenger,
+  outboxRepository,
 );
 
 export const recordTransactionReason = new RecordTransactionReasonUseCase({

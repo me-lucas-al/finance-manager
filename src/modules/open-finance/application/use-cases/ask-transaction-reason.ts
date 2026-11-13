@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/lib/format';
 import type { TelegramMessenger } from '@/modules/notifications/telegram/domain/telegram-messenger';
+import type { OutboxRepository } from '@/modules/notifications/domain/outbox-repository';
 import type { Transaction, TransactionRepository } from '../../domain/repositories/transaction-repository';
 
 function buildQuestionMessage(transaction: Transaction, categorySuggested: string): string {
@@ -17,6 +18,7 @@ export class AskTransactionReasonUseCase {
   constructor(
     private transactionRepo: TransactionRepository,
     private messenger: TelegramMessenger,
+    private outboxRepo?: OutboxRepository
   ) {}
 
   async execute(transaction: Transaction): Promise<number | null> {
@@ -32,8 +34,18 @@ export class AskTransactionReasonUseCase {
         telegramQuestionMessageId: messageId,
         status: 'pending_reason',
       });
+      return messageId;
     }
 
-    return messageId;
+    if (this.outboxRepo) {
+      await this.outboxRepo.enqueue({
+        userId: transaction.userId,
+        channel: 'telegram',
+        eventType: 'ask_reason',
+        payload: JSON.stringify({ text, transactionId: transaction.id }),
+      });
+    }
+
+    return null;
   }
 }
