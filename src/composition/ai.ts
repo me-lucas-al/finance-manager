@@ -2,7 +2,6 @@ import { AdvisorChatService } from '@/modules/ai/application/services/advisor-ch
 import { ChatMemoryService } from '@/modules/ai/application/services/chat-memory-service';
 import { DeletionConfirmationService } from '@/modules/ai/application/services/deletion-confirmation-service';
 import { createAdvisorToolsFactory } from '@/modules/ai/application/tools/financial-advisor-tools';
-import { SupabaseAssistantMemoryRepository } from '@/modules/ai/infrastructure/supabase-assistant-memory-repository';
 import { SupabaseChatMessageRepository } from '@/modules/ai/infrastructure/supabase-chat-message-repository';
 import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
 import {
@@ -32,8 +31,10 @@ import {
   updateGoalsFromMessage,
 } from './open-finance';
 
+import { assistantMemoryRepository } from './memory';
+
+export { assistantMemoryRepository };
 export const chatMessageRepository = new SupabaseChatMessageRepository();
-export const assistantMemoryRepository = new SupabaseAssistantMemoryRepository();
 
 function requireDeletionSecret(): string {
   const secret = process.env.AUTH_SECRET;

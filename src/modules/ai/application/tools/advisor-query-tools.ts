@@ -30,7 +30,15 @@ async function searchEntries(deps: AdvisorQueryDeps, args: BuscarLancamentosArgs
     text: args.texto,
     limit,
   });
-  return entries.map((e) => ({ id: e.id, tipo: e.kind, data: e.date, descricao: e.description, categoria: e.category, valor: e.amount }));
+  return entries.map((e) => ({
+    id: e.id,
+    tipo: e.kind,
+    data: e.date,
+    descricao: e.description,
+    categoria: e.category,
+    valor: e.amount,
+    ...(e.reason ? { motivo: e.reason } : {}),
+  }));
 }
 
 async function totalsStartingIn(deps: AdvisorQueryDeps, month: string) {

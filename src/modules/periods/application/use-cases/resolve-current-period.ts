@@ -10,12 +10,15 @@ export class ResolveCurrentPeriodUseCase {
 
   async forDate(userId: string, date: Date) {
     const containing = await this.periodRepo.findContaining(userId, date);
-    return containing ?? this.execute(userId);
+    return containing ?? this.execute(userId, date);
   }
 
   async execute(userId: string, referenceDate: Date = new Date()) {
     const existingOpen = await this.periodRepo.findOpenByUserId(userId);
-    if (existingOpen) return existingOpen;
+    if (existingOpen) {
+      if (new Date(existingOpen.endDate) >= referenceDate) return existingOpen;
+      await this.periodRepo.update(existingOpen.id, { status: 'CLOSED' });
+    }
 
     const settings = await this.settingRepo.findByUserId(userId);
     const startDay = settings?.periodStartDay ?? 15;

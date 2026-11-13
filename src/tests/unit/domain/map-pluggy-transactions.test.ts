@@ -19,12 +19,23 @@ const source = (transaction: PluggyTransactionLike, isCreditCard = false): Trans
 });
 
 describe('mapPluggyTransactions', () => {
-  it('skips pending and foreign currency transactions', () => {
+  it('accepts pending and posted local transactions but skips foreign currency', () => {
     const mapped = mapPluggyTransactions(
       [source(tx({ id: 'a', status: 'PENDING' })), source(tx({ id: 'b', currencyCode: 'USD' })), source(tx({ id: 'c' }))],
       false,
     );
-    expect(mapped.map(({ entry }) => entry.externalId)).toEqual(['c']);
+    expect(mapped.map(({ entry }) => entry.externalId)).toEqual(['a', 'c']);
+  });
+
+  it('accepts pending credit card purchases as eligible expense', () => {
+    const cardPurchase = tx({ id: 'card-pending', status: 'PENDING', amount: -150 });
+    const mapped = mapPluggyTransactions([source(cardPurchase, true)], true);
+    expect(mapped).toHaveLength(1);
+    expect(mapped[0].entry).toMatchObject({
+      kind: 'expense',
+      externalId: 'card-pending',
+      amount: 150,
+    });
   });
 
   it('drops paired transfers between own accounts', () => {

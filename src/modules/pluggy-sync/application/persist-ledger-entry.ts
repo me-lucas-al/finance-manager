@@ -1,6 +1,6 @@
 import { toLocalDateString } from '@/lib/month';
 import type { Account } from '@/modules/open-finance/domain/repositories/account-repository';
-import type { TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
+import type { Transaction, TransactionRepository } from '@/modules/open-finance/domain/repositories/transaction-repository';
 import { toPeriodReference, type PeriodReference } from '@/modules/periods/domain/period-reference';
 import type { LedgerWriter } from '../domain/ledger-writer';
 import type { PluggyLedgerEntry } from '../domain/map-pluggy-transaction';
@@ -9,10 +9,15 @@ import type { SyncPeriod } from '../domain/sync-period';
 const isDuplicateKeyError = (error: unknown): boolean =>
   error instanceof Error && /duplicate key|23505/i.test(error.message);
 
+export type TransactionReasonAsker = {
+  execute(transaction: Transaction): Promise<unknown>;
+};
+
 export class PersistLedgerEntry {
   constructor(
     private ledger: LedgerWriter,
     private transactions: TransactionRepository,
+    private askReason?: TransactionReasonAsker,
   ) {}
 
   async execute(userId: string, account: Account, entry: PluggyLedgerEntry, period: SyncPeriod): Promise<boolean> {
@@ -56,7 +61,7 @@ export class PersistLedgerEntry {
     if (alreadyStored) return false;
 
     try {
-      await this.transactions.create({
+      const created = await this.transactions.create({
         userId,
         pluggyTransactionId: entry.externalId,
         accountId: account.id,
@@ -64,15 +69,18 @@ export class PersistLedgerEntry {
         amount: entry.amount,
         description: entry.description,
         occurredAt: toLocalDateString(entry.date),
-        category: entry.category,
-        categorySuggested: null,
+        category: null,
+        categorySuggested: entry.category ?? null,
         reason: null,
-        status: 'categorized',
+        status: 'pending_reason',
         source: 'pluggy',
         necessity: null,
         telegramQuestionMessageId: null,
         ...reference,
       });
+      if (this.askReason) {
+        await this.askReason.execute(created);
+      }
       return true;
     } catch (error) {
       if (isDuplicateKeyError(error)) return false;

@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RouteTelegramMessageUseCase } from '@/modules/open-finance/application/use-cases/route-telegram-message';
 import { createFakeTelegramMessenger } from '@/tests/fakes/fake-telegram-messenger';
 import { FakeGoalPromptRepository } from '@/tests/fakes/fake-goal-prompt-repository';
+import { FakeTransactionRepository } from '@/tests/fakes/fake-transaction-repository';
+import type { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
+import type { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
+import type { ExtractEntryWithAiUseCase } from '@/modules/finance/application/use-cases/extract-entry-with-ai';
+import type { AdvisorChatService } from '@/modules/ai/application/services/advisor-chat-service';
+import type { AskFinancialGoalsUseCase } from '@/modules/open-finance/application/use-cases/ask-financial-goals';
+import type { RecordGoalsReplyUseCase } from '@/modules/open-finance/application/use-cases/record-goals-reply';
 
 const messenger = createFakeTelegramMessenger();
-
-import { HandleBotCommandUseCase } from '@/modules/finance/application/use-cases/handle-bot-command';
-import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-cases/register-manual-entry';
-import { ExtractEntryWithAiUseCase } from '@/modules/finance/application/use-cases/extract-entry-with-ai';
-import { AdvisorChatService } from '@/modules/ai/application/services/advisor-chat-service';
-import { AskFinancialGoalsUseCase } from '@/modules/open-finance/application/use-cases/ask-financial-goals';
-import { RecordGoalsReplyUseCase } from '@/modules/open-finance/application/use-cases/record-goals-reply';
 
 describe('RouteTelegramMessageUseCase', () => {
   let goalPromptRepo: FakeGoalPromptRepository;
@@ -40,6 +40,8 @@ describe('RouteTelegramMessageUseCase', () => {
       askFinancialGoals: askFinancialGoals as unknown as AskFinancialGoalsUseCase,
       recordGoalsReply: recordGoalsReply as unknown as RecordGoalsReplyUseCase,
       goalPromptRepo,
+      transactionRepo: new FakeTransactionRepository(),
+      recordTransactionReason: { execute: vi.fn() } as never,
       messenger,
     });
   });
