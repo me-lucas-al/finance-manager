@@ -49,4 +49,18 @@ describe('ResolveCurrentPeriodUseCase', () => {
     expect(period.startDate.getDate()).toBe(1);
     expect(period.endDate.getDate()).toBe(30);
   });
+
+  it('should close an expired period and create a new open period for the new month', async () => {
+    const octoberDate = new Date(2026, 9, 20);
+    const octoberPeriod = await useCase.execute('user-1', octoberDate);
+    expect(octoberPeriod.status).toBe('OPEN');
+
+    const novemberDate = new Date(2026, 10, 20);
+    const novemberPeriod = await useCase.execute('user-1', novemberDate);
+
+    expect(novemberPeriod.id).not.toBe(octoberPeriod.id);
+    expect(novemberPeriod.status).toBe('OPEN');
+    const closed = await periodRepo.findById(octoberPeriod.id);
+    expect(closed?.status).toBe('CLOSED');
+  });
 });
