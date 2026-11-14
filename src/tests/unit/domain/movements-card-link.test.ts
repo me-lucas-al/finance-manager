@@ -50,4 +50,17 @@ describe('movements of a financial period', () => {
     expect(data.transactions.map((item) => item.id).sort()).toEqual(['p2', 'p3']);
     expect(data.totalExpenses).toBe(50);
   });
+
+  it('includes reason and pending status in movements', () => {
+    const pendingTx = expenseToEntry({
+      ...transaction('p5', '2026-03-01', 80, 'Mercado'),
+      reason: 'Compras do mês',
+      status: 'pending_reason',
+    });
+    const data = buildMovementsData([pendingTx], monthRange('2026-03'));
+
+    expect(data.totalPending).toBe(80);
+    expect(data.pendingExpenses[0]).toMatchObject({ name: 'Mercado', amount: 80 });
+    expect(data.transactions[0]).toMatchObject({ reason: 'Compras do mês', status: 'pending_reason' });
+  });
 });

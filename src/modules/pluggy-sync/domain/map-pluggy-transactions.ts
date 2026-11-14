@@ -5,7 +5,7 @@ import {
   type PluggyTransactionLike,
 } from './map-pluggy-transaction';
 
-const SETTLED_STATUS = 'POSTED';
+const ALLOWED_STATUSES = new Set(['POSTED', 'PENDING']);
 const LEDGER_CURRENCY = 'BRL';
 
 export type TransactionSource<Origin> = {
@@ -17,9 +17,10 @@ export type TransactionSource<Origin> = {
 export type MappedTransaction<Origin> = { origin: Origin; entry: PluggyLedgerEntry };
 
 export function isSettledLocalTransaction(tx: PluggyTransactionLike): boolean {
-  const isSettled = !tx.status || tx.status === SETTLED_STATUS;
-  const isLocalCurrency = !tx.currencyCode || tx.currencyCode === LEDGER_CURRENCY;
-  return isSettled && isLocalCurrency;
+  const status = tx.status?.toUpperCase();
+  const isAllowedStatus = !status || ALLOWED_STATUSES.has(status);
+  const isLocalCurrency = !tx.currencyCode || tx.currencyCode.toUpperCase() === LEDGER_CURRENCY;
+  return isAllowedStatus && isLocalCurrency;
 }
 
 export function mapPluggyTransactions<Origin>(

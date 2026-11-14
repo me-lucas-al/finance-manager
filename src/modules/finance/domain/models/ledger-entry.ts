@@ -14,4 +14,6 @@ export type LedgerEntry = {
   imported?: true;
   creditCardId?: string;
   fixed: boolean;
+  reason?: string | null;
+  status?: string;
 };

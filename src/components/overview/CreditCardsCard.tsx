@@ -1,14 +1,12 @@
 import { CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Amount } from '@/components/shared/Amount';
-import { ProgressBar } from '@/components/shared/ProgressBar';
-import type { CreditCardOverview } from '@/types/overview';
-import { CreditCardRow } from './CreditCardRow';
+import type { CreditCardOverviews } from '@/types/overview';
+import { CreditCardGroup } from './CreditCardGroup';
 import { CreditCardsEmptyState } from './CreditCardsEmptyState';
 import { OverviewCardLinkLabel } from './OverviewCardLinkLabel';
 
-export function CreditCardsCard({ credit }: { credit: CreditCardOverview }) {
-  const isEmpty = credit.cards.length === 0;
+export function CreditCardsCard({ credit }: { credit: CreditCardOverviews }) {
+  const isEmpty = credit.connected.cards.length === 0 && credit.manual.cards.length === 0;
 
   return (
     <Card className="bg-[#111216] border-zinc-800/80 rounded-2xl shadow-sm hover:border-zinc-700/60 transition-colors">
@@ -16,24 +14,11 @@ export function CreditCardsCard({ credit }: { credit: CreditCardOverview }) {
         <OverviewCardLinkLabel href="/cards" icon={<CreditCard className="h-4 w-4 text-blue-500" />}>
           CARTÕES DE CRÉDITO
         </OverviewCardLinkLabel>
-        <div className="mt-2">
-          <Amount value={credit.total} className="text-3xl font-bold tracking-tight text-blue-500" />
-        </div>
-        <div className="mt-3 space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-zinc-400">
-            <span>{credit.usedPercentage}% utilizado</span>
-            <span>
-              Limite: <Amount value={credit.limit} />
-            </span>
-          </div>
-          <ProgressBar percentage={credit.usedPercentage} />
-        </div>
       </CardHeader>
-      <CardContent className="px-6 pb-5 pt-1 space-y-3">
+      <CardContent className="px-6 pb-5 pt-1 space-y-6">
         {isEmpty && <CreditCardsEmptyState />}
-        {credit.cards.map((card) => (
-          <CreditCardRow key={card.id} card={card} />
-        ))}
+        <CreditCardGroup title="Conectados ao banco" overview={credit.connected} />
+        <CreditCardGroup title="Cadastrados manualmente" overview={credit.manual} />
       </CardContent>
     </Card>
   );

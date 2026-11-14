@@ -12,7 +12,6 @@ import { RegisterManualEntryUseCase } from '@/modules/finance/application/use-ca
 import { UpdateEntryUseCase } from '@/modules/finance/application/use-cases/update-entry';
 import { DrizzleIncomeRepository } from '@/modules/finance/infrastructure/drizzle-income-repository';
 import { DrizzleInvestmentRepository } from '@/modules/finance/infrastructure/drizzle-investment-repository';
-import { NextEntryChangeNotifier } from '@/modules/finance/infrastructure/next-entry-change-notifier';
 import { PersistenceLedgerSource } from '@/modules/finance/infrastructure/persistence-ledger-source';
 import { PersistenceLedgerQuery } from '@/modules/finance/infrastructure/persistence-ledger-query';
 import { PersistencePortfolioSource } from '@/modules/finance/infrastructure/persistence-portfolio-source';
@@ -22,9 +21,11 @@ import { languageModel } from './language-model';
 import { accountRepository, goalRepository, transactionRepository } from './open-finance';
 import { periodRepository, resolveCurrentPeriod } from './periods';
 
+import { entryChangeNotifier } from './notifier';
+
+export { entryChangeNotifier };
 export const incomeRepository = new DrizzleIncomeRepository();
 export const investmentRepository = new DrizzleInvestmentRepository();
-export const entryChangeNotifier = new NextEntryChangeNotifier();
 
 export const ledgerService = new LedgerService(new PersistenceLedgerSource(transactionRepository));
 export const portfolioService = new PortfolioService(new PersistencePortfolioSource(accountRepository));

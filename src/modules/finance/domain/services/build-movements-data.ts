@@ -27,6 +27,8 @@ function toTransactionItem(entry: LedgerEntry, cardNames: CardNames): LiveTransa
     ...(entry.creditCardId && { creditCardId: entry.creditCardId }),
     ...(entry.creditCardId && cardNames[entry.creditCardId] && { creditCardName: cardNames[entry.creditCardId] }),
     fixed: entry.fixed,
+    reason: entry.reason,
+    status: entry.status,
   };
 }
 
@@ -38,10 +40,12 @@ export function buildMovementsData(
 ): LiveMovementsData {
   const monthEntries = entriesInRange(entries, range);
   const totals = totalsOf(monthEntries);
+  const pendingEntries = monthEntries.filter((entry) => entry.status === 'pending_reason');
+  const totalPending = pendingEntries.reduce((sum, entry) => sum + entry.amount, 0);
 
   return {
     totalExpenses: totals.expenses,
-    totalPending: 0,
+    totalPending,
     totalIncome: totals.income,
     totalInvestments: totals.investments,
     netBalance: totals.balance,
@@ -51,7 +55,12 @@ export function buildMovementsData(
       percentage: totals.expenses > 0 ? Math.round((total / totals.expenses) * 100) : 0,
       color: getCategoryColor(category),
     })),
-    pendingExpenses: [],
+    pendingExpenses: totalsByCategory(pendingEntries, 'expense').map(({ category, total }) => ({
+      name: category,
+      amount: total,
+      percentage: totalPending > 0 ? Math.round((total / totalPending) * 100) : 0,
+      color: getCategoryColor(category),
+    })),
     transactions: selectStatementEntries(entries, range, filters).map((entry) => toTransactionItem(entry, cardNames)),
     categoryOptions: categoriesOf(monthEntries),
   };

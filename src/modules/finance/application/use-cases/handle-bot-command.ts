@@ -22,7 +22,7 @@ Ou escreva naturalmente, ex: "gastei 50 no almoço".
 ⚡ Comandos Rápidos:
 /desfazer - Remove o último lançamento
 /editar   - Corrige o último lançamento (ex.: /editar valor 45,90)
-/resumo   - Snapshot financeiro do mês
+/resumo   - Snapshot financeiro do mês (ou /relatorio)
 /fixos    - Lançamentos fixos do mês (lançados e agendados)
 /cartoes  - Cartões de crédito e uso da fatura aberta
 /ajuda    - Mostra este menu de instruções`;
@@ -63,7 +63,7 @@ export class HandleBotCommandUseCase {
       return this.showCreditCards.execute(userId);
     }
 
-    if (norm === '/resumo') {
+    if (norm === '/resumo' || norm === '/relatorio' || norm === '/relatório') {
       const curMonth = getCurrentMonth();
       const [entries, portfolio, goals] = await Promise.all([
         this.ledger.load(userId),

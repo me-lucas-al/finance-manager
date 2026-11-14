@@ -20,6 +20,8 @@ export function expenseToEntry(transaction: Transaction): LedgerEntry {
     ...(transaction.source !== 'manual' && { imported: true as const }),
     ...(transaction.creditCardId && { creditCardId: transaction.creditCardId }),
     fixed: Boolean(transaction.fixedReferenceMonth),
+    reason: transaction.reason,
+    status: transaction.status,
   };
 }
 

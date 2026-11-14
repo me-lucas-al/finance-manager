@@ -17,7 +17,7 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
         </div>
         <div>
           <p className="text-sm font-medium text-white group-hover:text-zinc-100 leading-snug">
-            {transaction.description}
+            {transaction.reason ? `${transaction.reason} (${transaction.description})` : transaction.description}
           </p>
           <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5">
             {transaction.isCreditCard && <CreditCard className="h-3 w-3 text-zinc-400" />}
@@ -30,6 +30,11 @@ export function TransactionRow({ transaction }: { transaction: LiveTransactionIt
             {transaction.fixed && (
               <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 text-[10px] font-medium text-blue-400">
                 Fixo
+              </span>
+            )}
+            {transaction.status === 'pending_reason' && (
+              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 text-[10px] font-medium text-amber-400">
+                Pendente
               </span>
             )}
           </div>

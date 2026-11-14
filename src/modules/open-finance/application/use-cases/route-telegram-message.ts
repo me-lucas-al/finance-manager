@@ -7,7 +7,9 @@ import { AdvisorChatService } from '@/modules/ai/application/services/advisor-ch
 import { formatEntryConfirmation } from '@/modules/finance/application/services/manual-entry-confirmation-formatter';
 import type { AskFinancialGoalsUseCase } from './ask-financial-goals';
 import type { RecordGoalsReplyUseCase } from './record-goals-reply';
+import type { RecordTransactionReasonUseCase } from './record-transaction-reason';
 import type { GoalPromptRepository } from '../../domain/repositories/goal-prompt-repository';
+import type { TransactionRepository } from '../../domain/repositories/transaction-repository';
 
 export type TelegramIncomingMessage = {
   messageId: number;
@@ -23,6 +25,8 @@ export type RouteTelegramDeps = {
   askFinancialGoals: AskFinancialGoalsUseCase;
   recordGoalsReply: RecordGoalsReplyUseCase;
   goalPromptRepo: GoalPromptRepository;
+  transactionRepo: TransactionRepository;
+  recordTransactionReason: RecordTransactionReasonUseCase;
   messenger: TelegramMessenger;
 };
 
@@ -38,15 +42,17 @@ export class RouteTelegramMessageUseCase {
         await this.deps.recordGoalsReply.execute(userId, trimmed, prompt.id, message.messageId);
         return;
       }
+      const tx = await this.deps.transactionRepo.findByTelegramQuestionMessageId(userId, message.replyToMessageId);
+      if (tx) {
+        await this.deps.recordTransactionReason.execute(tx, trimmed, message.messageId);
+        return;
+      }
     }
 
     if (trimmed.toLowerCase().startsWith('/goal')) {
       const remaining = trimmed.slice(5).trim();
-      if (!remaining) {
-        await this.deps.askFinancialGoals.execute(userId);
-      } else {
-        await this.deps.recordGoalsReply.execute(userId, remaining, undefined, message.messageId);
-      }
+      if (!remaining) await this.deps.askFinancialGoals.execute(userId);
+      else await this.deps.recordGoalsReply.execute(userId, remaining, undefined, message.messageId);
       return;
     }
 
@@ -59,16 +65,20 @@ export class RouteTelegramMessageUseCase {
     const parsed = parseEntryMessage(trimmed);
     if (parsed) {
       const res = await this.deps.registerManualEntry.execute(userId, parsed);
-      const conf = formatEntryConfirmation(res);
-      await this.deps.messenger.sendMessage(userId, conf, message.messageId);
+      await this.deps.messenger.sendMessage(userId, formatEntryConfirmation(res), message.messageId);
+      return;
+    }
+
+    const pendingTx = await this.deps.transactionRepo.findLatestPendingByUserId(userId);
+    if (pendingTx) {
+      await this.deps.recordTransactionReason.execute(pendingTx, trimmed, message.messageId);
       return;
     }
 
     const aiExtraction = await this.deps.extractWithAi.execute(trimmed, userId);
     if (aiExtraction.success) {
       const res = await this.deps.registerManualEntry.execute(userId, aiExtraction.entry);
-      const conf = formatEntryConfirmation(res);
-      await this.deps.messenger.sendMessage(userId, conf, message.messageId);
+      await this.deps.messenger.sendMessage(userId, formatEntryConfirmation(res), message.messageId);
       return;
     }
 
@@ -77,18 +87,18 @@ export class RouteTelegramMessageUseCase {
       return;
     }
 
+    await this.replyWithAdvisor(userId, trimmed, message.messageId);
+  }
+
+  private async replyWithAdvisor(userId: string, text: string, messageId: number) {
     await this.deps.messenger.sendTyping(userId);
-    let reply: string;
+    let reply = 'Não consegui gerar uma resposta agora. Pode reformular a pergunta?';
     try {
-      reply = (await this.deps.advisorChat.respond(userId, trimmed, 'telegram')).trim();
-    } catch (err) {
-      console.error('Advisor chat failed:', err);
+      const res = (await this.deps.advisorChat.respond(userId, text, 'telegram')).trim();
+      if (res) reply = res;
+    } catch {
       reply = 'Tive um problema ao processar sua mensagem. Tente novamente em instantes.';
     }
-    if (!reply) {
-      console.error('Advisor chat returned an empty reply');
-      reply = 'Não consegui gerar uma resposta agora. Pode reformular a pergunta?';
-    }
-    await this.deps.messenger.sendMessage(userId, reply, message.messageId);
+    await this.deps.messenger.sendMessage(userId, reply, messageId);
   }
 }

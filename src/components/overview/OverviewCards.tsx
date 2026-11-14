@@ -1,11 +1,11 @@
-import type { BankOverview, CreditCardOverview, InvestmentOverview } from '@/types/overview';
+import type { BankOverview, CreditCardOverviews, InvestmentOverview } from '@/types/overview';
 import { BankAccountsCard } from './BankAccountsCard';
 import { CreditCardsCard } from './CreditCardsCard';
 import { InvestmentsCard } from './InvestmentsCard';
 
 interface OverviewCardsProps {
   bankData: BankOverview;
-  creditCardData: CreditCardOverview;
+  creditCardData: CreditCardOverviews;
   investmentsData: InvestmentOverview;
 }
 

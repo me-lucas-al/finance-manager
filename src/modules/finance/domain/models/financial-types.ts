@@ -43,6 +43,8 @@ export interface LiveTransactionItem {
   creditCardId?: string;
   creditCardName?: string;
   fixed: boolean;
+  reason?: string | null;
+  status?: string;
 }
 
 export interface LiveExpenseCategory {

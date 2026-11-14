@@ -2,7 +2,13 @@ import { ExtractEntryWithAiUseCase } from '@/modules/finance/application/use-cas
 import { RouteTelegramMessageUseCase } from '@/modules/open-finance/application/use-cases/route-telegram-message';
 import { buildAdvisorServices } from './ai';
 import { cardNameSource } from './credit-card-advisor';
-import { askFinancialGoals, goalPromptRepository, recordGoalsReply } from './open-finance';
+import {
+  askFinancialGoals,
+  goalPromptRepository,
+  recordGoalsReply,
+  recordTransactionReason,
+  transactionRepository,
+} from './open-finance';
 import { telegramMessenger } from './telegram';
 
 export function buildTelegramRouter(): RouteTelegramMessageUseCase {
@@ -16,6 +22,8 @@ export function buildTelegramRouter(): RouteTelegramMessageUseCase {
     askFinancialGoals,
     recordGoalsReply,
     goalPromptRepo: goalPromptRepository,
+    transactionRepo: transactionRepository,
+    recordTransactionReason,
     messenger: telegramMessenger,
   });
 }

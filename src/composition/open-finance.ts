@@ -3,8 +3,10 @@ import type { ApplyGoalsReplyDeps } from '@/modules/open-finance/application/sha
 import { createExpenseBreakdownReader } from '@/modules/open-finance/application/shared/expense-totals';
 import { createExpenseCategoriesLister } from '@/modules/open-finance/application/shared/expense-categories';
 import { AskFinancialGoalsUseCase } from '@/modules/open-finance/application/use-cases/ask-financial-goals';
+import { AskTransactionReasonUseCase } from '@/modules/open-finance/application/use-cases/ask-transaction-reason';
 import { UpsertGoalUseCase } from '@/modules/open-finance/application/use-cases/manage-goal';
 import { RecordGoalsReplyUseCase } from '@/modules/open-finance/application/use-cases/record-goals-reply';
+import { RecordTransactionReasonUseCase } from '@/modules/open-finance/application/use-cases/record-transaction-reason';
 import { ListConnectedBanksUseCase } from '@/modules/open-finance/application/use-cases/list-connected-banks';
 import { RecordItemConnectionUseCase } from '@/modules/open-finance/application/use-cases/record-item-connection';
 import { SendWeeklyGoalsSummaryUseCase } from '@/modules/open-finance/application/use-cases/send-weekly-goals-summary';
@@ -16,6 +18,9 @@ import {
   SupabaseSavingsGoalRepository,
   SupabaseTransactionRepository,
 } from '@/modules/open-finance/infrastructure/supabase-repositories';
+import { assistantMemoryRepository } from './memory';
+import { entryChangeNotifier } from './notifier';
+import { outboxRepository } from './outbox-repo';
 import { languageModel } from './language-model';
 import { telegramMessenger } from './telegram';
 import { settingRepository } from './users';
@@ -53,6 +58,21 @@ export const recordGoalsReply = new RecordGoalsReplyUseCase(
   goalPromptRepository,
   telegramMessenger,
 );
+
+export const askTransactionReason = new AskTransactionReasonUseCase(
+  transactionRepository,
+  telegramMessenger,
+  outboxRepository,
+);
+
+export const recordTransactionReason = new RecordTransactionReasonUseCase({
+  transactionRepo: transactionRepository,
+  memoryRepo: assistantMemoryRepository,
+  llm: languageModel,
+  messenger: telegramMessenger,
+  notifier: entryChangeNotifier,
+  listCategories: listExpenseCategories,
+});
 
 export const sendWeeklyGoalsSummary = new SendWeeklyGoalsSummaryUseCase(
   goalRepository,

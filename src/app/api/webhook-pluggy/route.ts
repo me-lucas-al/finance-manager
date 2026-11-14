@@ -36,7 +36,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const itemId = 'itemId' in payload ? payload.itemId : undefined;
-    if (itemId && (payload.event === 'transactions/created' || payload.event === 'item/updated')) {
+    const isSyncableEvent =
+      payload.event === 'transactions/created' ||
+      payload.event === 'transactions/updated' ||
+      payload.event === 'item/updated';
+    if (itemId && isSyncableEvent) {
       const userId = await resolveItemOwner(itemId);
       if (!userId) {
         return NextResponse.json({ ok: true });
